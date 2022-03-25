@@ -6,13 +6,25 @@ using System.Net.Http;
 
 namespace Checkmarx.API.AST
 {
-    public class Client
+    public class ASTClient
     {
         public Uri Server { get; set; }
 
         public string Tenant { get; }
 
         public string KeyApi { get; set; }
+
+
+        private Projects _projects;
+        public Projects Projects
+        {
+            get { 
+                if(_projects == null && Connected)
+                    _projects = new Projects(_httpClient);
+
+                return _projects;  
+            }
+        }
 
 
         private readonly HttpClient _httpClient = new HttpClient();
@@ -38,15 +50,15 @@ namespace Checkmarx.API.AST
         /// <param name="tenant"></param>
         /// <param name="apiKey"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public Client(Uri server, string tenant, string apiKey)
+        public ASTClient(Uri server, string tenant, string apiKey)
         {
-            if(server == null) throw new ArgumentNullException(nameof(server));
-            if(string.IsNullOrWhiteSpace(tenant)) throw new ArgumentNullException(nameof(tenant));
-            if(string.IsNullOrWhiteSpace(apiKey)) throw new ArgumentNullException(nameof(apiKey));
-            
+            if (server == null) throw new ArgumentNullException(nameof(server));
+            if (string.IsNullOrWhiteSpace(tenant)) throw new ArgumentNullException(nameof(tenant));
+            if (string.IsNullOrWhiteSpace(apiKey)) throw new ArgumentNullException(nameof(apiKey));
+
             Server = server;
             Tenant = tenant;
-            KeyApi = apiKey; 
+            KeyApi = apiKey;
         }
 
         private string Autenticate()
