@@ -3,12 +3,15 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace Checkmarx.API.AST
 {
     public class ASTClient
     {
-        public Uri Server { get; set; }
+        public Uri AcessControlServer { get; private set; }
+
+        public Uri ASTServer { get; private set; }
 
         public string Tenant { get; }
 
@@ -18,9 +21,12 @@ namespace Checkmarx.API.AST
         private Projects _projects;
         public Projects Projects
         {
-            get { 
-                if(_projects == null && Connected)
-                    _projects = new Projects(_httpClient);
+            get {
+                if (_projects == null && Connected)
+                    _projects = new Projects(_httpClient)
+                    {
+                        BaseUrl = $"{ASTServer.AbsoluteUri}api/projects"
+                    };
 
                 return _projects;  
             }
@@ -29,11 +35,19 @@ namespace Checkmarx.API.AST
 
         private readonly HttpClient _httpClient = new HttpClient();
 
+        private DateTime _bearerValidTo;
+
         public bool Connected
         {
             get
             {
-                return Autenticate() != null;
+                if (_httpClient == null || (_bearerValidTo - DateTime.UtcNow).TotalMinutes < 5)
+                {
+                    var token = Autenticate();
+                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                    _bearerValidTo = DateTime.UtcNow.AddHours(1);
+                }
+                return true;
             }
         }
 
@@ -41,29 +55,34 @@ namespace Checkmarx.API.AST
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="astServer">
+        /// US Environment - https://ast.checkmarx.net/
+        /// EU Environment - https://eu.ast.checkmarx.net/
+        /// </param>
         /// <param name="server">
         /// URL
         /// https://eu.iam.checkmarx.net
-        /// US Environment - https://ast.checkmarx.net/
-        /// EU Environment - https://eu.ast.checkmarx.net/
+        /// https://iam.checkmarx.net
         /// </param>
         /// <param name="tenant"></param>
         /// <param name="apiKey"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public ASTClient(Uri server, string tenant, string apiKey)
+        public ASTClient(Uri astServer, Uri acessControlServer, string tenant, string apiKey)
         {
-            if (server == null) throw new ArgumentNullException(nameof(server));
+            if (astServer == null) throw new ArgumentNullException(nameof(astServer));
+            if (acessControlServer == null) throw new ArgumentNullException(nameof(acessControlServer));
             if (string.IsNullOrWhiteSpace(tenant)) throw new ArgumentNullException(nameof(tenant));
             if (string.IsNullOrWhiteSpace(apiKey)) throw new ArgumentNullException(nameof(apiKey));
 
-            Server = server;
+            ASTServer = astServer;
+            AcessControlServer = acessControlServer;
             Tenant = tenant;
             KeyApi = apiKey;
         }
 
         private string Autenticate()
         {
-            var identityURL = $"{Server.AbsoluteUri}/auth/realms/{Tenant}/protocol/openid-connect/token";
+            var identityURL = $"{AcessControlServer.AbsoluteUri}auth/realms/{Tenant}/protocol/openid-connect/token";
             var kv = new Dictionary<string, string>
             {
                 { "grant_type", "refresh_token" },

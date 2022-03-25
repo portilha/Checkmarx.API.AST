@@ -4,14 +4,21 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
 
     <IsPackable>false</IsPackable>
+
+    <UserSecretsId>6fc04646-45ee-4fc8-bc7b-f6a875031206</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Keycloak.Net" Version="1.0.18" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.13" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="2.2.7" />
     <PackageReference Include="MSTest.TestFramework" Version="2.2.7" />
     <PackageReference Include="coverlet.collector" Version="3.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Checkmarx.API.AST\Checkmarx.API.AST.csproj" />
   </ItemGroup>
 
 </Project>
