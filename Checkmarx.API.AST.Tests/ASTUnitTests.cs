@@ -24,7 +24,7 @@ namespace Checkmarx.API.AST.Tests
 
             astclient = new ASTClient(
                 new System.Uri(Configuration["ASTServer"]),
-                new System.Uri(Configuration["AcessControlServer"]), 
+                new System.Uri(Configuration["AccessControlServer"]), 
                 Configuration["Tenant"], 
                 Configuration["API_KEY"]);
         }
@@ -45,6 +45,19 @@ namespace Checkmarx.API.AST.Tests
             foreach (var item in projectsList.Projects)
             {
                 Trace.WriteLine(item.Id + " " + item.Name + " " + item.RepoUrl);
+            }
+        }
+
+        [TestMethod]
+        public void ListApplications()
+        {
+            Assert.IsNotNull(astclient.Applications);
+
+            var applicationsList = astclient.Applications.GetListOfApplicationsAsync().Result;
+
+            foreach (var item in applicationsList.Applications)
+            {
+                Trace.WriteLine(item.Id + " " + item.Name);
             }
         }
 

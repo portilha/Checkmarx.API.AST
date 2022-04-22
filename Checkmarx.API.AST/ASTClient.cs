@@ -32,6 +32,20 @@ namespace Checkmarx.API.AST
             }
         }
 
+        private Applications _applications;
+        public Applications Applications
+        {
+            get
+            {
+                if (_applications == null && Connected)
+                    _applications = new Applications(_httpClient)
+                    {
+                        BaseUrl = $"{ASTServer.AbsoluteUri}api/applications"
+                    };
+
+                return _applications;
+            }
+        }
 
         private readonly HttpClient _httpClient = new HttpClient();
 
