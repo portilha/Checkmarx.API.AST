@@ -49,9 +49,10 @@ namespace Checkmarx.API.AST.Tests
         }
 
         [TestMethod]
-        public void MyTestMethod()
+        public void ListScansTest()
         {
             
         }
+
     }
 }

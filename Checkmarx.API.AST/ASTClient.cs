@@ -38,7 +38,7 @@ namespace Checkmarx.API.AST
             get
             {
                 if (_SASTResults == null && Connected)
-                    _SASTResults = new SASTResults($"{ASTServer.AbsoluteUri}api/projects", _httpClient);
+                    _SASTResults = new SASTResults($"{ASTServer.AbsoluteUri}api/sast-results", _httpClient);
 
                 return _SASTResults;
             }
