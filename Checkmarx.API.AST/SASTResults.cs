@@ -15,6 +15,7 @@
 
 namespace Checkmarx.API.AST
 {
+    using Checkmarx.API.AST.Exceptions;
     using System = global::System;
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "13.15.10.0 (NJsonSchema v10.6.10.0 (Newtonsoft.Json v11.0.0.0))")]
