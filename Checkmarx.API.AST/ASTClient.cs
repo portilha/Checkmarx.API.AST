@@ -32,6 +32,18 @@ namespace Checkmarx.API.AST
             }
         }
 
+        private SASTResults _SASTResults;
+        public SASTResults SASTResults
+        {
+            get
+            {
+                if (_SASTResults == null && Connected)
+                    _SASTResults = new SASTResults($"{ASTServer.AbsoluteUri}api/sast-results", _httpClient);
+
+                return _SASTResults;
+            }
+        }
+
         private Applications _applications;
         public Applications Applications
         {

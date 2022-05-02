@@ -49,6 +49,7 @@ namespace Checkmarx.API.AST.Tests
         }
 
         [TestMethod]
+        public void ListScansTest()
         public void ListApplications()
         {
             Assert.IsNotNull(astclient.Applications);
@@ -66,5 +67,6 @@ namespace Checkmarx.API.AST.Tests
         {
             
         }
+
     }
 }
