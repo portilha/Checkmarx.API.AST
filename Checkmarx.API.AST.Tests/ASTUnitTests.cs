@@ -64,7 +64,14 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void ListScansTest()
         {
-            
+            Assert.IsNotNull(astclient.Scans);
+
+            var scansList = astclient.Scans.GetListOfScansAsync().Result;
+
+            foreach (var item in scansList.Scans)
+            {
+                Trace.WriteLine(item.Id + " " + item.ProjectId);
+            }
         }
 
 
