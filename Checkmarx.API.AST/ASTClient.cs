@@ -1,6 +1,7 @@
 ﻿using Checkmarx.API.AST.Enums;
 using Checkmarx.API.AST.Services.Applications;
 using Checkmarx.API.AST.Services.Projects;
+using Checkmarx.API.AST.Services.Scans;
 using Checkmarx.API.AST.Services.SASTResults;
 using Checkmarx.API.AST.Models;
 using Newtonsoft.Json;
@@ -31,6 +32,21 @@ namespace Checkmarx.API.AST
                     };
 
                 return _projects;  
+            }
+        }
+
+        private Scans _scans;
+        public Scans Scans
+        {
+            get
+            {
+                if (_scans == null && Connected)
+                    _scans = new Scans(_httpClient)
+                    {
+                        BaseUrl = $"{ASTServer.AbsoluteUri}api/projects"
+                    };
+
+                return _scans;
             }
         }
 
@@ -144,57 +160,57 @@ namespace Checkmarx.API.AST
 
 
 
-        public IEnumerable<Scan> GetAllSASTScans(Guid projectId)
-        {
-            return GetScans(projectId, true, ScanRetrieveKind.All);
-        }
+        //public IEnumerable<Scan> GetAllSASTScans(Guid projectId)
+        //{
+        //    return GetScans(projectId, true, ScanRetrieveKind.All);
+        //}
 
-        public Scan GetLastScan(Guid projectId)
-        {
-            var scan = GetScans(projectId, true, ScanRetrieveKind.Last);
-            return scan.FirstOrDefault();
-        }
+        //public Scan GetLastScan(Guid projectId)
+        //{
+        //    var scan = GetScans(projectId, true, ScanRetrieveKind.Last);
+        //    return scan.FirstOrDefault();
+        //}
 
-        public Scan GetLockedScan(Guid projectId)
-        {
-            return GetScans(projectId, true, ScanRetrieveKind.Locked).FirstOrDefault();
-        }
+        //public Scan GetLockedScan(Guid projectId)
+        //{
+        //    return GetScans(projectId, true, ScanRetrieveKind.Locked).FirstOrDefault();
+        //}
 
-        public IEnumerable<Scan> GetScans(Guid projectId, bool finished,
-            ScanRetrieveKind scanKind = ScanRetrieveKind.All, string version = null)
-        {
-            //checkConnection();
+        //public IEnumerable<Scan> GetScans(Guid projectId, bool finished,
+        //    ScanRetrieveKind scanKind = ScanRetrieveKind.All, string version = null)
+        //{
+        //    checkConnection();
 
-            //IQueryable<CxDataRepository.Scan> scans = SASTResults. _oDataScans.Where(x => x.ProjectId == projectId);
+        //    IQueryable<CxDataRepository.Scan> scans = SASTResults._oDataScans.Where(x => x.ProjectId == projectId);
 
-            //if (version != null)
-            //    scans = scans.Where(x => version.StartsWith(x.ProductVersion));
+        //    if (version != null)
+        //        scans = scans.Where(x => version.StartsWith(x.ProductVersion));
 
-            //switch (scanKind)
-            //{
-            //    case ScanRetrieveKind.First:
-            //        scans = scans.Take(1);
-            //        break;
-            //    case ScanRetrieveKind.Last:
-            //        scans = scans.Skip(Math.Max(0, scans.Count() - 1));
-            //        break;
+        //    switch (scanKind)
+        //    {
+        //        case ScanRetrieveKind.First:
+        //            scans = scans.Take(1);
+        //            break;
+        //        case ScanRetrieveKind.Last:
+        //            scans = scans.Skip(Math.Max(0, scans.Count() - 1));
+        //            break;
 
-            //    case ScanRetrieveKind.Locked:
-            //        scans = scans.Where(x => x.IsLocked);
-            //        break;
-            //    case ScanRetrieveKind.All:
-            //        break;
-            //}
+        //        case ScanRetrieveKind.Locked:
+        //            scans = scans.Where(x => x.IsLocked);
+        //            break;
+        //        case ScanRetrieveKind.All:
+        //            break;
+        //    }
 
-            //foreach (var scan in scans)
-            //{
-            //    if (finished && scan.ScanType == 3)
-            //        continue;
+        //    foreach (var scan in scans)
+        //    {
+        //        if (finished && scan.ScanType == 3)
+        //            continue;
 
-            //    yield return ConvertScanFromOData(scan);
-            //}
+        //        yield return ConvertScanFromOData(scan);
+        //    }
 
-            return new List<Scan>();
-        }
+        //    return new List<Scan>();
+        //}
     }
 }
