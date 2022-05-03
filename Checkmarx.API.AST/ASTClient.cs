@@ -1,7 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿using Checkmarx.API.AST.Enums;
+using Checkmarx.API.AST.Models;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 
@@ -10,13 +13,9 @@ namespace Checkmarx.API.AST
     public class ASTClient
     {
         public Uri AcessControlServer { get; private set; }
-
         public Uri ASTServer { get; private set; }
-
         public string Tenant { get; }
-
         public string KeyApi { get; set; }
-
 
         private Projects _projects;
         public Projects Projects
@@ -32,18 +31,6 @@ namespace Checkmarx.API.AST
             }
         }
 
-        private SASTResults _SASTResults;
-        public SASTResults SASTResults
-        {
-            get
-            {
-                if (_SASTResults == null && Connected)
-                    _SASTResults = new SASTResults($"{ASTServer.AbsoluteUri}api/sast-results", _httpClient);
-
-                return _SASTResults;
-            }
-        }
-
         private Applications _applications;
         public Applications Applications
         {
@@ -56,6 +43,19 @@ namespace Checkmarx.API.AST
                     };
 
                 return _applications;
+            }
+        }
+
+        // Engine SAST results
+        private SASTResults _SASTResults;
+        public SASTResults SASTResults
+        {
+            get
+            {
+                if (_SASTResults == null && Connected)
+                    _SASTResults = new SASTResults($"{ASTServer.AbsoluteUri}api/sast-results", _httpClient);
+
+                return _SASTResults;
             }
         }
 
@@ -77,6 +77,11 @@ namespace Checkmarx.API.AST
             }
         }
 
+        private void checkConnection()
+        {
+            if (!Connected)
+                throw new NotSupportedException();
+        }
 
         /// <summary>
         /// 
@@ -127,5 +132,66 @@ namespace Checkmarx.API.AST
             throw new Exception(response.Content.ReadAsStringAsync().Result);
         }
 
+        public ProjectsCollection GetAllProjectsDetails(bool showAlsoDeletedProjects = false)
+        {
+            checkConnection();
+
+            return Projects.GetListOfProjectsAsync().Result;
+        }
+
+
+
+        public IEnumerable<Scan> GetAllSASTScans(Guid projectId)
+        {
+            return GetScans(projectId, true, ScanRetrieveKind.All);
+        }
+
+        public Scan GetLastScan(Guid projectId)
+        {
+            var scan = GetScans(projectId, true, ScanRetrieveKind.Last);
+            return scan.FirstOrDefault();
+        }
+
+        public Scan GetLockedScan(Guid projectId)
+        {
+            return GetScans(projectId, true, ScanRetrieveKind.Locked).FirstOrDefault();
+        }
+
+        public IEnumerable<Scan> GetScans(Guid projectId, bool finished,
+            ScanRetrieveKind scanKind = ScanRetrieveKind.All, string version = null)
+        {
+            //checkConnection();
+
+            //IQueryable<CxDataRepository.Scan> scans = SASTResults. _oDataScans.Where(x => x.ProjectId == projectId);
+
+            //if (version != null)
+            //    scans = scans.Where(x => version.StartsWith(x.ProductVersion));
+
+            //switch (scanKind)
+            //{
+            //    case ScanRetrieveKind.First:
+            //        scans = scans.Take(1);
+            //        break;
+            //    case ScanRetrieveKind.Last:
+            //        scans = scans.Skip(Math.Max(0, scans.Count() - 1));
+            //        break;
+
+            //    case ScanRetrieveKind.Locked:
+            //        scans = scans.Where(x => x.IsLocked);
+            //        break;
+            //    case ScanRetrieveKind.All:
+            //        break;
+            //}
+
+            //foreach (var scan in scans)
+            //{
+            //    if (finished && scan.ScanType == 3)
+            //        continue;
+
+            //    yield return ConvertScanFromOData(scan);
+            //}
+
+            return new List<Scan>();
+        }
     }
 }
