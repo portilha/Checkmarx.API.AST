@@ -1,4 +1,7 @@
 ﻿using Checkmarx.API.AST.Enums;
+using Checkmarx.API.AST.Services.Applications;
+using Checkmarx.API.AST.Services.Projects;
+using Checkmarx.API.AST.Services.SASTResults;
 using Checkmarx.API.AST.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
