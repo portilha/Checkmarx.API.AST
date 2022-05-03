@@ -67,5 +67,17 @@ namespace Checkmarx.API.AST.Tests
             
         }
 
+
+        [TestMethod]
+        public void GetResultsByScanTest()
+        {
+
+        }
+
+        [TestMethod]
+        public void GetSASTResultsByScanTest()
+        {
+
+        }
     }
 }
