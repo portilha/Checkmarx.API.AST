@@ -1,6 +1,7 @@
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Diagnostics;
 
 namespace Checkmarx.API.AST.Tests
@@ -66,7 +67,7 @@ namespace Checkmarx.API.AST.Tests
         {
             Assert.IsNotNull(astclient.Scans);
 
-            var scansList = astclient.Scans.GetListOfScansAsync().Result;
+            var scansList = astclient.Scans.GetListOfScansAsync("1c724868-72fa-4bfe-aca5-6c9096b48408").Result;
 
             foreach (var item in scansList.Scans)
             {
