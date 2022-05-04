@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -8,67 +9,96 @@ namespace Checkmarx.API.AST.Models
     public partial class Scan
     {
         [JsonProperty("id")]
-        public Guid Id { get; set; }
-
-        [JsonProperty("project")]
-        public EngineServer Project { get; set; }
+        public string Id { get; set; }
 
         [JsonProperty("status")]
-        public Status Status { get; set; }
+        public StatusEnum Status { get; set; }
 
-        [JsonProperty("scanType")]
-        public FinishedScanStatus ScanType { get; set; }
+        [JsonProperty("statusDetails")]
+        public ICollection<StatusDetails> StatusDetails { get; set; }
 
-        [JsonProperty("comment")]
-        public string Comment { get; set; }
+        [JsonProperty("positionInQueue")]
+        public int PositionInQueue { get; set; }
 
-        [JsonProperty("dateAndTime")]
-        public DateAndTime DateAndTime { get; set; }
+        [JsonProperty("projectId")]
+        public string ProjectId { get; set; }
 
-        [JsonProperty("resultsStatistics")]
-        public ResultsStatistics ResultsStatistics { get; set; }
+        [JsonProperty("branch")]
+        public string Branch { get; set; }
 
-        [JsonProperty("scanState")]
-        public ScanState ScanState { get; set; }
+        [JsonProperty("commitId")]
+        public string CommitId { get; set; }
 
-        [JsonProperty("owner")]
-        public string Owner { get; set; }
+        [JsonProperty("commitTag")]
+        public string CommitTag { get; set; }
 
-        [JsonProperty("origin")]
-        public string Origin { get; set; }
+        [JsonProperty("uploadUrl")]
+        public string UploadUrl { get; set; }
 
-        [JsonProperty("initiatorName")]
-        public string InitiatorName { get; set; }
+        [JsonProperty("createdAt")]
+        public DateTimeOffset CreatedAt { get; set; }
 
-        [JsonProperty("owningTeamId")]
-        public string OwningTeamId { get; set; }
+        [JsonProperty("updatedAt")]
+        public DateTimeOffset UpdatedAt { get; set; }
 
-        [JsonProperty("isPublic")]
-        public bool IsPublic { get; set; }
+        [JsonProperty("userAgent")]
+        public string UserAgent { get; set; }
 
-        [JsonProperty("isLocked")]
-        public bool IsLocked { get; set; }
+        [JsonProperty("initiator")]
+        public string Initiator { get; set; }
 
-        [JsonProperty("isIncremental")]
-        public bool IsIncremental { get; set; }
+        [JsonProperty("tags")]
+        public IDictionary<string, string> Tags { get; set; }
 
-        [JsonProperty("scanRisk")]
-        public int ScanRisk { get; set; }
+        [JsonProperty("metadata")]
+        public object Metadata { get; set; }
 
-        [JsonProperty("scanRiskSeverity")]
-        public long ScanRiskSeverity { get; set; }
+        private IDictionary<string, object> _additionalProperties = new System.Collections.Generic.Dictionary<string, object>();
+        [JsonProperty("additionalProperties")]
+        public IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties; }
+            set { _additionalProperties = value; }
+        }
 
-        [JsonProperty("engineServer")]
-        public EngineServer EngineServer { get; set; }
-
-        [JsonProperty("finishedScanStatus")]
-        public FinishedScanStatus FinishedScanStatus { get; set; }
-
-        [JsonProperty("partialScanReasons")]
-        public object PartialScanReasons { get; set; }
-        public ASTResults Results { get; set; }
+        public IEnumerable<SASTScanResults> SASTResults { get; set; }
 
         public static Scan FromJson(string json) => JsonConvert.DeserializeObject<Scan>(json, Converter.Settings);
+    }
+
+    public enum StatusEnum
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Queued")]
+        Queued = 0,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Running")]
+        Running = 1,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Completed")]
+        Completed = 2,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Failed")]
+        Failed = 3,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Partial")]
+        Partial = 4,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Canceled")]
+        Canceled = 5,
+
+    }
+
+    public partial class StatusDetails
+    {
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("status")]
+        public string Status { get; set; }
+
+        [JsonProperty("details")]
+        public string Details { get; set; }
     }
 
     public static class Serialize

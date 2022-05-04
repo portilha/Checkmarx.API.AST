@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Checkmarx.API.AST.Models
 {
-    public class ASTResults
+    public class SASTScanResults
     {
         public Guid Id { get; set; }
 

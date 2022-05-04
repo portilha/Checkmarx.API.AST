@@ -45,8 +45,8 @@ namespace Checkmarx.API.AST.Models
 
     public partial class CustomField
     {
-        [JsonProperty("id")]
-        public long Id { get; set; }
+        //[JsonProperty("id")]
+        //public long Id { get; set; }
 
         [JsonProperty("value")]
         public string Value { get; set; }

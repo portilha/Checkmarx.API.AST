@@ -53,41 +53,6 @@ namespace Checkmarx.API.AST.Services.SASTResults
         partial void PrepareRequest(System.Net.Http.HttpClient client, System.Net.Http.HttpRequestMessage request, System.Text.StringBuilder urlBuilder);
         partial void ProcessResponse(System.Net.Http.HttpClient client, System.Net.Http.HttpResponseMessage response);
 
-        /// <summary>
-        /// get SAST results by Scan ID
-        /// </summary>
-        /// <param name="authorization">REQUIRED: JWT authorization token</param>
-        /// <param name="accept">API version should be appended to this header</param>
-        /// <param name="correlationId">correlation id to keep track of a flow if many APIs are involved</param>
-        /// <param name="scan_id">filter by scan id</param>
-        /// <param name="severity">filter by severity. OR operator between the items.</param>
-        /// <param name="status">filter by status. OR operator between the items.</param>
-        /// <param name="group">filter by group. matching groups that CONTAINES the input.</param>
-        /// <param name="compliance">filter by compliance. matching groups that EQUALS the input with case insensitive.</param>
-        /// <param name="query">filter by query. matching queries that CONTAINES the input.</param>
-        /// <param name="language">filter by language name. matching languages that EQUALS the input with case insensitive.</param>
-        /// <param name="query_ids">filter by queries ids. matching queries that EQUALS to the inputs.</param>
-        /// <param name="node_ids">Node IDs to find. OR operator between the items.</param>
-        /// <param name="source_file">filter by source file name.</param>
-        /// <param name="source_file_operation">filter operation for source file.</param>
-        /// <param name="source_node">filter by source node</param>
-        /// <param name="source_node_operation">filter operation for source node</param>
-        /// <param name="sink_node">filter by sink node</param>
-        /// <param name="sink_node_operation">filter operation for sink node</param>
-        /// <param name="sink_file">filter by sink file name</param>
-        /// <param name="sink_file_operation">filter operation for sink file</param>
-        /// <param name="include_nodes">if true returns ResultNode objects, otherwise will omit the Nodes field.</param>
-        /// <param name="apply_predicates">if true will apply changes from predicates, otherwise will return the raw result.</param>
-        /// <param name="offset">The number of items to skip before starting to collect the result set.</param>
-        /// <param name="limit">The number of items to return.</param>
-        /// <param name="sort">sorting ORDERED array. each string pattern "[-+]field". - mean ASC, + mean DESC.</param>
-        /// <returns>successful operation</returns>
-        /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<Response> GetSASTResultsByScanAsync(string authorization, string accept, System.Guid? correlationId, string scan_id, System.Collections.Generic.IEnumerable<Anonymous> severity, System.Collections.Generic.IEnumerable<Anonymous2> status, string group, string compliance, string query, System.Collections.Generic.IEnumerable<string> language, System.Collections.Generic.IEnumerable<double> query_ids, System.Collections.Generic.IEnumerable<string> node_ids, string source_file, SourceFileOperation? source_file_operation, string source_node, SourceNodeOperation? source_node_operation, string sink_node, SinkNodeOperation? sink_node_operation, string sink_file, SinkFileOperation? sink_file_operation, bool? include_nodes, bool? apply_predicates, int? offset, int? limit, System.Collections.Generic.IEnumerable<Anonymous3> sort)
-        {
-            return GetSASTResultsByScanAsync(authorization, accept, correlationId, scan_id, severity, status, group, compliance, query, language, query_ids, node_ids, source_file, source_file_operation, source_node, source_node_operation, sink_node, sink_node_operation, sink_file, sink_file_operation, include_nodes, apply_predicates, offset, limit, sort, System.Threading.CancellationToken.None);
-        }
-
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
         /// get SAST results by Scan ID
@@ -119,7 +84,10 @@ namespace Checkmarx.API.AST.Services.SASTResults
         /// <param name="sort">sorting ORDERED array. each string pattern "[-+]field". - mean ASC, + mean DESC.</param>
         /// <returns>successful operation</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<Response> GetSASTResultsByScanAsync(string authorization, string accept, System.Guid? correlationId, string scan_id, System.Collections.Generic.IEnumerable<Anonymous> severity, System.Collections.Generic.IEnumerable<Anonymous2> status, string group, string compliance, string query, System.Collections.Generic.IEnumerable<string> language, System.Collections.Generic.IEnumerable<double> query_ids, System.Collections.Generic.IEnumerable<string> node_ids, string source_file, SourceFileOperation? source_file_operation, string source_node, SourceNodeOperation? source_node_operation, string sink_node, SinkNodeOperation? sink_node_operation, string sink_file, SinkFileOperation? sink_file_operation, bool? include_nodes, bool? apply_predicates, int? offset, int? limit, System.Collections.Generic.IEnumerable<Anonymous3> sort, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<Response> GetSASTResultsByScanAsync(string scan_id, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Collections.Generic.IEnumerable<Anonymous> severity = null, System.Collections.Generic.IEnumerable<Anonymous2> status = null, string group = null, string compliance = null, 
+                                                                                             string query = null, System.Collections.Generic.IEnumerable<string> language = null, System.Collections.Generic.IEnumerable<double> query_ids = null, System.Collections.Generic.IEnumerable<string> node_ids = null, string source_file = null, SourceFileOperation? source_file_operation = null, 
+                                                                                             string source_node = null, SourceNodeOperation? source_node_operation = null, string sink_node = null, SinkNodeOperation? sink_node_operation = null, string sink_file = null, SinkFileOperation? sink_file_operation = null, bool? include_nodes = null, bool? apply_predicates = null, 
+                                                                                             int? offset = null, int? limit = null, System.Collections.Generic.IEnumerable<Anonymous3> sort = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (scan_id == null)
                 throw new System.ArgumentNullException("scan_id");
@@ -419,7 +387,7 @@ namespace Checkmarx.API.AST.Services.SASTResults
         /// Query ID
         /// </summary>
         [Newtonsoft.Json.JsonProperty("queryID", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public int QueryID { get; set; }
+        public string QueryID { get; set; }
 
         /// <summary>
         /// Query name
@@ -1052,7 +1020,7 @@ namespace Checkmarx.API.AST.Services.SASTResults
         /// Query ID
         /// </summary>
         [Newtonsoft.Json.JsonProperty("queryID", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public int QueryID { get; set; }
+        public string QueryID { get; set; }
 
         /// <summary>
         /// Query name
@@ -1161,7 +1129,6 @@ namespace Checkmarx.API.AST.Services.SASTResults
             get { return _additionalProperties; }
             set { _additionalProperties = value; }
         }
-
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.15.10.0 (NJsonSchema v10.6.10.0 (Newtonsoft.Json v11.0.0.0))")]
