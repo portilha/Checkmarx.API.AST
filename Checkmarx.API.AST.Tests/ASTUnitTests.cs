@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Checkmarx.API.AST.Tests
 {
@@ -67,8 +68,10 @@ namespace Checkmarx.API.AST.Tests
         {
             Assert.IsNotNull(astclient.Scans);
 
-            var scansList = astclient.Scans.GetListOfScansAsync().Result;
-            //var scansList = astclient.Scans.GetListOfScansAsync("1c724868-72fa-4bfe-aca5-6c9096b48408").Result;
+            //var scansList = astclient.Scans.GetListOfScansAsync().Result;
+            var scansList = astclient.Scans.GetListOfScansAsync("a1705d81-091c-4ae5-b5d4-78917e0a4eb0").Result;
+            var lastScan = scansList.Scans?.ToList().OrderByDescending(x => x.CreatedAt)?.FirstOrDefault();
+            var scanResult = astclient.SASTResults.GetSASTResultsByScanAsync(lastScan.Id).Result;
 
             foreach (var item in scansList.Scans)
             {
@@ -76,11 +79,16 @@ namespace Checkmarx.API.AST.Tests
             }
         }
 
+        // sast results disto -> criar depois no 
+
 
         [TestMethod]
         public void GetResultsByScanTest()
         {
+            Assert.IsNotNull(astclient.Scans);
 
+            var resultsList = astclient.SASTResults.GetSASTResultsByScanAsync("").Result;
+            //loc high mid and lows
         }
 
         [TestMethod]

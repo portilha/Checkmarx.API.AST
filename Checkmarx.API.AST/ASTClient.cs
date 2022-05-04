@@ -158,6 +158,30 @@ namespace Checkmarx.API.AST
             return Projects.GetListOfProjectsAsync().Result;
         }
 
+        //public Dictionary<string, CustomField> GetProjectCustomFields(int projectId)
+        //{
+        //    return GetProjectSettings(projectId).CustomFields.ToDictionary(x => x.Name);
+        //}
+
+        //public ProjectDetails GetProjectSettings(int projectId)
+        //{
+        //    checkConnection();
+
+        //    using (var request = new HttpRequestMessage(HttpMethod.Get, $"projects/{projectId}"))
+        //    {
+        //        request.Headers.Add("Accept", "application/json;v=2.0");
+
+        //        HttpResponseMessage response = httpClient.SendAsync(request).Result;
+
+        //        if (response.StatusCode == HttpStatusCode.OK)
+        //        {
+        //            ProjectDetails projDetails = JsonConvert.DeserializeObject<ProjectDetails>(response.Content.ReadAsStringAsync().Result);
+        //            return projDetails;
+        //        }
+
+        //        throw new NotSupportedException(response.Content.ReadAsStringAsync().Result);
+        //    }
+        //}
 
 
         public IEnumerable<Checkmarx.API.AST.Models.Scan> GetAllSASTScans(Guid projectId)
@@ -179,38 +203,52 @@ namespace Checkmarx.API.AST
         public List<Checkmarx.API.AST.Models.Scan> GetScans(Guid projectId, bool finished,
             ScanRetrieveKind scanKind = ScanRetrieveKind.All, string version = null)
         {
-            //checkConnection();
+            List<Checkmarx.API.AST.Models.Scan> list = new List<Checkmarx.API.AST.Models.Scan>();
 
-            //IQueryable<CxDataRepository.Scan> scans = SASTResults._oDataScans.Where(x => x.ProjectId == projectId);
+            checkConnection();
 
-            //if (version != null)
-            //    scans = scans.Where(x => version.StartsWith(x.ProductVersion));
+            var scanList = Scans.GetListOfScansAsync(projectId.ToString()).Result;
+            var scans = scanList.Scans.Select(x => x);
+            if (scans.Any())
+            {
+                //if (version != null)
+                //    scans = scans.Where(x => version.StartsWith(x.ProductVersion));
 
-            //switch (scanKind)
-            //{
-            //    case ScanRetrieveKind.First:
-            //        scans = scans.Take(1);
-            //        break;
-            //    case ScanRetrieveKind.Last:
-            //        scans = scans.Skip(Math.Max(0, scans.Count() - 1));
-            //        break;
+                switch (scanKind)
+                {
+                    case ScanRetrieveKind.First:
+                        scans = scans.Take(1);
+                        break;
+                    case ScanRetrieveKind.Last:
+                        scans = scans.Skip(Math.Max(0, scans.Count() - 1));
+                        break;
+                    //case ScanRetrieveKind.Locked:
+                    //    scans = scans.Where(x => x.IsLocked);
+                    //    break;
+                    case ScanRetrieveKind.All:
+                        break;
+                }
 
-            //    case ScanRetrieveKind.Locked:
-            //        scans = scans.Where(x => x.IsLocked);
-            //        break;
-            //    case ScanRetrieveKind.All:
-            //        break;
-            //}
+                foreach (var scan in scans)
+                {
+                    var model = Models.Scan.FromJson(JsonConvert.SerializeObject(scan));
+                    var scanResults = SASTResults.GetSASTResultsByScanAsync(scan.Id).Result;
+                    if (scanResults.Results.Any())
+                    {
+                        //model.SASTResults = scanResults.Results.Select(x => new SASTScanResults { 
+                        //    Id = new Guid(x.ID),
+                        //    LoC = x.l,
+                        //    FailedLoC = x.FailedLoC,
+                        //    FalseNegatives = x.FalseNegatives,
+                        //    FalsePositives = x.FalsePositives
+                        //});
+                    }
 
-            //foreach (var scan in scans)
-            //{
-            //    if (finished && scan.ScanType == 3)
-            //        continue;
+                    list.Add(model);
+                }
+            }
 
-            //    yield return ConvertScanFromOData(scan);
-            //}
-
-            return new List<Checkmarx.API.AST.Models.Scan>();
+            return list;
         }
     }
 }
