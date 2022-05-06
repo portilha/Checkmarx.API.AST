@@ -3,6 +3,8 @@ using Checkmarx.API.AST.Services.Applications;
 using Checkmarx.API.AST.Services.Projects;
 using Checkmarx.API.AST.Services.Scans;
 using Checkmarx.API.AST.Services.SASTResults;
+using Checkmarx.API.AST.Services.Reports;
+using Checkmarx.API.AST.Services.SASTMetadata;
 using Checkmarx.API.AST.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -47,6 +49,36 @@ namespace Checkmarx.API.AST
                     };
 
                 return _scans;
+            }
+        }
+
+        private Reports _reports;
+        public Reports Reports
+        {
+            get
+            {
+                if (_reports == null && Connected)
+                    _reports = new Reports(_httpClient)
+                    {
+                        BaseUrl = $"{ASTServer.AbsoluteUri}api/reports"
+                    };
+
+                return _reports;
+            }
+        }
+
+        private SASTMetadata _SASTMetadata;
+        public SASTMetadata SASTMetadata
+        {
+            get
+            {
+                if (_SASTMetadata == null && Connected)
+                    _SASTMetadata = new SASTMetadata(_httpClient)
+                    {
+                        BaseUrl = $"{ASTServer.AbsoluteUri}api/reports"
+                    };
+
+                return _SASTMetadata;
             }
         }
 
@@ -231,20 +263,29 @@ namespace Checkmarx.API.AST
 
                 foreach (var scan in scans)
                 {
-                    var model = Models.Scan.FromJson(JsonConvert.SerializeObject(scan));
-                    var scanResults = SASTResults.GetSASTResultsByScanAsync(scan.Id).Result;
-                    if (scanResults.Results.Any())
-                    {
-                        //model.SASTResults = scanResults.Results.Select(x => new SASTScanResults { 
-                        //    Id = new Guid(x.ID),
-                        //    LoC = x.l,
-                        //    FailedLoC = x.FailedLoC,
-                        //    FalseNegatives = x.FalseNegatives,
-                        //    FalsePositives = x.FalsePositives
-                        //});
-                    }
+                    //var model = Models.Scan.FromJson(JsonConvert.SerializeObject(scan));
+                    //var scanResults = SASTResults.GetSASTResultsByScanAsync(scan.Id).Result;
+                    //if (scanResults.Results.Any())
+                    //{
+                    //    model.SASTResults = scanResults.Results.Select(x => new SASTScanResults
+                    //    {
+                    //        Id = new Guid(x.ID),
+                    //        //LoC = x.Loc,
+                    //        //FailedLoC = x.FailedLoC,
+                    //        //FalseNegatives = x.FalseNegatives,
+                    //        //FalsePositives = x.FalsePositives,
+                    //        //High = x.High,
+                    //        //Medium = x.Medium,
+                    //        //Low = x.Low,
+                    //        //Info = x.Info,
+                    //        //LanguagesDetected = x.asd,
+                    //        //Queries = x.fdsdf,
+                    //        //TunningInfo = x.safdsd
+                    //    });
+                    //}
 
-                    list.Add(model);
+                    //list.Add(model);
+                    list.Add(Models.Scan.FromJson(JsonConvert.SerializeObject(scan)));
                 }
             }
 
