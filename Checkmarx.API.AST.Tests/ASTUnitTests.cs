@@ -116,19 +116,19 @@ namespace Checkmarx.API.AST.Tests
                 {
                     string downloadUrl = null;
                     Guid reportId = createReportId;
-                    string reportStatus = "requested";
+                    string reportStatus = "Requested";
                     string pastReportStatus = reportStatus;
                     //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, "Waiting/pooling for AST json report, please wait...");
                     double aprox_seconds_passed = 0.0;
-                    while (reportStatus != "completed")
+                    while (reportStatus != "Completed")
                     {
                         System.Threading.Thread.Sleep(2000);
                         aprox_seconds_passed += 2.020;
-                        dynamic statusResponse = astclient.Reports.GetReportAsync(reportId, true);
-                        reportId = statusResponse["reportId"].ToObject<string>();
-                        reportStatus = statusResponse["status"].ToObject<string>();
-                        downloadUrl = statusResponse["url"].ToObject<string>();
-                        if (reportStatus != "requested" && reportStatus != "completed" && reportStatus != "started" && reportStatus != "failed")
+                        var statusResponse = astclient.Reports.GetReportAsync(reportId, true).GetAwaiter().GetResult();
+                        reportId = statusResponse.ReportId;
+                        reportStatus = statusResponse.Status.ToString();
+                        downloadUrl = statusResponse.Url;
+                        if (reportStatus != "Requested" && reportStatus != "Completed" && reportStatus != "Started" && reportStatus != "Failed")
                         {
                             //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, "Abnormal AST json report status! You may want to [cancel all] and retry.");
                         }
@@ -140,15 +140,16 @@ namespace Checkmarx.API.AST.Tests
                         {
                             //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, "AST json report is taking a long time! You may want to [cancel all] and retry.");
                         }
-                        if (reportStatus == "failed")
+                        if (reportStatus == "Failed")
                         {
                             //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, "AST API says it could not generate a json report. You may want to [cancel all] and retry with diferent scans.");
                             return null;
                         }
                     }
                     //dynamic scanString = AstApi.downloadScanReportJson(sc, reportId);
-                    dynamic scanString = astclient.Reports.DownloadAsync(reportId);
-                    return scanString;
+                   // dynamic scanString = astclient.Reports.DownloadAsync(reportId).GetAwaiter().GetResult();
+                    astclient.Reports.DownloadAsync(new Guid("ee845fdc-2b14-4b21-9a5e-e636649df64d")).GetAwaiter().GetResult();
+                    return "";
                 }
                 else
                 {
