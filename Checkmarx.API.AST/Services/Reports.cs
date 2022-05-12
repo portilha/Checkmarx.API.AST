@@ -15,6 +15,7 @@
 
 namespace Checkmarx.API.AST.Services.Reports
 {
+    using System.Net;
     using System = global::System;
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "13.15.10.0 (NJsonSchema v10.6.10.0 (Newtonsoft.Json v12.0.0.0))")]
@@ -214,81 +215,86 @@ namespace Checkmarx.API.AST.Services.Reports
         /// Download a report
         /// </summary>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        //public virtual async System.Threading.Tasks.Task DownloadAsync(System.Guid reportId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
-        //{
-        //    if (reportId == null)
-        //        throw new System.ArgumentNullException("reportId");
+        public virtual async System.Threading.Tasks.Task<string> DownloadScanReportJsonUrl(string url, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        {
+            if (string.IsNullOrEmpty(url))
+                throw new System.ArgumentNullException("reportId");
 
-        //    var urlBuilder_ = new System.Text.StringBuilder();
-        //    urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/{reportId}/download");
-        //    urlBuilder_.Replace("{reportId}", System.Uri.EscapeDataString(ConvertToString(reportId, System.Globalization.CultureInfo.InvariantCulture)));
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
 
-        //    var client_ = _httpClient;
-        //    var disposeClient_ = false;
-        //    try
-        //    {
-        //        using (var request_ = new System.Net.Http.HttpRequestMessage())
-        //        {
-        //            request_.Method = new System.Net.Http.HttpMethod("GET");
+                    PrepareRequest(client_, request_, url);
 
-        //            PrepareRequest(client_, request_, urlBuilder_);
+                    //var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url, System.UriKind.RelativeOrAbsolute);
 
-        //            var url_ = urlBuilder_.ToString();
-        //            request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+                    PrepareRequest(client_, request_, url);
 
-        //            PrepareRequest(client_, request_, url_);
+                    System.Net.Http.HttpResponseMessage response_ = null;
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
 
-        //            System.Net.Http.HttpResponseMessage response_ = null;
-        //            var disposeResponse_ = true;
-        //            try
-        //            {
-        //                response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                        var headers_ = System.Linq.Enumerable.ToDictionary(response_.Headers, h_ => h_.Key, h_ => h_.Value);
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
 
-        //                var headers_ = System.Linq.Enumerable.ToDictionary(response_.Headers, h_ => h_.Key, h_ => h_.Value);
-        //                if (response_.Content != null && response_.Content.Headers != null)
-        //                {
-        //                    foreach (var item_ in response_.Content.Headers)
-        //                        headers_[item_.Key] = item_.Value;
-        //                }
+                        ProcessResponse(client_, response_);
 
-        //                ProcessResponse(client_, response_);
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 301)
+                        {
+                            string responseText_ = (response_.Content == null) ? string.Empty : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            throw new ApiException("Moved Permanently", status_, responseText_, headers_, null);
+                        }
+                        else
 
-        //                var status_ = (int)response_.StatusCode;
-        //                if (status_ == 301)
-        //                {
-        //                    string responseText_ = (response_.Content == null) ? string.Empty : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
-        //                    throw new ApiException("Moved Permanently", status_, responseText_, headers_, null);
-        //                }
-        //                else
+                        if (status_ == 200 || status_ == 204)
+                        {
+                            using (System.IO.Stream dataStream = response_.Content.ReadAsStreamAsync().GetAwaiter().GetResult())
+                            {
+                                using (System.IO.StreamReader reader = new System.IO.StreamReader(dataStream))
+                                {
+                                    string responseFromServer = reader.ReadToEnd();
+                                    return responseFromServer;
+                                    //return JsonConvert.DeserializeObject<dynamic>(responseFromServer);
+                                }
+                            }
 
-        //                if (status_ == 200 || status_ == 204)
-        //                {
-        //                    string responseText_ = (response_.Content == null) ? string.Empty : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
-        //                    return;
-        //                }
-        //                else
-        //                {
-        //                    var responseData_ = response_.Content == null ? null : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
-        //                    throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
-        //                }
-        //            }
-        //            catch(System.Exception ex)
-        //            {
-        //                throw;
-        //            }
-        //            finally
-        //            {
-        //                if (disposeResponse_)
-        //                    response_.Dispose();
-        //            }
-        //        }
-        //    }
-        //    finally
-        //    {
-        //        if (disposeClient_)
-        //            client_.Dispose();
-        //    }
-        //}
+                            //string responseText_ = (response_.Content == null) ? string.Empty : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        throw;
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
 
         public async System.Threading.Tasks.Task DownloadAsync(System.Guid reportId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {

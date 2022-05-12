@@ -1,10 +1,13 @@
-
+using Checkmarx.API.AST.Models.Report;
 using Checkmarx.API.AST.Services.Reports;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net;
 
 namespace Checkmarx.API.AST.Tests
 {
@@ -82,25 +85,7 @@ namespace Checkmarx.API.AST.Tests
             }
         }
 
-        // sast results disto -> criar depois no 
-
-
-        [TestMethod]
-        public void GetResultsByScanTest()
-        {
-            Assert.IsNotNull(astclient.Scans);
-
-            var resultsList = astclient.SASTResults.GetSASTResultsByScanAsync("").Result;
-            //loc high mid and lows
-        }
-
-        [TestMethod]
-        public void GetSASTResultsByScanTest()
-        {
-
-        }
-
-        private static dynamic getAstScanJsonReport(string projectId, string scanId)
+        private static ReportResults getAstScanJsonReport(string projectId, string scanId)
         {
             ScanReportCreateInput sc = new ScanReportCreateInput();
             sc.ReportName = BaseReportCreateInputReportName.ScanReport;
@@ -147,9 +132,12 @@ namespace Checkmarx.API.AST.Tests
                         }
                     }
                     //dynamic scanString = AstApi.downloadScanReportJson(sc, reportId);
-                   // dynamic scanString = astclient.Reports.DownloadAsync(reportId).GetAwaiter().GetResult();
-                    astclient.Reports.DownloadAsync(new Guid("ee845fdc-2b14-4b21-9a5e-e636649df64d")).GetAwaiter().GetResult();
-                    return "";
+                    //dynamic scanString = downloadScanReportJsonUrl(sc, downloadUrl);
+                    //astclient.Reports.DownloadAsync(new Guid("ee845fdc-2b14-4b21-9a5e-e636649df64d")).GetAwaiter().GetResult();
+                    
+                    var reportString = astclient.Reports.DownloadScanReportJsonUrl(downloadUrl).GetAwaiter().GetResult();
+
+                    return JsonConvert.DeserializeObject<ReportResults>(reportString);
                 }
                 else
                 {
@@ -160,5 +148,43 @@ namespace Checkmarx.API.AST.Tests
             return null;
         }
 
+        public static dynamic downloadScanReportJsonUrl(ScanReportCreateInput sc, string url)
+        {
+            //string serverRestEndpoint = $"{sc.Uri}api/reports/{reportId}/download";
+            string serverRestEndpoint = url;
+            WebRequest request = WebRequest.Create(serverRestEndpoint);
+            request.Method = "GET";
+            //request.Headers.Add("Authorization", GetAuthToken(sc));
+            try
+            {
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                {
+                    using (Stream dataStream = response.GetResponseStream())
+                    {
+                        using (StreamReader reader = new StreamReader(dataStream))
+                        {
+                            string responseFromServer = reader.ReadToEnd();
+                            return JsonConvert.DeserializeObject<dynamic>(responseFromServer);
+                        }
+                    }
+                }
+            }
+            catch (WebException we)
+            {
+                //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, we.GetType().Name + " found. StackTrace: " + we.StackTrace);
+                if (we.Response != null)
+                {
+                    using (Stream dataStream = we.Response.GetResponseStream())
+                    {
+                        using (StreamReader reader = new StreamReader(dataStream))
+                        {
+                            string responseFromServer = reader.ReadToEnd();
+                            //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, $"Server response: {responseFromServer}");
+                        }
+                    }
+                }
+                throw we;
+            }
+        }
     }
 }
