@@ -73,11 +73,16 @@ namespace Checkmarx.API.AST.Tests
             Assert.IsNotNull(astclient.Scans);
 
             //var scansList = astclient.Scans.GetListOfScansAsync().Result;
-            var scansList = astclient.Scans.GetListOfScansAsync("a1705d81-091c-4ae5-b5d4-78917e0a4eb0").Result;
+            var proj = astclient.Projects.GetProjectAsync("a1705d81-091c-4ae5-b5d4-78917e0a4eb0").Result;
+            var scansList = astclient.Scans.GetListOfScansAsync(proj.Id).Result;
             var lastScan = scansList.Scans?.ToList().OrderByDescending(x => x.CreatedAt)?.FirstOrDefault();
             var scanResult = astclient.SASTResults.GetSASTResultsByScanAsync(lastScan.Id).Result;
 
             var report = getAstScanJsonReport("a1705d81-091c-4ae5-b5d4-78917e0a4eb0", lastScan.Id);
+            var metadata = astclient.SASTMetadata.GetMetadataAsync(new Guid(lastScan.Id)).Result;
+
+            //ASTClient.GEtScanResults()
+
 
             foreach (var item in scansList.Scans)
             {
