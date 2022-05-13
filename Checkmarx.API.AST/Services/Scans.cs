@@ -383,7 +383,7 @@ namespace Checkmarx.API.AST.Services.Scans
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/tags");
 
             var client_ = _httpClient;
-            var disposeClient_ = true;
+            var disposeClient_ = false;
             try
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
@@ -476,7 +476,7 @@ namespace Checkmarx.API.AST.Services.Scans
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/summary");
 
             var client_ = _httpClient;
-            var disposeClient_ = true;
+            var disposeClient_ = false;
             try
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
@@ -569,7 +569,7 @@ namespace Checkmarx.API.AST.Services.Scans
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/templates");
 
             var client_ = _httpClient;
-            var disposeClient_ = true;
+            var disposeClient_ = false;
             try
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
@@ -676,7 +676,7 @@ namespace Checkmarx.API.AST.Services.Scans
             urlBuilder_.Replace("{file-name}", System.Uri.EscapeDataString(ConvertToString(file_name, System.Globalization.CultureInfo.InvariantCulture)));
 
             var client_ = _httpClient;
-            var disposeClient_ = true;
+            var disposeClient_ = false;
             try
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
@@ -784,7 +784,7 @@ namespace Checkmarx.API.AST.Services.Scans
             urlBuilder_.Replace("{id}", System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
 
             var client_ = _httpClient;
-            var disposeClient_ = true;
+            var disposeClient_ = false;
             try
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
@@ -895,7 +895,7 @@ namespace Checkmarx.API.AST.Services.Scans
             urlBuilder_.Replace("{id}", System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
 
             var client_ = _httpClient;
-            var disposeClient_ = true;
+            var disposeClient_ = false;
             try
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
@@ -1001,7 +1001,7 @@ namespace Checkmarx.API.AST.Services.Scans
             urlBuilder_.Replace("{id}", System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
 
             var client_ = _httpClient;
-            var disposeClient_ = true;
+            var disposeClient_ = false;
             try
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
@@ -1104,7 +1104,7 @@ namespace Checkmarx.API.AST.Services.Scans
             urlBuilder_.Replace("{id}", System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
 
             var client_ = _httpClient;
-            var disposeClient_ = true;
+            var disposeClient_ = false;
             try
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
