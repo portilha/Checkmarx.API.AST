@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using Checkmarx.API.AST.Models.Report;
 
 namespace Checkmarx.API.AST
 {
@@ -22,6 +23,10 @@ namespace Checkmarx.API.AST
         public Uri ASTServer { get; private set; }
         public string Tenant { get; }
         public string KeyApi { get; set; }
+
+        private readonly HttpClient _httpClient = new HttpClient();
+
+        private DateTime _bearerValidTo;
 
         private Projects _projects;
         public Projects Projects
@@ -75,7 +80,7 @@ namespace Checkmarx.API.AST
                 if (_SASTMetadata == null && Connected)
                     _SASTMetadata = new SASTMetadata(_httpClient)
                     {
-                        BaseUrl = $"{ASTServer.AbsoluteUri}api/reports"
+                        BaseUrl = $"{ASTServer.AbsoluteUri}api/sast-metadata"
                     };
 
                 return _SASTMetadata;
@@ -110,9 +115,7 @@ namespace Checkmarx.API.AST
             }
         }
 
-        private readonly HttpClient _httpClient = new HttpClient();
-
-        private DateTime _bearerValidTo;
+        
 
         public bool Connected
         {
@@ -190,31 +193,7 @@ namespace Checkmarx.API.AST
             return Projects.GetListOfProjectsAsync().Result;
         }
 
-        //public Dictionary<string, CustomField> GetProjectCustomFields(int projectId)
-        //{
-        //    return GetProjectSettings(projectId).CustomFields.ToDictionary(x => x.Name);
-        //}
-
-        //public ProjectDetails GetProjectSettings(int projectId)
-        //{
-        //    checkConnection();
-
-        //    using (var request = new HttpRequestMessage(HttpMethod.Get, $"projects/{projectId}"))
-        //    {
-        //        request.Headers.Add("Accept", "application/json;v=2.0");
-
-        //        HttpResponseMessage response = httpClient.SendAsync(request).Result;
-
-        //        if (response.StatusCode == HttpStatusCode.OK)
-        //        {
-        //            ProjectDetails projDetails = JsonConvert.DeserializeObject<ProjectDetails>(response.Content.ReadAsStringAsync().Result);
-        //            return projDetails;
-        //        }
-
-        //        throw new NotSupportedException(response.Content.ReadAsStringAsync().Result);
-        //    }
-        //}
-
+        #region Scans
 
         public IEnumerable<Checkmarx.API.AST.Models.Scan> GetAllSASTScans(Guid projectId)
         {
@@ -233,9 +212,9 @@ namespace Checkmarx.API.AST
         }
 
         public List<Checkmarx.API.AST.Models.Scan> GetScans(Guid projectId, bool finished,
-            ScanRetrieveKind scanKind = ScanRetrieveKind.All, string version = null)
+            ScanRetrieveKind scanKind = ScanRetrieveKind.All)
         {
-            List<Checkmarx.API.AST.Models.Scan> list = new List<Checkmarx.API.AST.Models.Scan>();
+            List<Models.Scan> list = new List<Models.Scan>();
 
             checkConnection();
 
@@ -254,42 +233,118 @@ namespace Checkmarx.API.AST
                     case ScanRetrieveKind.Last:
                         scans = scans.Skip(Math.Max(0, scans.Count() - 1));
                         break;
-                    //case ScanRetrieveKind.Locked:
-                    //    scans = scans.Where(x => x.IsLocked);
-                    //    break;
                     case ScanRetrieveKind.All:
                         break;
                 }
 
                 foreach (var scan in scans)
                 {
-                    //var model = Models.Scan.FromJson(JsonConvert.SerializeObject(scan));
-                    //var scanResults = SASTResults.GetSASTResultsByScanAsync(scan.Id).Result;
-                    //if (scanResults.Results.Any())
-                    //{
-                    //    model.SASTResults = scanResults.Results.Select(x => new SASTScanResults
-                    //    {
-                    //        Id = new Guid(x.ID),
-                    //        //LoC = x.Loc,
-                    //        //FailedLoC = x.FailedLoC,
-                    //        //FalseNegatives = x.FalseNegatives,
-                    //        //FalsePositives = x.FalsePositives,
-                    //        //High = x.High,
-                    //        //Medium = x.Medium,
-                    //        //Low = x.Low,
-                    //        //Info = x.Info,
-                    //        //LanguagesDetected = x.asd,
-                    //        //Queries = x.fdsdf,
-                    //        //TunningInfo = x.safdsd
-                    //    });
-                    //}
-
-                    //list.Add(model);
                     list.Add(Models.Scan.FromJson(JsonConvert.SerializeObject(scan)));
                 }
             }
 
             return list;
         }
+
+        public ScanDetails GetScanDetails(string projectId, string scanId, DateTime createdAt)
+        {
+            var report = GetAstScanJsonReport(projectId, scanId);
+            var metadata = SASTMetadata.GetMetadataAsync(new Guid(scanId)).Result;
+
+            ScanDetails result = new ScanDetails();
+            result.Id = new Guid(scanId);
+
+            if (metadata != null)
+            {
+                result.Preset = metadata.QueryPreset;
+                result.LoC = metadata.Loc;
+            }
+
+            if (report != null)
+            {
+                var split = report.ScanSummary.ScanCompletedDate.Split(" ");
+                DateTime startedOn = createdAt;
+                DateTime endOn = Convert.ToDateTime($"{split[0]} {split[1]}");
+
+                result.FinishedOn = startedOn;
+                result.Duration = endOn - startedOn;
+                result.Languages = string.Join(";", report.ScanSummary.Languages.Where(x => x != "Common").Select(x => x).ToList());
+
+                //Scan Results
+                if (report.ScanResults.Sast != null)
+                {
+                    result.ResultsHigh = (uint)Convert.ToInt32(report.ScanResults.Sast.Vulnerabilities.High);
+                    result.ResultsMedium = (uint)Convert.ToInt32(report.ScanResults.Sast.Vulnerabilities.Medium);
+                    result.ResultsLow = (uint)Convert.ToInt32(report.ScanResults.Sast.Vulnerabilities.Low);
+                    result.ResultsInfo = (uint)Convert.ToInt32(report.ScanResults.Sast.Vulnerabilities.Info);
+                    result.ResultsLanguagesDetected = report.ScanResults.Sast.Languages.Where(x => x.LanguageName != "Common").Select(x => x.LanguageName).ToList();
+                    result.ResultsQueries = report.ScanResults.Sast.Languages.Sum(x => x.Queries.Count());
+                }
+            }
+
+            return result;
+        }
+
+        private ReportResults GetAstScanJsonReport(string projectId, string scanId)
+        {
+            ScanReportCreateInput sc = new ScanReportCreateInput();
+            sc.ReportName = BaseReportCreateInputReportName.ScanReport;
+            sc.ReportType = BaseReportCreateInputReportType.Cli;
+            sc.FileFormat = BaseReportCreateInputFileFormat.Json;
+            sc.Data = new Data { ProjectId = projectId, ScanId = scanId };
+
+            var createReportOutut = Reports.CreateReportAsync(sc).Result;
+            if (createReportOutut != null)
+            {
+                var createReportId = createReportOutut.ReportId;
+                if (createReportId != null)
+                {
+                    string downloadUrl = null;
+                    Guid reportId = createReportId;
+                    string reportStatus = "Requested";
+                    string pastReportStatus = reportStatus;
+                    //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, "Waiting/pooling for AST json report, please wait...");
+                    double aprox_seconds_passed = 0.0;
+                    while (reportStatus != "Completed")
+                    {
+                        System.Threading.Thread.Sleep(2000);
+                        aprox_seconds_passed += 2.020;
+                        var statusResponse = Reports.GetReportAsync(reportId, true).GetAwaiter().GetResult();
+                        reportId = statusResponse.ReportId;
+                        reportStatus = statusResponse.Status.ToString();
+                        downloadUrl = statusResponse.Url;
+                        if (reportStatus != "Requested" && reportStatus != "Completed" && reportStatus != "Started" && reportStatus != "Failed")
+                        {
+                            //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, "Abnormal AST json report status! You may want to [cancel all] and retry.");
+                        }
+                        if (pastReportStatus != reportStatus)
+                        {
+                            pastReportStatus = reportStatus;
+                        }
+                        if (aprox_seconds_passed > 15.0 * 60.0)
+                        {
+                            //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, "AST json report is taking a long time! You may want to [cancel all] and retry.");
+                        }
+                        if (reportStatus == "Failed")
+                        {
+                            //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, "AST API says it could not generate a json report. You may want to [cancel all] and retry with diferent scans.");
+                            return null;
+                        }
+                    }
+
+                    var reportString = Reports.DownloadScanReportJsonUrl(downloadUrl).GetAwaiter().GetResult();
+
+                    return JsonConvert.DeserializeObject<ReportResults>(reportString);
+                }
+                else
+                {
+                    //Dbug.wline($"Error getting Report of Scan {scanId}");
+                }
+            }
+
+            return null;
+        }
+
+        #endregion
     }
 }
