@@ -268,7 +268,9 @@ namespace Checkmarx.API.AST
 
                 result.FinishedOn = startedOn;
                 result.Duration = endOn - startedOn;
-                result.Languages = string.Join(";", report.ScanSummary.Languages.Where(x => x != "Common").Select(x => x).ToList());
+
+                if(report.ScanSummary.Languages != null && report.ScanSummary.Languages.Any())
+                    result.Languages = string.Join(";", report.ScanSummary.Languages.Where(x => x != "Common").Select(x => x).ToList());
 
                 //Scan Results
                 if (report.ScanResults.Sast != null)
@@ -277,8 +279,10 @@ namespace Checkmarx.API.AST
                     result.ResultsMedium = (uint)Convert.ToInt32(report.ScanResults.Sast.Vulnerabilities.Medium);
                     result.ResultsLow = (uint)Convert.ToInt32(report.ScanResults.Sast.Vulnerabilities.Low);
                     result.ResultsInfo = (uint)Convert.ToInt32(report.ScanResults.Sast.Vulnerabilities.Info);
-                    result.ResultsLanguagesDetected = report.ScanResults.Sast.Languages.Where(x => x.LanguageName != "Common").Select(x => x.LanguageName).ToList();
                     result.ResultsQueries = report.ScanResults.Sast.Languages.Sum(x => x.Queries.Count());
+
+                    if(report.ScanResults.Sast.Languages != null && report.ScanResults.Sast.Languages.Any())
+                        result.ResultsLanguagesDetected = report.ScanResults.Sast.Languages.Where(x => x.LanguageName != "Common").Select(x => x.LanguageName).ToList();
                 }
             }
 

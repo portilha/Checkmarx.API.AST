@@ -67,7 +67,7 @@ namespace Checkmarx.API.AST.Services.SASTMetadata
             urlBuilder_.Length--;
 
             var client_ = _httpClient;
-            var disposeClient_ = true;
+            var disposeClient_ = false;
             try
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
@@ -168,7 +168,7 @@ namespace Checkmarx.API.AST.Services.SASTMetadata
             urlBuilder_.Replace("{scan-id}", System.Uri.EscapeDataString(ConvertToString(scan_id, System.Globalization.CultureInfo.InvariantCulture)));
 
             var client_ = _httpClient;
-            var disposeClient_ = true;
+            var disposeClient_ = false;
             try
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
@@ -270,7 +270,7 @@ namespace Checkmarx.API.AST.Services.SASTMetadata
             urlBuilder_.Replace("{scan-id}", System.Uri.EscapeDataString(ConvertToString(scan_id, System.Globalization.CultureInfo.InvariantCulture)));
 
             var client_ = _httpClient;
-            var disposeClient_ = true;
+            var disposeClient_ = false;
             try
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())

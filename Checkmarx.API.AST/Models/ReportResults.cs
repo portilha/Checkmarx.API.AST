@@ -405,8 +405,7 @@
         public string CveName { get; set; }
 
         [JsonProperty("cwe")]
-        [JsonConverter(typeof(ParseStringConverter))]
-        public long Cwe { get; set; }
+        public string Cwe { get; set; }
 
         [JsonProperty("foundDate")]
         public DateTimeOffset FoundDate { get; set; }
