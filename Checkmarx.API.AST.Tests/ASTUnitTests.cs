@@ -1,3 +1,4 @@
+using Checkmarx.API.AST.Models;
 using Checkmarx.API.AST.Models.Report;
 using Checkmarx.API.AST.Services.Reports;
 using Microsoft.Extensions.Configuration;
@@ -65,6 +66,25 @@ namespace Checkmarx.API.AST.Tests
             {
                 Trace.WriteLine(item.Id + " " + item.Name);
             }
+        }
+
+        [TestMethod]
+        public void UpdateTags()
+        {
+            Assert.IsNotNull(astclient.Projects);
+
+            var proj = astclient.Projects.GetProjectAsync("ee9feb1b-78b7-4a44-b007-8b8eca3e32b8").Result;
+
+            var currentTags = proj.Tags;
+            if (currentTags.ContainsKey("status"))
+            {
+                currentTags["status"] = "Pipeline";
+            }
+
+            Services.Projects.ProjectInput input = new Services.Projects.ProjectInput();
+            input.Tags = currentTags;
+
+            astclient.Projects.UpdateProjectAsync("ee9feb1b-78b7-4a44-b007-8b8eca3e32b8", input).Wait();
         }
 
         [TestMethod]
