@@ -186,12 +186,32 @@ namespace Checkmarx.API.AST
             throw new Exception(response.Content.ReadAsStringAsync().Result);
         }
 
+        #region Projects
+
         public ProjectsCollection GetAllProjectsDetails(bool showAlsoDeletedProjects = false)
         {
             checkConnection();
 
             return Projects.GetListOfProjectsAsync().Result;
         }
+
+        public void UpdateProjectStatusTag(string projectId, string status)
+        {
+            var proj = Projects.GetProjectAsync(projectId).Result;
+            if(proj != null)
+            {
+                var tags = proj.Tags;
+                if (tags.ContainsKey("status"))
+                    tags["status"] = status;
+                else
+                    tags.Add("status", status);
+
+                Projects.UpdateProjectAsync(projectId, new ProjectInput { Tags = tags }).Wait();
+            }
+        }
+
+        #endregion
+
 
         #region Scans
 
