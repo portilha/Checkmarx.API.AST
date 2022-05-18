@@ -195,7 +195,7 @@ namespace Checkmarx.API.AST
             return Projects.GetListOfProjectsAsync().Result;
         }
 
-        public void UpdateProjectStatusTag(string projectId, string status)
+        public void UpdateProjectStatus(string projectId, string status)
         {
             var proj = Projects.GetProjectAsync(projectId).Result;
             if(proj != null)
