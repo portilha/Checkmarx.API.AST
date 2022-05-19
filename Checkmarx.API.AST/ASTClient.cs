@@ -295,14 +295,42 @@ namespace Checkmarx.API.AST
                 //Scan Results
                 if (report.ScanResults.Sast != null)
                 {
-                    result.ResultsHigh = (uint)Convert.ToInt32(report.ScanResults.Sast.Vulnerabilities.High);
-                    result.ResultsMedium = (uint)Convert.ToInt32(report.ScanResults.Sast.Vulnerabilities.Medium);
-                    result.ResultsLow = (uint)Convert.ToInt32(report.ScanResults.Sast.Vulnerabilities.Low);
-                    result.ResultsInfo = (uint)Convert.ToInt32(report.ScanResults.Sast.Vulnerabilities.Info);
-                    result.ResultsQueries = report.ScanResults.Sast.Languages.Sum(x => x.Queries.Count());
+                    result.SASTResults = new ScanResultDetails
+                    {
+                        Total = (uint)Convert.ToInt32(report.ScanResults.Sast.Vulnerabilities.Total),
+                        High = (uint)Convert.ToInt32(report.ScanResults.Sast.Vulnerabilities.High),
+                        Medium = (uint)Convert.ToInt32(report.ScanResults.Sast.Vulnerabilities.Medium),
+                        Low = (uint)Convert.ToInt32(report.ScanResults.Sast.Vulnerabilities.Low),
+                        Info = (uint)Convert.ToInt32(report.ScanResults.Sast.Vulnerabilities.Info),
+                        Queries = report.ScanResults.Sast.Languages.Sum(x => x.Queries.Count()),
+                    };
 
                     if(report.ScanResults.Sast.Languages != null && report.ScanResults.Sast.Languages.Any())
-                        result.ResultsLanguagesDetected = report.ScanResults.Sast.Languages.Where(x => x.LanguageName != "Common").Select(x => x.LanguageName).ToList();
+                        result.SASTResults.LanguagesDetected = report.ScanResults.Sast.Languages.Where(x => x.LanguageName != "Common").Select(x => x.LanguageName).ToList();
+                }
+
+                if(report.ScanResults.Sca != null)
+                {
+                    result.ScaResults = new ScanResultDetails
+                    {
+                        Total = (uint)Convert.ToInt32(report.ScanResults.Sca.Vulnerabilities.Total),
+                        High = (uint)Convert.ToInt32(report.ScanResults.Sca.Vulnerabilities.High),
+                        Medium = (uint)Convert.ToInt32(report.ScanResults.Sca.Vulnerabilities.Medium),
+                        Low = (uint)Convert.ToInt32(report.ScanResults.Sca.Vulnerabilities.Low),
+                        Info = (uint)Convert.ToInt32(report.ScanResults.Sca.Vulnerabilities.Info)
+                    };
+                }
+
+                if (report.ScanResults.Kics != null)
+                {
+                    result.KicsResults = new ScanResultDetails
+                    {
+                        Total = (uint)Convert.ToInt32(report.ScanResults.Kics.Vulnerabilities.Total),
+                        High = (uint)Convert.ToInt32(report.ScanResults.Kics.Vulnerabilities.High),
+                        Medium = (uint)Convert.ToInt32(report.ScanResults.Kics.Vulnerabilities.Medium),
+                        Low = (uint)Convert.ToInt32(report.ScanResults.Kics.Vulnerabilities.Low),
+                        Info = (uint)Convert.ToInt32(report.ScanResults.Kics.Vulnerabilities.Info)
+                    };
                 }
             }
 
