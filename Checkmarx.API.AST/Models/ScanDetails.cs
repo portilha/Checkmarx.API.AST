@@ -13,11 +13,19 @@ namespace Checkmarx.API.AST.Models
         public TimeSpan Duration { get; set; }
         public string Languages { get; set; }
 
-        public uint ResultsHigh { get; set; }
-        public uint ResultsMedium { get; set; }
-        public uint ResultsLow { get; set; }
-        public uint ResultsInfo { get; set; }
-        public int ResultsQueries { get; set; }
-        public ICollection<string> ResultsLanguagesDetected { get; set; }
+        public ScanResultDetails SASTResults { get; set; }
+        public ScanResultDetails ScaResults { get; set; }
+        public ScanResultDetails KicsResults { get; set; }
+    }
+
+    public class ScanResultDetails
+    {
+        public uint Total { get; set; }
+        public uint High { get; set; }
+        public uint Medium { get; set; }
+        public uint Low { get; set; }
+        public uint Info { get; set; }
+        public int Queries { get; set; }
+        public ICollection<string> LanguagesDetected { get; set; }
     }
 }
