@@ -192,7 +192,32 @@ namespace Checkmarx.API.AST
         {
             checkConnection();
 
-            return Projects.GetListOfProjectsAsync(200).Result;
+            //return Projects.GetListOfProjectsAsync(200).Result;
+
+            var getLimit = 20;
+
+            var listProjects = Projects.GetListOfProjectsAsync(getLimit).Result;
+            if (listProjects.TotalCount > getLimit)
+            {
+                var offset = getLimit;
+                bool cont = true;
+                do
+                {
+                    var next = Projects.GetListOfProjectsAsync(getLimit, offset).Result;
+                    if (next.Projects.Any())
+                    {
+                        next.Projects.ToList().ForEach(o => listProjects.Projects.Add(o));
+                        offset += getLimit;
+
+                        if(listProjects.Projects.Count == listProjects.TotalCount) cont = false;
+                    }
+                    else
+                        cont = false;
+
+                } while (cont);
+            }
+
+            return listProjects;
         }
 
         public void UpdateProjectStatus(string projectId, string status)
@@ -201,10 +226,14 @@ namespace Checkmarx.API.AST
             if(proj != null)
             {
                 var tags = proj.Tags;
-                if (tags.ContainsKey("status"))
-                    tags["status"] = status;
+                if (tags.ContainsKey("asa_status"))
+                    tags["asa_status"] = status;
                 else
-                    tags.Add("status", status);
+                    tags.Add("asa_status", status);
+
+                // temporary to clean old status
+                if (tags.ContainsKey("status"))
+                    tags.Remove("status");
 
                 Projects.UpdateProjectAsync(projectId, new ProjectInput { Tags = tags }).Wait();
             }
@@ -269,7 +298,7 @@ namespace Checkmarx.API.AST
         public ScanDetails GetScanDetails(string projectId, string scanId, DateTime createdAt)
         {
             var report = GetAstScanJsonReport(projectId, scanId);
-            var metadata = SASTMetadata.GetMetadataAsync(new Guid(scanId)).Result;
+            var metadata = SASTMetadata.GetMetadataAsync(new Guid(scanId)).GetAwaiter().GetResult();
 
             ScanDetails result = new ScanDetails();
             result.Id = new Guid(scanId);
