@@ -192,7 +192,7 @@ namespace Checkmarx.API.AST
         {
             checkConnection();
 
-            return Projects.GetListOfProjectsAsync().Result;
+            return Projects.GetListOfProjectsAsync(200).Result;
         }
 
         public void UpdateProjectStatus(string projectId, string status)
