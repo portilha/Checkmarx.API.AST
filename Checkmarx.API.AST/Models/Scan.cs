@@ -51,7 +51,7 @@ namespace Checkmarx.API.AST.Models
         public IDictionary<string, string> Tags { get; set; }
 
         [JsonProperty("metadata")]
-        public object Metadata { get; set; }
+        public Metadata Metadata { get; set; }
 
         private IDictionary<string, object> _additionalProperties = new System.Collections.Generic.Dictionary<string, object>();
         [JsonProperty("additionalProperties")]
@@ -87,6 +87,54 @@ namespace Checkmarx.API.AST.Models
         [System.Runtime.Serialization.EnumMember(Value = @"Canceled")]
         Canceled = 5,
 
+    }
+
+    public class Metadata
+    {
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        [JsonProperty("type")]
+        public string Type { get; set; }
+
+        [JsonProperty("Handler")]
+        public Handler Handler { get; set; }
+
+        [JsonProperty("configs")]
+        public List<MetadataConfig> Configs { get; set; }
+
+        [JsonProperty("project")]
+        public object Project { get; set; }
+    }
+
+    public class MetadataConfig
+    {
+        [JsonProperty("type")]
+        public string Type { get; set; }
+
+        [JsonProperty("value")]
+        public MetadataValue Value { get; set; }
+    }
+
+    public class MetadataValue
+    {
+        [JsonProperty("incremental")]
+        public bool Incremental { get; set; }
+    }
+
+    public class Handler
+    {
+        [JsonProperty("UploadHandler")]
+        public UploadHandler UploadHandler { get; set; }
+    }
+
+    public class UploadHandler
+    {
+        [JsonProperty("branch")]
+        public string Branch { get; set; }
+
+        [JsonProperty("upload_url")]
+        public string UploadUrl { get; set; }
     }
 
     public partial class StatusDetails
