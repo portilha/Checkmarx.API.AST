@@ -251,18 +251,23 @@ namespace Checkmarx.API.AST
 
         public Checkmarx.API.AST.Models.Scan GetLastScan(Guid projectId, bool fullScanOnly = false)
         {
-            var scan = GetScans(projectId, true, ScanRetrieveKind.Last);
+            var scans = GetScans(projectId, true, ScanRetrieveKind.Last);
 
             if (fullScanOnly)
             {
-                var fullScans = scan.Where(x => x.Metadata.Configs.Any(x => x.Type == "sast" && x.Value.Incremental == false));
-                if (fullScans.Any())
-                    return fullScans.FirstOrDefault();
+                if (scans.Count == 1)
+                    return scans.FirstOrDefault();
+                else
+                {
+                    var fullScans = scans.Where(x => x.Metadata.Configs.Any(x => x.Type == "sast" && x.Value.Incremental == false));
+                    if (fullScans.Any())
+                        return fullScans.FirstOrDefault();
+                }
 
                 return null;
             }
             else
-                return scan.FirstOrDefault();
+                return scans.FirstOrDefault();
         }
 
         public Checkmarx.API.AST.Models.Scan GetLockedScan(Guid projectId)
