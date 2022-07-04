@@ -31,14 +31,15 @@ namespace Checkmarx.API.AST
         private Projects _projects;
         public Projects Projects
         {
-            get {
+            get
+            {
                 if (_projects == null && Connected)
                     _projects = new Projects(_httpClient)
                     {
                         BaseUrl = $"{ASTServer.AbsoluteUri}api/projects"
                     };
 
-                return _projects;  
+                return _projects;
             }
         }
 
@@ -115,7 +116,7 @@ namespace Checkmarx.API.AST
             }
         }
 
-        
+
 
         public bool Connected
         {
@@ -209,7 +210,7 @@ namespace Checkmarx.API.AST
                         next.Projects.ToList().ForEach(o => listProjects.Projects.Add(o));
                         offset += getLimit;
 
-                        if(listProjects.Projects.Count == listProjects.TotalCount) cont = false;
+                        if (listProjects.Projects.Count == listProjects.TotalCount) cont = false;
                     }
                     else
                         cont = false;
@@ -223,7 +224,7 @@ namespace Checkmarx.API.AST
         public void UpdateProjectStatus(string projectId, string status)
         {
             var proj = Projects.GetProjectAsync(projectId).Result;
-            if(proj != null)
+            if (proj != null)
             {
                 var tags = proj.Tags;
                 if (tags.ContainsKey("asa_status"))
@@ -244,39 +245,56 @@ namespace Checkmarx.API.AST
 
         #region Scans
 
-        public IEnumerable<Checkmarx.API.AST.Models.Scan> GetAllSASTScans(Guid projectId)
+        /// <summary>
+        /// Get all completed scans from project
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <returns></returns>
+        public IEnumerable<Checkmarx.API.AST.Models.Scan> GetAllASTScans(Guid projectId)
         {
-            return GetScans(projectId, true, ScanRetrieveKind.All);
+            return GetScans(projectId);
         }
 
-        public Checkmarx.API.AST.Models.Scan GetLastScan(Guid projectId, bool fullScanOnly = false)
+        /// <summary>
+        /// Get last completed SAST scan, full or incremental
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <param name="fullScanOnly"></param>
+        /// <returns></returns>
+        public Checkmarx.API.AST.Models.Scan GetLastSASTScan(Guid projectId, bool fullScanOnly = false)
         {
-            var scans = GetScans(projectId, true, ScanRetrieveKind.Last);
-
+            var scans = GetScans(projectId, "sast", true, ScanRetrieveKind.Last);
             if (fullScanOnly)
             {
-                if (scans.Count == 1)
-                    return scans.FirstOrDefault();
+                var fullScans = scans.Where(x => x.Metadata.Configs.Any(x => !x.Value.Incremental));
+                if (fullScans.Any())
+                    return fullScans.FirstOrDefault();
                 else
-                {
-                    var fullScans = scans.Where(x => x.Metadata.Configs.Any(x => x.Type == "sast" && x.Value.Incremental == false));
-                    if (fullScans.Any())
-                        return fullScans.FirstOrDefault();
-                }
-
-                return null;
+                    return scans.FirstOrDefault();
             }
             else
                 return scans.FirstOrDefault();
         }
 
-        public Checkmarx.API.AST.Models.Scan GetLockedScan(Guid projectId)
+        /// <summary>
+        /// Get first locked Scan
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <returns></returns>
+        public Checkmarx.API.AST.Models.Scan GetLockedSASTScan(Guid projectId)
         {
-            return GetScans(projectId, true, ScanRetrieveKind.Locked).FirstOrDefault();
+            return GetScans(projectId, "sast", true, ScanRetrieveKind.Locked).FirstOrDefault();
         }
 
-        public List<Checkmarx.API.AST.Models.Scan> GetScans(Guid projectId, bool finished,
-            ScanRetrieveKind scanKind = ScanRetrieveKind.All)
+        /// <summary>
+        /// Get list of scans, filtered by engine, completion  and scankind
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <param name="engine"></param>
+        /// <param name="completed"></param>
+        /// <param name="scanKind"></param>
+        /// <returns></returns>
+        public IEnumerable<Checkmarx.API.AST.Models.Scan> GetScans(Guid projectId, string engine = null, bool completed = true, ScanRetrieveKind scanKind = ScanRetrieveKind.All)
         {
             List<Models.Scan> list = new List<Models.Scan>();
 
@@ -286,8 +304,8 @@ namespace Checkmarx.API.AST
             var scans = scanList.Scans.Select(x => x);
             if (scans.Any())
             {
-                //if (version != null)
-                //    scans = scans.Where(x => version.StartsWith(x.ProductVersion));
+                if (completed)
+                    scans = scans.Where(x => x.Status == Status.Completed);
 
                 switch (scanKind)
                 {
@@ -303,13 +321,29 @@ namespace Checkmarx.API.AST
 
                 foreach (var scan in scans)
                 {
-                    list.Add(Models.Scan.FromJson(JsonConvert.SerializeObject(scan)));
+                    var convertedJson = Models.Scan.FromJson(JsonConvert.SerializeObject(scan));
+                    if (!string.IsNullOrEmpty(engine))
+                    {
+                        if (convertedJson.Metadata.Configs.Any(x => x.Type == engine))
+                            list.Add(convertedJson);
+                    }
+                    else
+                    {
+                        list.Add(convertedJson);
+                    }
                 }
             }
 
             return list;
         }
 
+        /// <summary>
+        /// Get scan details
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <param name="scanId"></param>
+        /// <param name="createdAt"></param>
+        /// <returns></returns>
         public ScanDetails GetScanDetails(string projectId, string scanId, DateTime createdAt)
         {
             try
