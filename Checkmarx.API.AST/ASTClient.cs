@@ -322,15 +322,15 @@ namespace Checkmarx.API.AST
                 foreach (var scan in scans)
                 {
                     var convertedJson = Models.Scan.FromJson(JsonConvert.SerializeObject(scan));
-                    if (!string.IsNullOrEmpty(engine))
-                    {
-                        if (convertedJson.Metadata.Configs.Any(x => x.Type == engine))
-                            list.Add(convertedJson);
-                    }
-                    else
-                    {
+                    //if (!string.IsNullOrEmpty(engine))
+                    //{
+                    //    if (convertedJson.Metadata.Configs.Any(x => x.Type.ToLower() == engine.ToLower()))
+                    //        list.Add(convertedJson);
+                    //}
+                    //else
+                    //{
                         list.Add(convertedJson);
-                    }
+                    //}
                 }
             }
 
