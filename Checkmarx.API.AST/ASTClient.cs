@@ -263,14 +263,14 @@ namespace Checkmarx.API.AST
         /// <returns></returns>
         public Checkmarx.API.AST.Models.Scan GetLastSASTScan(Guid projectId, bool fullScanOnly = false)
         {
-            var scans = GetScans(projectId, "sast", true, ScanRetrieveKind.Last);
+            var scans = GetScans(projectId, "sast", true, ScanRetrieveKind.All);
             if (fullScanOnly)
             {
-                var fullScans = scans.Where(x => x.Metadata.Configs.Any(x => !x.Value.Incremental));
+                var fullScans = scans.Where(x => x.Metadata.Configs.Any(x => x.Value != null && !x.Value.Incremental)).OrderByDescending(x => x.CreatedAt);
                 if (fullScans.Any())
                     return fullScans.FirstOrDefault();
                 else
-                    return scans.FirstOrDefault();
+                    return scans.OrderByDescending(x => x.CreatedAt).FirstOrDefault();
             }
             else
                 return scans.FirstOrDefault();
@@ -322,15 +322,15 @@ namespace Checkmarx.API.AST
                 foreach (var scan in scans)
                 {
                     var convertedJson = Models.Scan.FromJson(JsonConvert.SerializeObject(scan));
-                    //if (!string.IsNullOrEmpty(engine))
-                    //{
-                    //    if (convertedJson.Metadata.Configs.Any(x => x.Type.ToLower() == engine.ToLower()))
-                    //        list.Add(convertedJson);
-                    //}
-                    //else
-                    //{
+                    if (!string.IsNullOrEmpty(engine))
+                    {
+                        if (convertedJson.Metadata.Configs.Any(x => x.Type.ToLower() == engine.ToLower()))
+                            list.Add(convertedJson);
+                    }
+                    else
+                    {
                         list.Add(convertedJson);
-                    //}
+                    }
                 }
             }
 
