@@ -117,6 +117,7 @@ namespace Checkmarx.API.AST
         }
 
 
+        #region Connection
 
         public bool Connected
         {
@@ -137,6 +138,31 @@ namespace Checkmarx.API.AST
             if (!Connected)
                 throw new NotSupportedException();
         }
+
+        private string Autenticate()
+        {
+            var identityURL = $"{AcessControlServer.AbsoluteUri}auth/realms/{Tenant}/protocol/openid-connect/token";
+            var kv = new Dictionary<string, string>
+            {
+                { "grant_type", "refresh_token" },
+                { "client_id", "ast-app" },
+                { "refresh_token", $"{KeyApi}" }
+            };
+
+            var req = new HttpRequestMessage(HttpMethod.Post, identityURL) { Content = new FormUrlEncodedContent(kv) };
+            var response = _httpClient.SendAsync(req).Result;
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                JObject accessToken = JsonConvert.DeserializeObject<JObject>(response.Content.ReadAsStringAsync().Result);
+                string authToken = ((JProperty)accessToken.First).Value.ToString();
+                return authToken;
+            }
+            throw new Exception(response.Content.ReadAsStringAsync().Result);
+        }
+
+        #endregion
+
+        #region Client
 
         /// <summary>
         /// 
@@ -166,26 +192,7 @@ namespace Checkmarx.API.AST
             KeyApi = apiKey;
         }
 
-        private string Autenticate()
-        {
-            var identityURL = $"{AcessControlServer.AbsoluteUri}auth/realms/{Tenant}/protocol/openid-connect/token";
-            var kv = new Dictionary<string, string>
-            {
-                { "grant_type", "refresh_token" },
-                { "client_id", "ast-app" },
-                { "refresh_token", $"{KeyApi}" }
-            };
-
-            var req = new HttpRequestMessage(HttpMethod.Post, identityURL) { Content = new FormUrlEncodedContent(kv) };
-            var response = _httpClient.SendAsync(req).Result;
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
-            {
-                JObject accessToken = JsonConvert.DeserializeObject<JObject>(response.Content.ReadAsStringAsync().Result);
-                string authToken = ((JProperty)accessToken.First).Value.ToString();
-                return authToken;
-            }
-            throw new Exception(response.Content.ReadAsStringAsync().Result);
-        }
+        #endregion
 
         #region Projects
 
@@ -240,6 +247,12 @@ namespace Checkmarx.API.AST
             }
         }
 
+        public IEnumerable<string> GetProjectBranches(string projectId)
+        {
+            var teste = Projects.GetListBranchesAssociatedWithProjectSortedByDateDSCAsync(projectId).Result;
+            return teste;
+        }
+
         #endregion
 
 
@@ -261,9 +274,9 @@ namespace Checkmarx.API.AST
         /// <param name="projectId"></param>
         /// <param name="fullScanOnly"></param>
         /// <returns></returns>
-        public Checkmarx.API.AST.Models.Scan GetLastSASTScan(Guid projectId, bool fullScanOnly = false)
+        public Checkmarx.API.AST.Models.Scan GetLastSASTScan(Guid projectId, bool fullScanOnly = false, string branch = null)
         {
-            var scans = GetScans(projectId, "sast", true, ScanRetrieveKind.All);
+            var scans = GetScans(projectId, "sast", true, branch, ScanRetrieveKind.All);
             if (fullScanOnly)
             {
                 var fullScans = scans.Where(x => x.Metadata.Configs.Any(x => x.Value != null && !x.Value.Incremental)).OrderByDescending(x => x.CreatedAt);
@@ -281,9 +294,9 @@ namespace Checkmarx.API.AST
         /// </summary>
         /// <param name="projectId"></param>
         /// <returns></returns>
-        public Checkmarx.API.AST.Models.Scan GetLockedSASTScan(Guid projectId)
+        public Checkmarx.API.AST.Models.Scan GetLockedSASTScan(Guid projectId, string branch = null)
         {
-            return GetScans(projectId, "sast", true, ScanRetrieveKind.Locked).FirstOrDefault();
+            return GetScans(projectId, "sast", true, branch, ScanRetrieveKind.Locked).FirstOrDefault();
         }
 
         /// <summary>
@@ -294,7 +307,7 @@ namespace Checkmarx.API.AST
         /// <param name="completed"></param>
         /// <param name="scanKind"></param>
         /// <returns></returns>
-        public IEnumerable<Checkmarx.API.AST.Models.Scan> GetScans(Guid projectId, string engine = null, bool completed = true, ScanRetrieveKind scanKind = ScanRetrieveKind.All)
+        public IEnumerable<Checkmarx.API.AST.Models.Scan> GetScans(Guid projectId, string engine = null, bool completed = true, string branch = null, ScanRetrieveKind scanKind = ScanRetrieveKind.All)
         {
             List<Models.Scan> list = new List<Models.Scan>();
 
@@ -306,6 +319,9 @@ namespace Checkmarx.API.AST
             {
                 if (completed)
                     scans = scans.Where(x => x.Status == Status.Completed);
+
+                if(!string.IsNullOrEmpty(branch))
+                    scans = scans.Where(x => x.Branch.ToLower() == branch.ToLower());
 
                 switch (scanKind)
                 {
