@@ -263,9 +263,9 @@ namespace Checkmarx.API.AST
         /// </summary>
         /// <param name="projectId"></param>
         /// <returns></returns>
-        public IEnumerable<Checkmarx.API.AST.Models.Scan> GetAllASTScans(Guid projectId)
+        public IEnumerable<Checkmarx.API.AST.Models.Scan> GetAllASTScans(Guid projectId, string branch = null)
         {
-            return GetScans(projectId);
+            return GetScans(projectId, branch: branch);
         }
 
         /// <summary>
