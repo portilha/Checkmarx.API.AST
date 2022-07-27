@@ -228,21 +228,10 @@ namespace Checkmarx.API.AST
             return listProjects;
         }
 
-        public void UpdateProjectStatus(string projectId, string status)
+        public void UpdateProjectTags(string projectId, IDictionary<string, string> tags)
         {
-            var proj = Projects.GetProjectAsync(projectId).Result;
-            if (proj != null)
+            if (!string.IsNullOrEmpty(projectId) && tags != null)
             {
-                var tags = proj.Tags;
-                if (tags.ContainsKey("asa_status"))
-                    tags["asa_status"] = status;
-                else
-                    tags.Add("asa_status", status);
-
-                // temporary to clean old status
-                if (tags.ContainsKey("status"))
-                    tags.Remove("status");
-
                 Projects.UpdateProjectAsync(projectId, new ProjectInput { Tags = tags }).Wait();
             }
         }
