@@ -196,7 +196,7 @@ namespace Checkmarx.API.AST
 
         #region Projects
 
-        public ProjectsCollection GetAllProjectsDetails(bool showAlsoDeletedProjects = false)
+        public ProjectsCollection GetAllProjectsDetails()
         {
             checkConnection();
 
@@ -230,20 +230,15 @@ namespace Checkmarx.API.AST
 
         public void UpdateProjectTags(string projectId, IDictionary<string, string> tags)
         {
-            if (!string.IsNullOrEmpty(projectId) && tags != null)
-            {
-                Projects.UpdateProjectAsync(projectId, new ProjectInput { Tags = tags }).Wait();
-            }
+            Projects.UpdateProjectAsync(projectId, new ProjectInput { Tags = tags }).Wait();
         }
 
         public IEnumerable<string> GetProjectBranches(string projectId)
         {
-            var teste = Projects.GetListBranchesAssociatedWithProjectSortedByDateDSCAsync(projectId).Result;
-            return teste;
+            return Projects.GetListBranchesAssociatedWithProjectSortedByDateDSCAsync(projectId).Result;
         }
 
         #endregion
-
 
         #region Scans
 
@@ -309,7 +304,7 @@ namespace Checkmarx.API.AST
                 if (completed)
                     scans = scans.Where(x => x.Status == Status.Completed);
 
-                if(!string.IsNullOrEmpty(branch))
+                if (!string.IsNullOrEmpty(branch))
                     scans = scans.Where(x => x.Branch.ToLower() == branch.ToLower());
 
                 switch (scanKind)
