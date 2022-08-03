@@ -230,7 +230,25 @@ namespace Checkmarx.API.AST
 
         public void UpdateProjectTags(string projectId, IDictionary<string, string> tags)
         {
-            Projects.UpdateProjectAsync(projectId, new ProjectInput { Tags = tags }).Wait();
+            if (tags == null)
+                throw new ArgumentNullException(nameof(tags));
+
+            var project = Projects.GetProjectAsync(projectId).Result;
+            if (project == null)
+                throw new Exception($"No project found with id {projectId}");
+
+            ProjectInput input = new ProjectInput
+            {
+                Tags = tags,
+                Name = project.Name,
+                Groups = project.Groups,
+                RepoUrl = project.RepoUrl,
+                MainBranch = project.MainBranch,
+                Origin = project.Origin,
+                AdditionalProperties = project.AdditionalProperties
+            };
+
+            Projects.UpdateProjectAsync(projectId, input).Wait();
         }
 
         public IEnumerable<string> GetProjectBranches(string projectId)

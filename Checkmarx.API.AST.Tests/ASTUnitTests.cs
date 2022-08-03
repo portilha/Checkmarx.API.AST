@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -40,6 +41,28 @@ namespace Checkmarx.API.AST.Tests
         public void ConnectTest()
         {
             Assert.IsTrue(astclient.Connected);
+        }
+
+        [TestMethod]
+        public void UpdateTagTests()
+        {
+            UpdateProjectStatus(new Guid("ee9feb1b-78b7-4a44-b007-8b8eca3e32b8"), "pipeline");
+            //astclient.UpdateProjectTags("ee9feb1b-78b7-4a44-b007-8b8eca3e32b8", new Dictionary<string, string>() { { "asa_status", "pipeline" } });
+        }
+
+        public void UpdateProjectStatus(Guid id, string tag)
+        {
+            var proj = astclient.Projects.GetProjectAsync(id.ToString()).Result;
+            if (proj != null)
+            {
+                var tags = proj.Tags;
+                if (tags.ContainsKey("asa_status"))
+                    tags["asa_status"] = tag;
+                else
+                    tags.Add("asa_status", tag);
+
+                astclient.UpdateProjectTags(id.ToString(), tags);
+            }
         }
 
         [TestMethod]
