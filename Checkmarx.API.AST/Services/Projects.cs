@@ -1262,7 +1262,6 @@ namespace Checkmarx.API.AST.Services.Projects
             get { return _additionalProperties; }
             set { _additionalProperties = value; }
         }
-
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.15.10.0 (NJsonSchema v10.6.10.0 (Newtonsoft.Json v12.0.0.0))")]
