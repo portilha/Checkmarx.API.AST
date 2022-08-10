@@ -303,10 +303,20 @@
         public Node[] Nodes { get; set; }
 
         [JsonProperty("foundDate")]
-        public DateTimeOffset FoundDate { get; set; }
+        public FirstFoundDate FoundDate { get; set; }
 
         [JsonProperty("firstFoundDate")]
-        public DateTimeOffset FirstFoundDate { get; set; }
+        public FoundDate FirstFoundDate { get; set; }
+    }
+
+    public class FirstFoundDate
+    {
+        public long seconds { get; set; }
+    }
+
+    public class FoundDate
+    {
+        public long seconds { get; set; }
     }
 
     public partial class Node
