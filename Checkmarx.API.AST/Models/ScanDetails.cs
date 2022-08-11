@@ -12,6 +12,7 @@ namespace Checkmarx.API.AST.Models
         public DateTimeOffset? FinishedOn { get; set; }
         public TimeSpan Duration { get; set; }
         public string Languages { get; set; }
+        public string ErrorMessage { get; set; }
 
         public ScanResultDetails SASTResults { get; set; }
         public ScanResultDetails ScaResults { get; set; }

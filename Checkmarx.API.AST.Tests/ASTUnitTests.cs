@@ -99,9 +99,9 @@ namespace Checkmarx.API.AST.Tests
             var proj = astclient.Projects.GetProjectAsync("ee9feb1b-78b7-4a44-b007-8b8eca3e32b8").Result;
 
             var currentTags = proj.Tags;
-            if (currentTags.ContainsKey("status"))
+            if (currentTags.ContainsKey("asa_status"))
             {
-                currentTags["status"] = "Pipeline";
+                currentTags["asa_status"] = "Pipeline";
             }
 
             Services.Projects.ProjectInput input = new Services.Projects.ProjectInput();

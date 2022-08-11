@@ -366,34 +366,36 @@ namespace Checkmarx.API.AST
         {
             try
             {
-                var report = GetAstScanJsonReport(projectId, scanId);
+                var result = GetAstScanJsonReport(projectId, scanId);
                 var metadata = SASTMetadata.GetMetadataAsync(new Guid(scanId)).Result;
 
-                ScanDetails result = new ScanDetails();
-                result.Id = new Guid(scanId);
+                ScanDetails scanDetails = new ScanDetails();
+                scanDetails.Id = new Guid(scanId);
 
                 if (metadata != null)
                 {
-                    result.Preset = metadata.QueryPreset;
-                    result.LoC = metadata.Loc;
+                    scanDetails.Preset = metadata.QueryPreset;
+                    scanDetails.LoC = metadata.Loc;
                 }
 
+                var report = result.Item1;
+                scanDetails.ErrorMessage = result.Item2;
                 if (report != null)
                 {
                     var split = report.ScanSummary.ScanCompletedDate.Split(" ");
                     DateTime startedOn = createdAt;
                     DateTime endOn = Convert.ToDateTime($"{split[0]} {split[1]}");
 
-                    result.FinishedOn = startedOn;
-                    result.Duration = endOn - startedOn;
+                    scanDetails.FinishedOn = startedOn;
+                    scanDetails.Duration = endOn - startedOn;
 
                     if (report.ScanSummary.Languages != null && report.ScanSummary.Languages.Any())
-                        result.Languages = string.Join(";", report.ScanSummary.Languages.Where(x => x != "Common").Select(x => x).ToList());
+                        scanDetails.Languages = string.Join(";", report.ScanSummary.Languages.Where(x => x != "Common").Select(x => x).ToList());
 
                     //Scan Results
                     if (report.ScanResults.Sast != null)
                     {
-                        result.SASTResults = new ScanResultDetails
+                        scanDetails.SASTResults = new ScanResultDetails
                         {
                             Total = (uint)Convert.ToInt32(report.ScanResults.Sast.Vulnerabilities.Total),
                             High = (uint)Convert.ToInt32(report.ScanResults.Sast.Vulnerabilities.High),
@@ -404,12 +406,12 @@ namespace Checkmarx.API.AST
                         };
 
                         if (report.ScanResults.Sast.Languages != null && report.ScanResults.Sast.Languages.Any())
-                            result.SASTResults.LanguagesDetected = report.ScanResults.Sast.Languages.Where(x => x.LanguageName != "Common").Select(x => x.LanguageName).ToList();
+                            scanDetails.SASTResults.LanguagesDetected = report.ScanResults.Sast.Languages.Where(x => x.LanguageName != "Common").Select(x => x.LanguageName).ToList();
                     }
 
                     if (report.ScanResults.Sca != null)
                     {
-                        result.ScaResults = new ScanResultDetails
+                        scanDetails.ScaResults = new ScanResultDetails
                         {
                             Total = (uint)Convert.ToInt32(report.ScanResults.Sca.Vulnerabilities.Total),
                             High = (uint)Convert.ToInt32(report.ScanResults.Sca.Vulnerabilities.High),
@@ -421,7 +423,7 @@ namespace Checkmarx.API.AST
 
                     if (report.ScanResults.Kics != null)
                     {
-                        result.KicsResults = new ScanResultDetails
+                        scanDetails.KicsResults = new ScanResultDetails
                         {
                             Total = (uint)Convert.ToInt32(report.ScanResults.Kics.Vulnerabilities.Total),
                             High = (uint)Convert.ToInt32(report.ScanResults.Kics.Vulnerabilities.High),
@@ -432,7 +434,7 @@ namespace Checkmarx.API.AST
                     }
                 }
 
-                return result;
+                return scanDetails;
             }
             catch (Exception)
             {
@@ -440,8 +442,10 @@ namespace Checkmarx.API.AST
             }
         }
 
-        private ReportResults GetAstScanJsonReport(string projectId, string scanId)
+        private Tuple<ReportResults,string> GetAstScanJsonReport(string projectId, string scanId)
         {
+            string message = string.Empty;
+
             ScanReportCreateInput sc = new ScanReportCreateInput();
             sc.ReportName = BaseReportCreateInputReportName.ScanReport;
             sc.ReportType = BaseReportCreateInputReportType.Cli;
@@ -476,20 +480,24 @@ namespace Checkmarx.API.AST
                         {
                             pastReportStatus = reportStatus;
                         }
-                        if (aprox_seconds_passed > 15.0 * 60.0)
+                        //if (aprox_seconds_passed > 15.0 * 60.0)
+                        if (aprox_seconds_passed > 60)
                         {
                             //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, "AST json report is taking a long time! You may want to [cancel all] and retry.");
+                            message = "AST Scan json report for project {0} is taking a long time! Try again later.";
+                            return new Tuple<ReportResults, string>(null, message);
                         }
                         if (reportStatus == "Failed")
                         {
                             //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, "AST API says it could not generate a json report. You may want to [cancel all] and retry with diferent scans.");
-                            return null;
+                            message = "AST Scan API says it could not generate a json report for project {0}. You may want to try again later.";
+                            return new Tuple<ReportResults, string>(null, message);
                         }
                     }
 
                     var reportString = Reports.DownloadScanReportJsonUrl(downloadUrl).GetAwaiter().GetResult();
 
-                    return JsonConvert.DeserializeObject<ReportResults>(reportString);
+                    return new Tuple<ReportResults, string>(JsonConvert.DeserializeObject<ReportResults>(reportString), message);
                 }
                 else
                 {

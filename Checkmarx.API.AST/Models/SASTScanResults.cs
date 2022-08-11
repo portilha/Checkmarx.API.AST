@@ -33,4 +33,30 @@ namespace Checkmarx.API.AST.Models
 
         public ICollection<string> LanguagesDetected { get; set; }
     }
+
+    public class SCAScanResults
+    {
+        public Guid Id { get; set; }
+
+        public uint High { get; set; }
+
+        public uint Medium { get; set; }
+
+        public uint Low { get; set; }
+
+        public uint Info { get; set; }
+    }
+
+    public class KicksScanResults
+    {
+        public Guid Id { get; set; }
+
+        public uint High { get; set; }
+
+        public uint Medium { get; set; }
+
+        public uint Low { get; set; }
+
+        public uint Info { get; set; }
+    }
 }
