@@ -211,19 +211,19 @@
     public partial class Vulnerabilities
     {
         [JsonProperty("total")]
-        public long Total { get; set; }
+        public uint Total { get; set; }
 
         [JsonProperty("high")]
-        public long High { get; set; }
+        public uint High { get; set; }
 
         [JsonProperty("medium")]
-        public long Medium { get; set; }
+        public uint Medium { get; set; }
 
         [JsonProperty("low")]
-        public long Low { get; set; }
+        public uint Low { get; set; }
 
         [JsonProperty("info")]
-        public long Info { get; set; }
+        public uint Info { get; set; }
     }
 
     public partial class Sast

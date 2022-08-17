@@ -367,21 +367,21 @@ namespace Checkmarx.API.AST
             try
             {
                 var result = GetAstScanJsonReport(projectId, scanId);
-                var metadata = SASTMetadata.GetMetadataAsync(new Guid(scanId)).Result;
 
                 ScanDetails scanDetails = new ScanDetails();
                 scanDetails.Id = new Guid(scanId);
-
-                if (metadata != null)
-                {
-                    scanDetails.Preset = metadata.QueryPreset;
-                    scanDetails.LoC = metadata.Loc;
-                }
+                scanDetails.ErrorMessage = result.Item2;
 
                 var report = result.Item1;
-                scanDetails.ErrorMessage = result.Item2;
                 if (report != null)
                 {
+                    var metadata = SASTMetadata.GetMetadataAsync(new Guid(scanId)).Result;
+                    if (metadata != null)
+                    {
+                        scanDetails.Preset = metadata.QueryPreset;
+                        scanDetails.LoC = metadata.Loc;
+                    }
+
                     var split = report.ScanSummary.ScanCompletedDate.Split(" ");
                     DateTime startedOn = createdAt;
                     DateTime endOn = Convert.ToDateTime($"{split[0]} {split[1]}");
@@ -397,12 +397,12 @@ namespace Checkmarx.API.AST
                     {
                         scanDetails.SASTResults = new ScanResultDetails
                         {
-                            Total = (uint)Convert.ToInt32(report.ScanResults.Sast.Vulnerabilities.Total),
-                            High = (uint)Convert.ToInt32(report.ScanResults.Sast.Vulnerabilities.High),
-                            Medium = (uint)Convert.ToInt32(report.ScanResults.Sast.Vulnerabilities.Medium),
-                            Low = (uint)Convert.ToInt32(report.ScanResults.Sast.Vulnerabilities.Low),
-                            Info = (uint)Convert.ToInt32(report.ScanResults.Sast.Vulnerabilities.Info),
-                            Queries = report.ScanResults.Sast.Languages.Sum(x => x.Queries.Count()),
+                            Total = report.ScanResults.Sast.Vulnerabilities.Total,
+                            High = report.ScanResults.Sast.Vulnerabilities.High,
+                            Medium = report.ScanResults.Sast.Vulnerabilities.Medium,
+                            Low = report.ScanResults.Sast.Vulnerabilities.Low,
+                            Info = report.ScanResults.Sast.Vulnerabilities.Info,
+                            //Queries = report.ScanResults.Sast.Languages.Sum(x => x.Queries.Count()),
                         };
 
                         if (report.ScanResults.Sast.Languages != null && report.ScanResults.Sast.Languages.Any())
@@ -413,11 +413,11 @@ namespace Checkmarx.API.AST
                     {
                         scanDetails.ScaResults = new ScanResultDetails
                         {
-                            Total = (uint)Convert.ToInt32(report.ScanResults.Sca.Vulnerabilities.Total),
-                            High = (uint)Convert.ToInt32(report.ScanResults.Sca.Vulnerabilities.High),
-                            Medium = (uint)Convert.ToInt32(report.ScanResults.Sca.Vulnerabilities.Medium),
-                            Low = (uint)Convert.ToInt32(report.ScanResults.Sca.Vulnerabilities.Low),
-                            Info = (uint)Convert.ToInt32(report.ScanResults.Sca.Vulnerabilities.Info)
+                            Total = report.ScanResults.Sca.Vulnerabilities.Total,
+                            High = report.ScanResults.Sca.Vulnerabilities.High,
+                            Medium = report.ScanResults.Sca.Vulnerabilities.Medium,
+                            Low = report.ScanResults.Sca.Vulnerabilities.Low,
+                            Info = report.ScanResults.Sca.Vulnerabilities.Info
                         };
                     }
 
@@ -425,20 +425,20 @@ namespace Checkmarx.API.AST
                     {
                         scanDetails.KicsResults = new ScanResultDetails
                         {
-                            Total = (uint)Convert.ToInt32(report.ScanResults.Kics.Vulnerabilities.Total),
-                            High = (uint)Convert.ToInt32(report.ScanResults.Kics.Vulnerabilities.High),
-                            Medium = (uint)Convert.ToInt32(report.ScanResults.Kics.Vulnerabilities.Medium),
-                            Low = (uint)Convert.ToInt32(report.ScanResults.Kics.Vulnerabilities.Low),
-                            Info = (uint)Convert.ToInt32(report.ScanResults.Kics.Vulnerabilities.Info)
+                            Total = report.ScanResults.Kics.Vulnerabilities.Total,
+                            High = report.ScanResults.Kics.Vulnerabilities.High,
+                            Medium = report.ScanResults.Kics.Vulnerabilities.Medium,
+                            Low = report.ScanResults.Kics.Vulnerabilities.Low,
+                            Info = report.ScanResults.Kics.Vulnerabilities.Info
                         };
                     }
                 }
 
                 return scanDetails;
             }
-            catch (Exception)
+            catch
             {
-                return null;
+                throw;
             }
         }
 
@@ -456,7 +456,7 @@ namespace Checkmarx.API.AST
             if (createReportOutut != null)
             {
                 var createReportId = createReportOutut.ReportId;
-                if (createReportId != null)
+                if (createReportId != Guid.Empty)
                 {
                     string downloadUrl = null;
                     Guid reportId = createReportId;
