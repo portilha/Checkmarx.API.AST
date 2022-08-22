@@ -253,7 +253,27 @@ namespace Checkmarx.API.AST
 
         public IEnumerable<string> GetProjectBranches(string projectId)
         {
-            return Projects.GetListBranchesAssociatedWithProjectSortedByDateDSCAsync(projectId).Result;
+            return Projects.GetListBranchesAssociatedWithProjectSortedByDateDSCAsync(projectId, null, null).Result;
+        }
+
+        public IEnumerable<string> GetProjectBranchesV2(string projectId)
+        {
+            int startAt = 0;
+
+            while (true)
+            {
+                var results = Projects.GetListBranchesAssociatedWithProjectSortedByDateDSCAsync(projectId, startAt, 20).Result;
+
+                if (results.Count() == 0)
+                    yield break;
+
+                foreach (var result in results)
+                {
+                    yield return result;
+                }
+
+                startAt += 20;
+            }
         }
 
         #endregion

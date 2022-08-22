@@ -561,7 +561,7 @@ namespace Checkmarx.API.AST.Services.Projects
         /// <param name="branch_name">Branch name. filtered by full or partial name</param>
         /// <returns>OK,</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<string>> GetListBranchesAssociatedWithProjectSortedByDateDSCAsync(string project_id, string authorization = null, string accept = null, System.Guid? correlationId = null, int? offset = null, int? limit = null, string branch_name = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<string>> GetListBranchesAssociatedWithProjectSortedByDateDSCAsync(string project_id, int? offset = null, int? limit = null, string branch_name = null, string authorization = null, string accept = null, System.Guid? correlationId = null,  System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/branches?");
