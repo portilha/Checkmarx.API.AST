@@ -453,6 +453,22 @@ namespace Checkmarx.API.AST
                         };
                     }
                 }
+                else
+                {
+                    try
+                    {
+                        var metadata = SASTMetadata.GetMetadataAsync(new Guid(scanId)).Result;
+                        if (metadata != null)
+                        {
+                            scanDetails.Preset = metadata.QueryPreset;
+                            scanDetails.LoC = metadata.Loc;
+                        }
+                    }
+                    catch
+                    {
+                        scanDetails.ErrorMessage = $"{scanDetails.ErrorMessage} It was not possible to verify the LoC and Preset of the project.";
+                    }
+                }
 
                 return scanDetails;
             }
