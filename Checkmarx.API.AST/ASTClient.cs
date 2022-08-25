@@ -14,6 +14,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using Checkmarx.API.AST.Models.Report;
+using System.Threading.Tasks;
 
 namespace Checkmarx.API.AST
 {
@@ -251,28 +252,37 @@ namespace Checkmarx.API.AST
             Projects.UpdateProjectAsync(projectId, input).Wait();
         }
 
-        public IEnumerable<string> GetProjectBranches(string projectId)
-        {
-            return Projects.GetListBranchesAssociatedWithProjectSortedByDateDSCAsync(projectId).Result;
-        }
+        //public IEnumerable<string> GetProjectBranches(string projectId)
+        //{
+        //    return Projects.BranchesAsync(projectId).Result;
+        //}
 
-        public IEnumerable<string> GetProjectBranchesV2(string projectId)
+        public IEnumerable<string> GetProjectBranches(string projectId)
         {
             int startAt = 0;
 
             while (true)
             {
-                var results = Projects.GetListBranchesAssociatedWithProjectSortedByDateDSCAsync(projectId, startAt, 20).Result;
+                var response = Projects.BranchesAsync(projectId, startAt, 100);
+                IEnumerable<string> results = Enumerable.Empty<string>();
+                try
+                {
+                    results = response.Result;
+                }
+                catch
+                {
+                    // There is an error when no results. This is a workaround
+                }
 
-                if (results.Count() == 0)
+                if (!results.Any())
                     yield break;
 
-                foreach (var result in results)
+                foreach (var result in response.Result)
                 {
                     yield return result;
                 }
 
-                startAt += 20;
+                startAt += 100;
             }
         }
 
@@ -478,7 +488,7 @@ namespace Checkmarx.API.AST
             }
         }
 
-        private Tuple<ReportResults,string> GetAstScanJsonReport(string projectId, string scanId)
+        private Tuple<ReportResults, string> GetAstScanJsonReport(string projectId, string scanId)
         {
             string message = string.Empty;
 
