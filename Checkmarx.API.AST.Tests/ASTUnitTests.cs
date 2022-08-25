@@ -134,6 +134,14 @@ namespace Checkmarx.API.AST.Tests
         }
 
         [TestMethod]
+        public void BranchesTest()
+        {
+            Assert.IsNotNull(astclient.Projects);
+
+            var branchesV2 = astclient.GetProjectBranches("ecb958b2-80a4-4c5b-b97c-af61670689ba").ToList();
+        }
+
+        [TestMethod]
         public void ScanInfoTest()
         {
             var teste = astclient.GetScanDetails("6136f3ee-692f-4674-878d-e77482add2b9", "b777e387-d0b7-4bc0-9eb0-fcc91ef94647", DateTime.Now);
