@@ -321,6 +321,21 @@ namespace Checkmarx.API.AST
                 return scans.FirstOrDefault();
         }
 
+        public Checkmarx.API.AST.Models.Scan GetFirstSASTScan(Guid projectId, string branch = null)
+        {
+            var scans = GetScans(projectId, "sast", true, branch, ScanRetrieveKind.All);
+            if (scans.Any())
+            {
+                var fullScans = scans.Where(x => x.Metadata.Configs.Any(x => x.Value != null && !x.Value.Incremental)).OrderBy(x => x.CreatedAt);
+                if (fullScans.Any())
+                    return fullScans.FirstOrDefault();
+                else
+                    return scans.OrderBy(x => x.CreatedAt).FirstOrDefault();
+            }
+            else
+                return scans.OrderBy(x => x.CreatedAt).FirstOrDefault();
+        }
+
         /// <summary>
         /// Get first locked Scan
         /// </summary>
