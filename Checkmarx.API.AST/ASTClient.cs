@@ -234,7 +234,7 @@ namespace Checkmarx.API.AST
             if (tags == null)
                 throw new ArgumentNullException(nameof(tags));
 
-            var project = Projects.GetProjectAsync(projectId).Result;
+            var project = Projects.GetProjectAsync(new Guid(projectId)).Result;
             if (project == null)
                 throw new Exception($"No project found with id {projectId}");
 
@@ -257,30 +257,20 @@ namespace Checkmarx.API.AST
         //    return Projects.BranchesAsync(projectId).Result;
         //}
 
-        public IEnumerable<string> GetProjectBranches(string projectId)
+        public IEnumerable<string> GetProjectBranches(Guid projectId)
         {
             int startAt = 0;
 
             while (true)
             {
-                var response = Projects.BranchesAsync(projectId, startAt, 100);
-                IEnumerable<string> results = Enumerable.Empty<string>();
-                try
-                {
-                    results = response.Result;
-                }
-                catch
-                {
-                    // There is an error when no results. This is a workaround
-                }
-
-                if (!results.Any())
-                    yield break;
-
-                foreach (var result in response.Result)
+                var response = Projects.BranchesAsync(projectId, startAt, 100).Result;
+                foreach (var result in response)
                 {
                     yield return result;
                 }
+
+                if (response.Count() < 100)
+                    yield break;
 
                 startAt += 100;
             }
@@ -407,20 +397,20 @@ namespace Checkmarx.API.AST
         /// <param name="scanId"></param>
         /// <param name="createdAt"></param>
         /// <returns></returns>
-        public ScanDetails GetScanDetails(string projectId, string scanId, DateTime createdAt)
+        public ScanDetails GetScanDetails(Guid projectId, Guid scanId, DateTime createdAt)
         {
             try
             {
                 var result = GetAstScanJsonReport(projectId, scanId);
 
                 ScanDetails scanDetails = new ScanDetails();
-                scanDetails.Id = new Guid(scanId);
+                scanDetails.Id = scanId;
                 scanDetails.ErrorMessage = result.Item2;
 
                 var report = result.Item1;
                 if (report != null)
                 {
-                    var metadata = SASTMetadata.GetMetadataAsync(new Guid(scanId)).Result;
+                    var metadata = SASTMetadata.GetMetadataAsync(scanId).Result;
                     if (metadata != null)
                     {
                         scanDetails.Preset = metadata.QueryPreset;
@@ -482,7 +472,7 @@ namespace Checkmarx.API.AST
                 {
                     try
                     {
-                        var metadata = SASTMetadata.GetMetadataAsync(new Guid(scanId)).Result;
+                        var metadata = SASTMetadata.GetMetadataAsync(scanId).Result;
                         if (metadata != null)
                         {
                             scanDetails.Preset = metadata.QueryPreset;
@@ -503,7 +493,7 @@ namespace Checkmarx.API.AST
             }
         }
 
-        private Tuple<ReportResults, string> GetAstScanJsonReport(string projectId, string scanId)
+        private Tuple<ReportResults, string> GetAstScanJsonReport(Guid projectId, Guid scanId)
         {
             string message = string.Empty;
 
@@ -511,7 +501,7 @@ namespace Checkmarx.API.AST
             sc.ReportName = BaseReportCreateInputReportName.ScanReport;
             sc.ReportType = BaseReportCreateInputReportType.Cli;
             sc.FileFormat = BaseReportCreateInputFileFormat.Json;
-            sc.Data = new Data { ProjectId = projectId, ScanId = scanId };
+            sc.Data = new Data { ProjectId = projectId.ToString(), ScanId = scanId.ToString() };
 
             var createReportOutut = Reports.CreateReportAsync(sc).Result;
             if (createReportOutut != null)
