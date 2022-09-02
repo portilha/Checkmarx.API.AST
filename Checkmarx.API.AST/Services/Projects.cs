@@ -17,6 +17,7 @@ namespace Checkmarx.API.AST.Services.Projects
 {
     using Checkmarx.API.AST.Errors;
     using Checkmarx.API.AST.Exceptions;
+    using System;
     using System = global::System;
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "13.15.10.0 (NJsonSchema v10.6.10.0 (Newtonsoft.Json v12.0.0.0))")]
@@ -561,7 +562,7 @@ namespace Checkmarx.API.AST.Services.Projects
         /// <param name="branch_name">Branch name. filtered by full or partial name</param>
         /// <returns>OK,</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<string>> BranchesAsync(string project_id, int? offset = null, int? limit = null, string branch_name = null, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<string>> BranchesAsync(Guid project_id, int? offset = null, int? limit = null, string branch_name = null, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/branches?");
@@ -672,7 +673,7 @@ namespace Checkmarx.API.AST.Services.Projects
         /// <param name="correlationId">correlation id to keep track of a flow if many APIs are involved</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<RichProject> GetProjectAsync(string id, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<RichProject> GetProjectAsync(Guid id, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (id == null)
                 throw new System.ArgumentNullException("id");

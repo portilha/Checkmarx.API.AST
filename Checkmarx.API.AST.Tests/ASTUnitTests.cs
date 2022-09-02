@@ -52,7 +52,7 @@ namespace Checkmarx.API.AST.Tests
 
         public void UpdateProjectStatus(Guid id, string tag)
         {
-            var proj = astclient.Projects.GetProjectAsync(id.ToString()).Result;
+            var proj = astclient.Projects.GetProjectAsync(id).Result;
             if (proj != null)
             {
                 var tags = proj.Tags;
@@ -96,7 +96,7 @@ namespace Checkmarx.API.AST.Tests
         {
             Assert.IsNotNull(astclient.Projects);
 
-            var proj = astclient.Projects.GetProjectAsync("ee9feb1b-78b7-4a44-b007-8b8eca3e32b8").Result;
+            var proj = astclient.Projects.GetProjectAsync(new Guid("ee9feb1b-78b7-4a44-b007-8b8eca3e32b8")).Result;
 
             var currentTags = proj.Tags;
             if (currentTags.ContainsKey("asa_status"))
@@ -116,13 +116,13 @@ namespace Checkmarx.API.AST.Tests
             Assert.IsNotNull(astclient.Scans);
 
             //var scansList = astclient.Scans.GetListOfScansAsync().Result;
-            var proj = astclient.Projects.GetProjectAsync("a1705d81-091c-4ae5-b5d4-78917e0a4eb0").Result;
+            var proj = astclient.Projects.GetProjectAsync(new Guid("a1705d81-091c-4ae5-b5d4-78917e0a4eb0")).Result;
             var scansList = astclient.Scans.GetListOfScansAsync(proj.Id).Result;
             var lastScan = scansList.Scans?.ToList().OrderByDescending(x => x.CreatedAt)?.FirstOrDefault();
             var scanResult = astclient.SASTResults.GetSASTResultsByScanAsync(lastScan.Id).Result;
 
-            var report = getAstScanJsonReport("a1705d81-091c-4ae5-b5d4-78917e0a4eb0", lastScan.Id);
-            var metadata = astclient.SASTMetadata.GetMetadataAsync(new Guid(lastScan.Id)).Result;
+            //var report = astclient.GetAstScanJsonReport("a1705d81-091c-4ae5-b5d4-78917e0a4eb0", lastScan.Id);
+            //var metadata = astclient.SASTMetadata.GetMetadataAsync(new Guid(lastScan.Id)).Result;
 
             //ASTClient.GEtScanResults()
 
@@ -136,117 +136,25 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void BranchesTest()
         {
-            Assert.IsNotNull(astclient.Projects);
+            Guid projectId = new Guid("e85542eb-ee28-45ce-890f-f0a86999c489");
 
-            var branchesV2 = astclient.GetProjectBranches("ecb958b2-80a4-4c5b-b97c-af61670689ba").ToList();
+            Assert.IsNotNull(astclient.Projects);
+            Assert.IsNotNull(astclient.Projects.GetProjectAsync(projectId).Result);
+
+
+            var branchesV2 = astclient.GetProjectBranches(projectId).ToList();
+
+            foreach (var item in branchesV2)
+                Trace.WriteLine(item);
+
+            Assert.IsNotNull(branchesV2);
+            Assert.IsTrue(branchesV2.Count > 0);
         }
 
         [TestMethod]
         public void ScanInfoTest()
         {
-            var teste = astclient.GetScanDetails("6136f3ee-692f-4674-878d-e77482add2b9", "b777e387-d0b7-4bc0-9eb0-fcc91ef94647", DateTime.Now);
-        }
-
-        private static ReportResults getAstScanJsonReport(string projectId, string scanId)
-        {
-            ScanReportCreateInput sc = new ScanReportCreateInput();
-            sc.ReportName = BaseReportCreateInputReportName.ScanReport;
-            sc.ReportType = BaseReportCreateInputReportType.Cli;
-            sc.FileFormat = BaseReportCreateInputFileFormat.Json;
-            sc.Data = new Data { ProjectId = projectId, ScanId = scanId };
-
-            var createReportOutut = astclient.Reports.CreateReportAsync(sc).Result;
-            if(createReportOutut != null)
-            {
-                var createReportId = createReportOutut.ReportId;
-                if (createReportId != null)
-                {
-                    string downloadUrl = null;
-                    Guid reportId = createReportId;
-                    string reportStatus = "Requested";
-                    string pastReportStatus = reportStatus;
-                    //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, "Waiting/pooling for AST json report, please wait...");
-                    double aprox_seconds_passed = 0.0;
-                    while (reportStatus != "Completed")
-                    {
-                        System.Threading.Thread.Sleep(2000);
-                        aprox_seconds_passed += 2.020;
-                        var statusResponse = astclient.Reports.GetReportAsync(reportId, true).GetAwaiter().GetResult();
-                        reportId = statusResponse.ReportId;
-                        reportStatus = statusResponse.Status.ToString();
-                        downloadUrl = statusResponse.Url;
-                        if (reportStatus != "Requested" && reportStatus != "Completed" && reportStatus != "Started" && reportStatus != "Failed")
-                        {
-                            //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, "Abnormal AST json report status! You may want to [cancel all] and retry.");
-                        }
-                        if (pastReportStatus != reportStatus)
-                        {
-                            pastReportStatus = reportStatus;
-                        }
-                        if (aprox_seconds_passed > 15.0 * 60.0)
-                        {
-                            //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, "AST json report is taking a long time! You may want to [cancel all] and retry.");
-                        }
-                        if (reportStatus == "Failed")
-                        {
-                            //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, "AST API says it could not generate a json report. You may want to [cancel all] and retry with diferent scans.");
-                            return null;
-                        }
-                    }
-                    //dynamic scanString = AstApi.downloadScanReportJson(sc, reportId);
-                    //dynamic scanString = downloadScanReportJsonUrl(sc, downloadUrl);
-                    //astclient.Reports.DownloadAsync(new Guid("ee845fdc-2b14-4b21-9a5e-e636649df64d")).GetAwaiter().GetResult();
-                    
-                    var reportString = astclient.Reports.DownloadScanReportJsonUrl(downloadUrl).GetAwaiter().GetResult();
-
-                    return JsonConvert.DeserializeObject<ReportResults>(reportString);
-                }
-                else
-                {
-                    //Dbug.wline($"Error getting Report of Scan {scanId}");
-                }
-            }
-            
-            return null;
-        }
-
-        public static dynamic downloadScanReportJsonUrl(ScanReportCreateInput sc, string url)
-        {
-            //string serverRestEndpoint = $"{sc.Uri}api/reports/{reportId}/download";
-            string serverRestEndpoint = url;
-            WebRequest request = WebRequest.Create(serverRestEndpoint);
-            request.Method = "GET";
-            //request.Headers.Add("Authorization", GetAuthToken(sc));
-            try
-            {
-                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-                {
-                    using (Stream dataStream = response.GetResponseStream())
-                    {
-                        using (StreamReader reader = new StreamReader(dataStream))
-                        {
-                            string responseFromServer = reader.ReadToEnd();
-                            return JsonConvert.DeserializeObject<dynamic>(responseFromServer);
-                        }
-                    }
-                }
-            }
-            catch (WebException we)
-            {
-                //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, we.GetType().Name + " found. StackTrace: " + we.StackTrace);
-                if (we.Response != null)
-                {
-                    using (Stream dataStream = we.Response.GetResponseStream())
-                    {
-                        using (StreamReader reader = new StreamReader(dataStream))
-                        {
-                            string responseFromServer = reader.ReadToEnd();
-                            //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, $"Server response: {responseFromServer}");
-                        }
-                    }
-                }
-                throw we;
-            }
+            var teste = astclient.GetScanDetails(new Guid("453f8caf-c9f1-4359-8c58-4d5d3f8b28d8"), new Guid("cce501a8-2060-47c6-9a44-16e5822be301"), DateTime.Now);
         }
     }
 }
