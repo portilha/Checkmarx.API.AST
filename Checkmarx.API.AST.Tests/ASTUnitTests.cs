@@ -61,7 +61,7 @@ namespace Checkmarx.API.AST.Tests
                 else
                     tags.Add("asa_status", tag);
 
-                astclient.UpdateProjectTags(id.ToString(), tags);
+                astclient.UpdateProjectTags(id, tags);
             }
         }
 
@@ -107,7 +107,7 @@ namespace Checkmarx.API.AST.Tests
             Services.Projects.ProjectInput input = new Services.Projects.ProjectInput();
             input.Tags = currentTags;
 
-            astclient.Projects.UpdateProjectAsync("ee9feb1b-78b7-4a44-b007-8b8eca3e32b8", input).Wait();
+            astclient.Projects.UpdateProjectAsync(new Guid("ee9feb1b-78b7-4a44-b007-8b8eca3e32b8"), input).Wait();
         }
 
         [TestMethod]

@@ -781,7 +781,7 @@ namespace Checkmarx.API.AST.Services.Projects
         /// <param name="correlationId">correlation id to keep track of a flow if many APIs are involved</param>
         /// <returns>No Content</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task UpdateProjectAsync(string id, ProjectInput body, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task UpdateProjectAsync(Guid id, ProjectInput body, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (id == null)
                 throw new System.ArgumentNullException("id");

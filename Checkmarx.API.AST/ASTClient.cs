@@ -229,12 +229,12 @@ namespace Checkmarx.API.AST
             return listProjects;
         }
 
-        public void UpdateProjectTags(string projectId, IDictionary<string, string> tags)
+        public void UpdateProjectTags(Guid projectId, IDictionary<string, string> tags)
         {
             if (tags == null)
                 throw new ArgumentNullException(nameof(tags));
 
-            var project = Projects.GetProjectAsync(new Guid(projectId)).Result;
+            var project = Projects.GetProjectAsync(projectId).Result;
             if (project == null)
                 throw new Exception($"No project found with id {projectId}");
 
@@ -251,11 +251,6 @@ namespace Checkmarx.API.AST
 
             Projects.UpdateProjectAsync(projectId, input).Wait();
         }
-
-        //public IEnumerable<string> GetProjectBranches(string projectId)
-        //{
-        //    return Projects.BranchesAsync(projectId).Result;
-        //}
 
         public IEnumerable<string> GetProjectBranches(Guid projectId)
         {
