@@ -158,13 +158,13 @@ namespace Checkmarx.API.AST.Tests
         }
 
         [TestMethod]
-        public void ScanInfoAdidasError404Test()
+        public void ScanMetadataTest()
         {
             var teste = astclient.SASTMetadata.GetMetadataAsync(new Guid("b0e11442-2694-4102-ae4f-e3a3dcb3559e")).Result;
         }
 
         [TestMethod]
-        public void ScanInfoError404Test()
+        public void FullMetadataTest()
         {
             List<Tuple<Guid, Guid, string, int?, string>> result = new List<Tuple<Guid, Guid, string, int?, string>>();
 
@@ -193,6 +193,43 @@ namespace Checkmarx.API.AST.Tests
             }
             
             foreach(var item in result)
+            {
+                Console.WriteLine($"Project Id: {item.Item1} | Scan Id: {item.Item2} | Project Name: {item.Item3} | Status Code: {item.Item4} | Message: {item.Item5}");
+            }
+        }
+
+        [TestMethod]
+        public void FullScanDetailsTest()
+        {
+            List<Tuple<Guid, Guid, string, int?, string>> result = new List<Tuple<Guid, Guid, string, int?, string>>();
+
+            var projectList = astclient.Projects.GetListOfProjectsAsync().Result;
+            foreach (var project in projectList.Projects)
+            {
+                var scan = astclient.GetLastSASTScan(new Guid(project.Id));
+                if (scan == null)
+                {
+                    result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), Guid.Empty, project.Name, 0, "No completed scans found"));
+                    continue;
+                }
+
+                try
+                {
+                    var scanDetails = astclient.GetScanDetails(new Guid(project.Id), new Guid(scan.Id), DateTime.Now);
+                    if(!string.IsNullOrEmpty(scanDetails.ErrorMessage))
+                        result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), new Guid(scan.Id), project.Name, 0, scanDetails.ErrorMessage));
+                }
+                catch (ApiException apiEx)
+                {
+                    result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), new Guid(scan.Id), project.Name, apiEx.StatusCode, apiEx.Message));
+                }
+                catch (Exception ex)
+                {
+                    result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), new Guid(scan.Id), project.Name, 0, ex.Message));
+                }
+            }
+
+            foreach (var item in result)
             {
                 Console.WriteLine($"Project Id: {item.Item1} | Scan Id: {item.Item2} | Project Name: {item.Item3} | Status Code: {item.Item4} | Message: {item.Item5}");
             }
