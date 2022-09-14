@@ -158,9 +158,21 @@ namespace Checkmarx.API.AST.Tests
         }
 
         [TestMethod]
+        public void ScanInfoTest2()
+        {
+            var teste = astclient.GetScanDetails(new Guid("10d68198-7ee1-484d-9285-73853e875067"), new Guid("90737b6f-9cd7-441e-9da5-23b7467719a0"), DateTime.Now);
+        }
+
+        [TestMethod]
         public void ScanMetadataTest()
         {
             var teste = astclient.SASTMetadata.GetMetadataAsync(new Guid("b0e11442-2694-4102-ae4f-e3a3dcb3559e")).Result;
+        }
+
+        [TestMethod]
+        public void ScanMetricsTest()
+        {
+            var teste = astclient.SASTMetadata.MetricsAsync(new Guid("b0e11442-2694-4102-ae4f-e3a3dcb3559e")).Result;
         }
 
         [TestMethod]
