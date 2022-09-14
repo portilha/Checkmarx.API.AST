@@ -394,16 +394,76 @@ namespace Checkmarx.API.AST
         /// <returns></returns>
         public ScanDetails GetScanDetails(Guid projectId, Guid scanId, DateTime createdAt)
         {
-            try
+            var result = GetAstScanJsonReport(projectId, scanId);
+
+            ScanDetails scanDetails = new ScanDetails();
+            scanDetails.Id = scanId;
+            scanDetails.ErrorMessage = result.Item2;
+
+            var report = result.Item1;
+            if (report != null)
             {
-                var result = GetAstScanJsonReport(projectId, scanId);
+                var metadata = SASTMetadata.GetMetadataAsync(scanId).Result;
+                if (metadata != null)
+                {
+                    scanDetails.Preset = metadata.QueryPreset;
+                    scanDetails.LoC = metadata.Loc;
+                }
 
-                ScanDetails scanDetails = new ScanDetails();
-                scanDetails.Id = scanId;
-                scanDetails.ErrorMessage = result.Item2;
+                var split = report.ScanSummary.ScanCompletedDate.Split(" ");
+                DateTime startedOn = createdAt;
+                DateTime endOn = Convert.ToDateTime($"{split[0]} {split[1]}");
 
-                var report = result.Item1;
-                if (report != null)
+                scanDetails.FinishedOn = startedOn;
+                scanDetails.Duration = endOn - startedOn;
+
+                if (report.ScanSummary.Languages != null && report.ScanSummary.Languages.Any())
+                    scanDetails.Languages = string.Join(";", report.ScanSummary.Languages.Where(x => x != "Common").Select(x => x).ToList());
+
+                //Scan Results
+                if (report.ScanResults.Sast != null)
+                {
+                    scanDetails.SASTResults = new ScanResultDetails
+                    {
+                        Total = report.ScanResults.Sast.Vulnerabilities.Total,
+                        High = report.ScanResults.Sast.Vulnerabilities.High,
+                        Medium = report.ScanResults.Sast.Vulnerabilities.Medium,
+                        Low = report.ScanResults.Sast.Vulnerabilities.Low,
+                        Info = report.ScanResults.Sast.Vulnerabilities.Info,
+                        //Queries = report.ScanResults.Sast.Languages.Sum(x => x.Queries.Count()),
+                    };
+
+                    if (report.ScanResults.Sast.Languages != null && report.ScanResults.Sast.Languages.Any())
+                        scanDetails.SASTResults.LanguagesDetected = report.ScanResults.Sast.Languages.Where(x => x.LanguageName != "Common").Select(x => x.LanguageName).ToList();
+                }
+
+                if (report.ScanResults.Sca != null)
+                {
+                    scanDetails.ScaResults = new ScanResultDetails
+                    {
+                        Total = report.ScanResults.Sca.Vulnerabilities.Total,
+                        High = report.ScanResults.Sca.Vulnerabilities.High,
+                        Medium = report.ScanResults.Sca.Vulnerabilities.Medium,
+                        Low = report.ScanResults.Sca.Vulnerabilities.Low,
+                        Info = report.ScanResults.Sca.Vulnerabilities.Info
+                    };
+                }
+
+                if (report.ScanResults.Kics != null)
+                {
+                    scanDetails.KicsResults = new ScanResultDetails
+                    {
+                        Total = report.ScanResults.Kics.Vulnerabilities.Total,
+                        High = report.ScanResults.Kics.Vulnerabilities.High,
+                        Medium = report.ScanResults.Kics.Vulnerabilities.Medium,
+                        Low = report.ScanResults.Kics.Vulnerabilities.Low,
+                        Info = report.ScanResults.Kics.Vulnerabilities.Info
+                    };
+                }
+            }
+            else
+            {
+                try
                 {
                     var metadata = SASTMetadata.GetMetadataAsync(scanId).Result;
                     if (metadata != null)
@@ -411,81 +471,14 @@ namespace Checkmarx.API.AST
                         scanDetails.Preset = metadata.QueryPreset;
                         scanDetails.LoC = metadata.Loc;
                     }
-
-                    var split = report.ScanSummary.ScanCompletedDate.Split(" ");
-                    DateTime startedOn = createdAt;
-                    DateTime endOn = Convert.ToDateTime($"{split[0]} {split[1]}");
-
-                    scanDetails.FinishedOn = startedOn;
-                    scanDetails.Duration = endOn - startedOn;
-
-                    if (report.ScanSummary.Languages != null && report.ScanSummary.Languages.Any())
-                        scanDetails.Languages = string.Join(";", report.ScanSummary.Languages.Where(x => x != "Common").Select(x => x).ToList());
-
-                    //Scan Results
-                    if (report.ScanResults.Sast != null)
-                    {
-                        scanDetails.SASTResults = new ScanResultDetails
-                        {
-                            Total = report.ScanResults.Sast.Vulnerabilities.Total,
-                            High = report.ScanResults.Sast.Vulnerabilities.High,
-                            Medium = report.ScanResults.Sast.Vulnerabilities.Medium,
-                            Low = report.ScanResults.Sast.Vulnerabilities.Low,
-                            Info = report.ScanResults.Sast.Vulnerabilities.Info,
-                            //Queries = report.ScanResults.Sast.Languages.Sum(x => x.Queries.Count()),
-                        };
-
-                        if (report.ScanResults.Sast.Languages != null && report.ScanResults.Sast.Languages.Any())
-                            scanDetails.SASTResults.LanguagesDetected = report.ScanResults.Sast.Languages.Where(x => x.LanguageName != "Common").Select(x => x.LanguageName).ToList();
-                    }
-
-                    if (report.ScanResults.Sca != null)
-                    {
-                        scanDetails.ScaResults = new ScanResultDetails
-                        {
-                            Total = report.ScanResults.Sca.Vulnerabilities.Total,
-                            High = report.ScanResults.Sca.Vulnerabilities.High,
-                            Medium = report.ScanResults.Sca.Vulnerabilities.Medium,
-                            Low = report.ScanResults.Sca.Vulnerabilities.Low,
-                            Info = report.ScanResults.Sca.Vulnerabilities.Info
-                        };
-                    }
-
-                    if (report.ScanResults.Kics != null)
-                    {
-                        scanDetails.KicsResults = new ScanResultDetails
-                        {
-                            Total = report.ScanResults.Kics.Vulnerabilities.Total,
-                            High = report.ScanResults.Kics.Vulnerabilities.High,
-                            Medium = report.ScanResults.Kics.Vulnerabilities.Medium,
-                            Low = report.ScanResults.Kics.Vulnerabilities.Low,
-                            Info = report.ScanResults.Kics.Vulnerabilities.Info
-                        };
-                    }
                 }
-                else
+                catch
                 {
-                    try
-                    {
-                        var metadata = SASTMetadata.GetMetadataAsync(scanId).Result;
-                        if (metadata != null)
-                        {
-                            scanDetails.Preset = metadata.QueryPreset;
-                            scanDetails.LoC = metadata.Loc;
-                        }
-                    }
-                    catch
-                    {
-                        scanDetails.ErrorMessage = $"{scanDetails.ErrorMessage} It was not possible to verify the LoC and Preset of the project.";
-                    }
+                    scanDetails.ErrorMessage = $"{scanDetails.ErrorMessage} It was not possible to verify the LoC and Preset of the project.";
                 }
+            }
 
-                return scanDetails;
-            }
-            catch
-            {
-                throw;
-            }
+            return scanDetails;
         }
 
         private Tuple<ReportResults, string> GetAstScanJsonReport(Guid projectId, Guid scanId)
