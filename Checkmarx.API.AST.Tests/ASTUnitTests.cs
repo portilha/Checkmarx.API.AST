@@ -119,7 +119,7 @@ namespace Checkmarx.API.AST.Tests
             var proj = astclient.Projects.GetProjectAsync(new Guid("a1705d81-091c-4ae5-b5d4-78917e0a4eb0")).Result;
             var scansList = astclient.Scans.GetListOfScansAsync(proj.Id).Result;
             var lastScan = scansList.Scans?.ToList().OrderByDescending(x => x.CreatedAt)?.FirstOrDefault();
-            var scanResult = astclient.SASTResults.GetSASTResultsByScanAsync(lastScan.Id).Result;
+            var scanResult = astclient.SASTResults.GetSASTResultsByScanAsync(new Guid(lastScan.Id)).Result;
 
             //var report = astclient.GetAstScanJsonReport("a1705d81-091c-4ae5-b5d4-78917e0a4eb0", lastScan.Id);
             //var metadata = astclient.SASTMetadata.GetMetadataAsync(new Guid(lastScan.Id)).Result;
@@ -154,13 +154,14 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void ScanInfoTest()
         {
-            var teste = astclient.GetScanDetails(new Guid("453f8caf-c9f1-4359-8c58-4d5d3f8b28d8"), new Guid("cce501a8-2060-47c6-9a44-16e5822be301"), DateTime.Now);
+            var teste = astclient.GetScanDetails(new Guid("453f8caf-c9f1-4359-8c58-4d5d3f8b28d8"), new Guid("b0e11442-2694-4102-ae4f-e3a3dcb3559e"), DateTime.Now);
         }
 
         [TestMethod]
         public void ScanInfoTest2()
         {
-            var teste = astclient.GetScanDetails(new Guid("10d68198-7ee1-484d-9285-73853e875067"), new Guid("90737b6f-9cd7-441e-9da5-23b7467719a0"), DateTime.Now);
+            // SCA scan failed
+            var teste = astclient.GetScanDetails(new Guid("eefc36e3-3483-4b32-a811-dbe09daf37e4"), new Guid("3de0bdea-4018-4128-bb07-db04596ff262"), DateTime.Now);
         }
 
         [TestMethod]
@@ -245,6 +246,12 @@ namespace Checkmarx.API.AST.Tests
             {
                 Console.WriteLine($"Project Id: {item.Item1} | Scan Id: {item.Item2} | Project Name: {item.Item3} | Status Code: {item.Item4} | Message: {item.Item5}");
             }
+        }
+
+        [TestMethod]
+        public void SASTResultsTest()
+        {
+            var teste = astclient.SASTResults.GetSASTResultsByScanAsync(new Guid("b0e11442-2694-4102-ae4f-e3a3dcb3559e")).Result;
         }
     }
 }
