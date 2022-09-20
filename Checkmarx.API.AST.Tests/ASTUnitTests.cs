@@ -154,14 +154,14 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void ScanInfoTest()
         {
-            var teste = astclient.GetScanDetails(new Guid("453f8caf-c9f1-4359-8c58-4d5d3f8b28d8"), new Guid("b0e11442-2694-4102-ae4f-e3a3dcb3559e"), DateTime.Now);
+            var teste = astclient.GetScanDetails(new Guid("453f8caf-c9f1-4359-8c58-4d5d3f8b28d8"), new Guid("154fe347-d237-49e4-80af-77dfd37fdc9c"), DateTime.Now);
         }
 
         [TestMethod]
         public void ScanInfoTest2()
         {
             // SCA scan failed
-            var teste = astclient.GetScanDetails(new Guid("eefc36e3-3483-4b32-a811-dbe09daf37e4"), new Guid("3de0bdea-4018-4128-bb07-db04596ff262"), DateTime.Now);
+            var teste = astclient.GetScanDetails(new Guid("eefc36e3-3483-4b32-a811-dbe09daf37e4"), new Guid("154fe347-d237-49e4-80af-77dfd37fdc9c"), DateTime.Now);
         }
 
         [TestMethod]
