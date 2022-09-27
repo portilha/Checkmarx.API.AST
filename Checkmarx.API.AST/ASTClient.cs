@@ -491,7 +491,28 @@ namespace Checkmarx.API.AST
             sc.FileFormat = BaseReportCreateInputFileFormat.Json;
             sc.Data = new Data { ProjectId = projectId.ToString(), ScanId = scanId.ToString() };
 
-            var createReportOutut = Reports.CreateReportAsync(sc).Result;
+            ReportCreateOutput createReportOutut = null;
+            createReportOutut = Reports.CreateReportAsync(sc).Result;
+            //int createNumberOfTries = 0;
+            //while (createNumberOfTries < 3)
+            //{
+            //    try
+            //    {
+            //        createReportOutut = Reports.CreateReportAsync(sc).Result;
+            //    }
+            //    catch
+            //    {
+            //        System.Threading.Thread.Sleep(500);
+            //        createNumberOfTries++;
+
+            //        if (createNumberOfTries < 3)
+            //            continue;
+            //        else
+            //            throw;
+            //    }
+            //    break;
+            //}
+
             if (createReportOutut != null)
             {
                 var createReportId = createReportOutut.ReportId;
@@ -501,16 +522,40 @@ namespace Checkmarx.API.AST
                     Guid reportId = createReportId;
                     string reportStatus = "Requested";
                     string pastReportStatus = reportStatus;
-                    //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, "Waiting/pooling for AST json report, please wait...");
                     double aprox_seconds_passed = 0.0;
                     while (reportStatus != "Completed")
                     {
-                        System.Threading.Thread.Sleep(2000);
-                        aprox_seconds_passed += 2.020;
+                        System.Threading.Thread.Sleep(1000);
+                        aprox_seconds_passed += 1.020;
+
+                        //int numberOfTries = 0;
+                        //while (numberOfTries < 3)
+                        //{
+                        //    try
+                        //    {
+                        //        var statusResponse = Reports.GetReportAsync(reportId, true).GetAwaiter().GetResult();
+                        //        reportId = statusResponse.ReportId;
+                        //        reportStatus = statusResponse.Status.ToString();
+                        //        downloadUrl = statusResponse.Url;
+                        //    }
+                        //    catch
+                        //    {
+                        //        System.Threading.Thread.Sleep(500);
+                        //        numberOfTries++;
+
+                        //        if (numberOfTries < 3)
+                        //            continue;
+                        //        else
+                        //            throw;
+                        //    }
+                        //    break;
+                        //}
+
                         var statusResponse = Reports.GetReportAsync(reportId, true).GetAwaiter().GetResult();
                         reportId = statusResponse.ReportId;
                         reportStatus = statusResponse.Status.ToString();
                         downloadUrl = statusResponse.Url;
+
                         if (reportStatus != "Requested" && reportStatus != "Completed" && reportStatus != "Started" && reportStatus != "Failed")
                         {
                             //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, "Abnormal AST json report status! You may want to [cancel all] and retry.");
@@ -519,16 +564,13 @@ namespace Checkmarx.API.AST
                         {
                             pastReportStatus = reportStatus;
                         }
-                        //if (aprox_seconds_passed > 15.0 * 60.0)
                         if (aprox_seconds_passed > 60)
                         {
-                            //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, "AST json report is taking a long time! You may want to [cancel all] and retry.");
                             message = "AST Scan json report for project {0} is taking a long time! Try again later.";
                             return new Tuple<ReportResults, string>(null, message);
                         }
                         if (reportStatus == "Failed")
                         {
-                            //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, "AST API says it could not generate a json report. You may want to [cancel all] and retry with diferent scans.");
                             message = "AST Scan API says it could not generate a json report for project {0}. You may want to try again later.";
                             return new Tuple<ReportResults, string>(null, message);
                         }
@@ -540,7 +582,7 @@ namespace Checkmarx.API.AST
                 }
                 else
                 {
-                    //Dbug.wline($"Error getting Report of Scan {scanId}");
+                    message = $"Error getting Report of Scan {scanId}";
                 }
             }
 
