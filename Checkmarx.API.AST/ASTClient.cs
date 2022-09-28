@@ -492,26 +492,26 @@ namespace Checkmarx.API.AST
             sc.Data = new Data { ProjectId = projectId.ToString(), ScanId = scanId.ToString() };
 
             ReportCreateOutput createReportOutut = null;
-            createReportOutut = Reports.CreateReportAsync(sc).Result;
-            //int createNumberOfTries = 0;
-            //while (createNumberOfTries < 3)
-            //{
-            //    try
-            //    {
-            //        createReportOutut = Reports.CreateReportAsync(sc).Result;
-            //    }
-            //    catch
-            //    {
-            //        System.Threading.Thread.Sleep(500);
-            //        createNumberOfTries++;
+            //createReportOutut = Reports.CreateReportAsync(sc).Result;
+            int createNumberOfTries = 0;
+            while (createNumberOfTries < 3)
+            {
+                try
+                {
+                    createReportOutut = Reports.CreateReportAsync(sc).Result;
+                }
+                catch
+                {
+                    System.Threading.Thread.Sleep(500);
+                    createNumberOfTries++;
 
-            //        if (createNumberOfTries < 3)
-            //            continue;
-            //        else
-            //            throw;
-            //    }
-            //    break;
-            //}
+                    if (createNumberOfTries < 3)
+                        continue;
+                    else
+                        throw;
+                }
+                break;
+            }
 
             if (createReportOutut != null)
             {
@@ -528,33 +528,33 @@ namespace Checkmarx.API.AST
                         System.Threading.Thread.Sleep(1000);
                         aprox_seconds_passed += 1.020;
 
-                        //int numberOfTries = 0;
-                        //while (numberOfTries < 3)
-                        //{
-                        //    try
-                        //    {
-                        //        var statusResponse = Reports.GetReportAsync(reportId, true).GetAwaiter().GetResult();
-                        //        reportId = statusResponse.ReportId;
-                        //        reportStatus = statusResponse.Status.ToString();
-                        //        downloadUrl = statusResponse.Url;
-                        //    }
-                        //    catch
-                        //    {
-                        //        System.Threading.Thread.Sleep(500);
-                        //        numberOfTries++;
+                        //var statusResponse = Reports.GetReportAsync(reportId, true).GetAwaiter().GetResult();
+                        //reportId = statusResponse.ReportId;
+                        //reportStatus = statusResponse.Status.ToString();
+                        //downloadUrl = statusResponse.Url;
 
-                        //        if (numberOfTries < 3)
-                        //            continue;
-                        //        else
-                        //            throw;
-                        //    }
-                        //    break;
-                        //}
+                        int numberOfTries = 0;
+                        while (numberOfTries < 3)
+                        {
+                            try
+                            {
+                                var statusResponse = Reports.GetReportAsync(reportId, true).GetAwaiter().GetResult();
+                                reportId = statusResponse.ReportId;
+                                reportStatus = statusResponse.Status.ToString();
+                                downloadUrl = statusResponse.Url;
+                            }
+                            catch
+                            {
+                                System.Threading.Thread.Sleep(500);
+                                numberOfTries++;
 
-                        var statusResponse = Reports.GetReportAsync(reportId, true).GetAwaiter().GetResult();
-                        reportId = statusResponse.ReportId;
-                        reportStatus = statusResponse.Status.ToString();
-                        downloadUrl = statusResponse.Url;
+                                if (numberOfTries < 3)
+                                    continue;
+                                else
+                                    throw;
+                            }
+                            break;
+                        }
 
                         if (reportStatus != "Requested" && reportStatus != "Completed" && reportStatus != "Started" && reportStatus != "Failed")
                         {
