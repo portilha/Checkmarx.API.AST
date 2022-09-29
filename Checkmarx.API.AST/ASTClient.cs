@@ -430,6 +430,7 @@ namespace Checkmarx.API.AST
                         Medium = report.ScanResults.Sast.Vulnerabilities.Medium,
                         Low = report.ScanResults.Sast.Vulnerabilities.Low,
                         Info = report.ScanResults.Sast.Vulnerabilities.Info,
+                        ToVerify = (uint)GetScanVulnerabilitiesToVerify(scanId).Count(),
                         //Queries = report.ScanResults.Sast.Languages.Sum(x => x.Queries.Count()),
                     };
 
@@ -587,6 +588,32 @@ namespace Checkmarx.API.AST
             }
 
             return null;
+        }
+
+        //public int GetScanVulnerabilitiesToVerifyNumber(Guid scanId)
+        //{
+        //    var scanResult = SASTResults.GetSASTResultsByScanAsync(scanId).Result;
+
+        //    return scanResult.Results.Where(x => x.State == Services.SASTResults.ResultsState.TO_VERIFY).Count();
+        //}
+
+        private IEnumerable<Results> GetScanVulnerabilitiesToVerify(Guid scanId)
+        {
+            int startAt = 0;
+
+            while (true)
+            {
+                var response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, 100).Result;
+                foreach (var result in response.Results)
+                {
+                    yield return result;
+                }
+
+                if (response.Results.Count() < 100)
+                    yield break;
+
+                startAt += 100;
+            }
         }
 
         #endregion
