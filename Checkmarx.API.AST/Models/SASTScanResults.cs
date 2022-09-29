@@ -25,6 +25,8 @@ namespace Checkmarx.API.AST.Models
 
         public uint Info { get; set; }
 
+        public uint ToVerify { get; set; }
+
         public int FalseNegatives { get; set; }
 
         public int FalsePositives { get; set; }

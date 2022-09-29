@@ -26,6 +26,7 @@ namespace Checkmarx.API.AST.Models
         public uint Medium { get; set; }
         public uint Low { get; set; }
         public uint Info { get; set; }
+        public uint ToVerify { get; set; }
         //public int Queries { get; set; }
         public ICollection<string> LanguagesDetected { get; set; }
     }
