@@ -494,8 +494,8 @@ namespace Checkmarx.API.AST
 
             ReportCreateOutput createReportOutut = null;
             //createReportOutut = Reports.CreateReportAsync(sc).Result;
-            int createNumberOfTries = 0;
-            while (createNumberOfTries < 3)
+            int createNumberOfAttempts = 0;
+            while (createNumberOfAttempts < 3)
             {
                 try
                 {
@@ -504,9 +504,9 @@ namespace Checkmarx.API.AST
                 catch
                 {
                     System.Threading.Thread.Sleep(500);
-                    createNumberOfTries++;
+                    createNumberOfAttempts++;
 
-                    if (createNumberOfTries < 3)
+                    if (createNumberOfAttempts < 3)
                         continue;
                     else
                         throw;
@@ -534,8 +534,8 @@ namespace Checkmarx.API.AST
                         //reportStatus = statusResponse.Status.ToString();
                         //downloadUrl = statusResponse.Url;
 
-                        int numberOfTries = 0;
-                        while (numberOfTries < 3)
+                        int numberOfAttempts = 0;
+                        while (numberOfAttempts < 3)
                         {
                             try
                             {
@@ -547,9 +547,9 @@ namespace Checkmarx.API.AST
                             catch
                             {
                                 System.Threading.Thread.Sleep(500);
-                                numberOfTries++;
+                                numberOfAttempts++;
 
-                                if (numberOfTries < 3)
+                                if (numberOfAttempts < 3)
                                     continue;
                                 else
                                     throw;
