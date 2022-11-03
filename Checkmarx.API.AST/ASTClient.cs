@@ -151,9 +151,9 @@ namespace Checkmarx.API.AST
             };
 
             var req = new HttpRequestMessage(HttpMethod.Post, identityURL) { Content = new FormUrlEncodedContent(kv) };
-            req.Headers.UserAgent.Add(new ProductInfoHeaderValue("ProgramTracker", "1.0"));
+            req.Headers.UserAgent.Add(new ProductInfoHeaderValue("ASAProgramTracker", "1.0"));
 
-            //_httpClient.DefaultRequestHeaders.Add("Accept", "*/*");
+            _httpClient.DefaultRequestHeaders.Add("Accept", "*/*");
             var response = _httpClient.SendAsync(req).Result;
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
