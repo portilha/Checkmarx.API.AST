@@ -7,8 +7,15 @@ namespace Checkmarx.API.AST.Models
     public class ScanDetails
     {
         public Guid Id { get; set; }
+
+        public string Status { get; set; }
+        public bool Successful { get; set; }
         public string Preset { get; set; }
         public long LoC { get; set; }
+        public string Branch { get; set; }
+        public string InitiatorName { get; set; }
+        public string SourceType { get; set; }
+        public string SourceOrigin { get; set; }
         public DateTimeOffset? FinishedOn { get; set; }
         public TimeSpan Duration { get; set; }
         public string Languages { get; set; }
@@ -21,12 +28,15 @@ namespace Checkmarx.API.AST.Models
 
     public class ScanResultDetails
     {
-        public uint Total { get; set; }
-        public uint High { get; set; }
-        public uint Medium { get; set; }
-        public uint Low { get; set; }
-        public uint Info { get; set; }
-        public uint ToVerify { get; set; }
+        public bool Successful { get; set; }
+        public string Status { get; set; }
+        public string Details { get; set; }
+        public int? Total { get; set; }
+        public int? High { get; set; }
+        public int? Medium { get; set; }
+        public int? Low { get; set; }
+        public int? Info { get; set; }
+        public int? ToVerify { get; set; }
         //public int Queries { get; set; }
         public ICollection<string> LanguagesDetected { get; set; }
     }

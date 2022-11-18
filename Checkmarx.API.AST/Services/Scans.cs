@@ -15,6 +15,9 @@
 
 namespace Checkmarx.API.AST.Services.Scans
 {
+    using Checkmarx.API.AST.Models;
+    using Newtonsoft.Json;
+    using System.Collections.Generic;
     using System = global::System;
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "13.15.10.0 (NJsonSchema v10.6.10.0 (Newtonsoft.Json v12.0.0.0))")]
@@ -774,7 +777,7 @@ namespace Checkmarx.API.AST.Services.Scans
         /// <param name="id">The scan ID</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<Scan> GetScanAsync(string authorization, string accept, System.Guid? correlationId, System.Guid id, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<Scan> GetScanAsync(System.Guid id, string authorization = null, string accept = null, System.Guid? correlationId = null,  System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (id == null)
                 throw new System.ArgumentNullException("id");
@@ -1311,6 +1314,9 @@ namespace Checkmarx.API.AST.Services.Scans
         [Newtonsoft.Json.JsonProperty("statusDetails", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.Collections.Generic.ICollection<StatusDetails> StatusDetails { get; set; }
 
+        [Newtonsoft.Json.JsonProperty("engines", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public System.Collections.Generic.ICollection<string> Engines { get; set; }
+
         /// <summary>
         /// The position of the scan in the execution queue.
         /// </summary>
@@ -1371,6 +1377,12 @@ namespace Checkmarx.API.AST.Services.Scans
         [Newtonsoft.Json.JsonProperty("initiator", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Initiator { get; set; }
 
+        [Newtonsoft.Json.JsonProperty("sourceType", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string SourceType { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("sourceOrigin", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string SourceOrigin { get; set; }
+
         /// <summary>
         /// An object representing the scan tags in a key-value format
         /// </summary>
@@ -1381,7 +1393,7 @@ namespace Checkmarx.API.AST.Services.Scans
         /// A JSON object containing info about the scan settings.
         /// </summary>
         [Newtonsoft.Json.JsonProperty("metadata", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public object Metadata { get; set; }
+        public Metadata Metadata { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties = new System.Collections.Generic.Dictionary<string, object>();
 
@@ -1392,6 +1404,55 @@ namespace Checkmarx.API.AST.Services.Scans
             set { _additionalProperties = value; }
         }
 
+        public static Scan FromJson(string json) => JsonConvert.DeserializeObject<Scan>(json);
+    }
+
+    public class Metadata
+    {
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        [JsonProperty("type")]
+        public string Type { get; set; }
+
+        [JsonProperty("Handler")]
+        public Handler Handler { get; set; }
+
+        [JsonProperty("configs")]
+        public List<MetadataConfig> Configs { get; set; }
+
+        [JsonProperty("project")]
+        public object Project { get; set; }
+    }
+
+    public class MetadataConfig
+    {
+        [JsonProperty("type")]
+        public string Type { get; set; }
+
+        [JsonProperty("value")]
+        public MetadataValue Value { get; set; }
+    }
+
+    public class MetadataValue
+    {
+        [JsonProperty("incremental")]
+        public bool Incremental { get; set; }
+    }
+
+    public class Handler
+    {
+        [JsonProperty("UploadHandler")]
+        public UploadHandler UploadHandler { get; set; }
+    }
+
+    public class UploadHandler
+    {
+        [JsonProperty("branch")]
+        public string Branch { get; set; }
+
+        [JsonProperty("upload_url")]
+        public string UploadUrl { get; set; }
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.15.10.0 (NJsonSchema v10.6.10.0 (Newtonsoft.Json v12.0.0.0))")]

@@ -7,6 +7,10 @@ namespace Checkmarx.API.AST.Models
     {
         public Guid Id { get; set; }
 
+        public bool Successful { get; set; }
+        public string Status { get; set; }
+        public string Details { get; set; }
+
         public int LoC { get; set; }
 
         public int FailedLoC { get; set; }
@@ -17,21 +21,21 @@ namespace Checkmarx.API.AST.Models
         public ICollection<string> TunningInfo { get; set; }
 
         // True Positives
-        public uint High { get; set; }
+        public int? High { get; set; }
 
-        public uint Medium { get; set; }
+        public int? Medium { get; set; }
 
-        public uint Low { get; set; }
+        public int? Low { get; set; }
 
-        public uint Info { get; set; }
+        public int? Info { get; set; }
 
-        public uint ToVerify { get; set; }
+        public int? ToVerify { get; set; }
 
-        public int FalseNegatives { get; set; }
+        public int? FalseNegatives { get; set; }
 
-        public int FalsePositives { get; set; }
+        public int? FalsePositives { get; set; }
 
-        public int Queries { get; set; }
+        public int? Queries { get; set; }
 
         public ICollection<string> LanguagesDetected { get; set; }
     }
@@ -40,25 +44,25 @@ namespace Checkmarx.API.AST.Models
     {
         public Guid Id { get; set; }
 
-        public uint High { get; set; }
+        public int High { get; set; }
 
-        public uint Medium { get; set; }
+        public int Medium { get; set; }
 
-        public uint Low { get; set; }
+        public int Low { get; set; }
 
-        public uint Info { get; set; }
+        public int Info { get; set; }
     }
 
     public class KicksScanResults
     {
         public Guid Id { get; set; }
 
-        public uint High { get; set; }
+        public int High { get; set; }
 
-        public uint Medium { get; set; }
+        public int Medium { get; set; }
 
-        public uint Low { get; set; }
+        public int Low { get; set; }
 
-        public uint Info { get; set; }
+        public int Info { get; set; }
     }
 }

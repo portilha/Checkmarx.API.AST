@@ -115,25 +115,28 @@ namespace Checkmarx.API.AST.Tests
         {
             Assert.IsNotNull(astclient.Scans);
 
-            //var scansList = astclient.Scans.GetListOfScansAsync().Result;
-            var proj = astclient.Projects.GetProjectAsync(new Guid("399a3c61-4355-4788-b7d0-dc3ef9903e88")).Result;
+            //var proj1 = astclient.Projects.GetListOfProjectsAsync().Result.Projects.Where(x => x.Name == "aic-admin-gateway-sca");
+
+            var proj = astclient.Projects.GetProjectAsync(new Guid("23701319-fbb4-471e-9462-cc9205da6a1f")).Result;
             var scansList = astclient.Scans.GetListOfScansAsync(proj.Id).Result;
-            var lastScan = scansList.Scans?.ToList().OrderByDescending(x => x.CreatedAt)?.FirstOrDefault();
-            var scanResult = astclient.SASTResults.GetSASTResultsByScanAsync(new Guid(lastScan.Id)).Result;
+            var lastScan = astclient.GetLastSASTScan(new Guid(proj.Id), true);
 
-            //var toVerifyNumber = astclient.GetScanVulnerabilitiesToVerifyNumber(new Guid(lastScan.Id));
-            //var toVerify = astclient.GetScanVulnerabilitiesToVerify(new Guid(lastScan.Id));
-
-            //var report = astclient.GetAstScanJsonReport("a1705d81-091c-4ae5-b5d4-78917e0a4eb0", lastScan.Id);
-            //var metadata = astclient.SASTMetadata.GetMetadataAsync(new Guid(lastScan.Id)).Result;
-
-            //ASTClient.GEtScanResults()
+            var oldScanDetails = astclient.GetScanDetails(new Guid(proj.Id), new Guid(lastScan.Id), DateTime.Now);
+            Trace.WriteLine($"Total: {oldScanDetails.SASTResults.Total} | High: {oldScanDetails.SASTResults.High} | Medium: {oldScanDetails.SASTResults.Medium} | Low: {oldScanDetails.SASTResults.Low} | Info: {oldScanDetails.SASTResults.Info} | ToVerify: {oldScanDetails.SASTResults.ToVerify}");
 
 
-            foreach (var item in scansList.Scans)
-            {
-                Trace.WriteLine(item.Id + " " + item.ProjectId);
-            }
+            var newScanDetails = astclient.GetScanDetailsV2(new Guid(lastScan.Id));
+            Trace.WriteLine($"Total: {newScanDetails.SASTResults.Total} | High: {newScanDetails.SASTResults.High} | Medium: {newScanDetails.SASTResults.Medium} | Low: {newScanDetails.SASTResults.Low} | Info: {newScanDetails.SASTResults.Info} | ToVerify: {newScanDetails.SASTResults.ToVerify}");
+        }
+
+        [TestMethod]
+        public void ListScansRefactoringTest()
+        {
+            Assert.IsNotNull(astclient.Scans);
+
+            //var oldScanDetails = astclient.GetScanDetails(new Guid("f8a2b16b-0044-440b-85ed-474bd5d93fca"), new Guid("5963b856-d815-4b8d-990c-1f1eda9e01fe"), DateTime.Now);
+            var newScanDetails = astclient.GetScanDetailsV2(new Guid("5963b856-d815-4b8d-990c-1f1eda9e01fe"));
+            
         }
 
         [TestMethod]

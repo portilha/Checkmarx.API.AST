@@ -17,6 +17,7 @@
 		<RepositoryUrl>https://github.com/portilha/Checkmarx.API.AST</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<UserSecretsId>c89bef10-2462-4376-8c4f-af5be7e20245</UserSecretsId>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -34,6 +35,7 @@
 
 
 	<ItemGroup>
+	  <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
 	  <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 	</ItemGroup>
 
