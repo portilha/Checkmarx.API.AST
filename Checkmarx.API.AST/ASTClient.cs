@@ -274,6 +274,25 @@ namespace Checkmarx.API.AST
             }
         }
 
+        private IEnumerable<Results> GetSASTScanResultsById(Guid scanId)
+        {
+            int startAt = 0;
+
+            while (true)
+            {
+                var response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, 100).Result;
+                foreach (var result in response.Results)
+                {
+                    yield return result;
+                }
+
+                if (response.Results.Count() < 100)
+                    yield break;
+
+                startAt += 100;
+            }
+        }
+
         #endregion
 
         #region Scans
@@ -283,7 +302,7 @@ namespace Checkmarx.API.AST
         /// </summary>
         /// <param name="projectId"></param>
         /// <returns></returns>
-        public IEnumerable<Checkmarx.API.AST.Models.Scan> GetAllASTScans(Guid projectId, string branch = null)
+        public IEnumerable<Scan> GetAllASTScans(Guid projectId, string branch = null)
         {
             return GetScans(projectId, branch: branch);
         }
@@ -294,7 +313,7 @@ namespace Checkmarx.API.AST
         /// <param name="projectId"></param>
         /// <param name="fullScanOnly"></param>
         /// <returns></returns>
-        public Checkmarx.API.AST.Models.Scan GetLastSASTScan(Guid projectId, bool fullScanOnly = false, string branch = null)
+        public Scan GetLastSASTScan(Guid projectId, bool fullScanOnly = false, string branch = null)
         {
             var scans = GetScans(projectId, "sast", true, branch, ScanRetrieveKind.All);
             if (fullScanOnly)
@@ -309,7 +328,7 @@ namespace Checkmarx.API.AST
                 return scans.FirstOrDefault();
         }
 
-        public Checkmarx.API.AST.Models.Scan GetFirstSASTScan(Guid projectId, string branch = null)
+        public Scan GetFirstSASTScan(Guid projectId, string branch = null)
         {
             var scans = GetScans(projectId, "sast", true, branch, ScanRetrieveKind.All);
             if (scans.Any())
@@ -329,7 +348,7 @@ namespace Checkmarx.API.AST
         /// </summary>
         /// <param name="projectId"></param>
         /// <returns></returns>
-        public Checkmarx.API.AST.Models.Scan GetLockedSASTScan(Guid projectId, string branch = null)
+        public Scan GetLockedSASTScan(Guid projectId, string branch = null)
         {
             return GetScans(projectId, "sast", true, branch, ScanRetrieveKind.Locked).FirstOrDefault();
         }
@@ -342,9 +361,9 @@ namespace Checkmarx.API.AST
         /// <param name="completed"></param>
         /// <param name="scanKind"></param>
         /// <returns></returns>
-        public IEnumerable<Checkmarx.API.AST.Models.Scan> GetScans(Guid projectId, string engine = null, bool completed = true, string branch = null, ScanRetrieveKind scanKind = ScanRetrieveKind.All)
+        public IEnumerable<Scan> GetScans(Guid projectId, string engine = null, bool completed = true, string branch = null, ScanRetrieveKind scanKind = ScanRetrieveKind.All)
         {
-            List<Models.Scan> list = new List<Models.Scan>();
+            List<Scan> list = new List<Scan>();
 
             checkConnection();
 
@@ -372,20 +391,102 @@ namespace Checkmarx.API.AST
 
                 foreach (var scan in scans)
                 {
-                    var convertedJson = Models.Scan.FromJson(JsonConvert.SerializeObject(scan));
                     if (!string.IsNullOrEmpty(engine))
                     {
-                        if (convertedJson.Metadata.Configs.Any(x => x.Type.ToLower() == engine.ToLower()))
-                            list.Add(convertedJson);
+                        if (scan.Engines != null && scan.Engines.Any(x => x.ToLower() == engine.ToLower()))
+                            list.Add(scan);
                     }
                     else
                     {
-                        list.Add(convertedJson);
+                        list.Add(scan);
                     }
                 }
             }
 
             return list;
+        }
+
+        public ScanDetails GetScanDetailsV2(Guid scanId)
+        {
+            var scan = Scans.GetScanAsync(scanId).Result;
+            return GetScanDetailsV2(scan);
+        }
+
+        public ScanDetails GetScanDetailsV2(Scan scan)
+        {
+            if (scan == null)
+                throw new NullReferenceException($"No scan found.");
+
+            ScanDetails scanDetails = new ScanDetails();
+            scanDetails.Id = new Guid(scan.Id);
+            scanDetails.Status = scan.Status.ToString();
+            scanDetails.Successful = scan.Status == Status.Completed;
+            scanDetails.InitiatorName = scan.Initiator;
+            scanDetails.Branch = scan.Branch;
+            scanDetails.SourceType = scan.SourceType;
+            scanDetails.SourceOrigin = scan.SourceOrigin;
+            scanDetails.FinishedOn = scan.UpdatedAt.DateTime;
+            scanDetails.Duration = scan.UpdatedAt.DateTime - scan.CreatedAt.DateTime;
+
+            if (scanDetails.Successful)
+            {
+                if (scan.StatusDetails == null)
+                    throw new Exception($"There is no information about scan engine status.");
+
+                var sastStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "sast").FirstOrDefault();
+                if (sastStatusDetails != null)
+                {
+                    scanDetails.SASTResults = new ScanResultDetails();
+                    scanDetails.SASTResults.Status = sastStatusDetails.Status;
+                    scanDetails.SASTResults.Successful = sastStatusDetails.Status.ToLower() == "completed";
+
+                    if (scanDetails.SASTResults.Successful)
+                    {
+                        // Get sast metadata
+                        var metadata = SASTMetadata.GetMetadataAsync(scanDetails.Id).Result;
+                        if (metadata != null)
+                        {
+                            scanDetails.Preset = metadata.QueryPreset;
+                            scanDetails.LoC = metadata.Loc;
+                        }
+                        scanDetails.SASTResults = GetSASTScanResultDetailsBydId(scanDetails.SASTResults, scanDetails.Id);
+                    }
+                    else
+                    {
+                        scanDetails.SASTResults.Details = $"Current scan status is {sastStatusDetails.Status}";
+                    }
+                }
+            }
+
+            // Languages detected in the SAST, Kicks and SCA scans
+            // For now, just adding the SAST languages detected
+            if(scanDetails.SASTResults != null)
+            {
+                scanDetails.Languages = string.Join(";", scanDetails.SASTResults.LanguagesDetected.Where(x => x != "Common").Select(x => x).ToList());
+            }
+
+            return scanDetails;
+        }
+          
+        private ScanResultDetails GetSASTScanResultDetailsBydId(ScanResultDetails model, Guid scanId)
+        {
+            var sastResults = GetSASTScanResultsById(scanId);
+            if (sastResults != null)
+            {
+                var results = sastResults.Where(x => x.State != ResultsState.NOT_EXPLOITABLE);
+
+                model.Total = results.Count();
+                model.High = results.Where(x => x.Severity == ResultsSeverity.HIGH).Count();
+                model.Medium = results.Where(x => x.Severity == ResultsSeverity.MEDIUM).Count();
+                model.Low = results.Where(x => x.Severity == ResultsSeverity.LOW).Count();
+                model.Info = results.Where(x => x.Severity == ResultsSeverity.INFO).Count();
+
+                model.ToVerify = sastResults.Where(x => x.State == ResultsState.TO_VERIFY).Count();
+                model.LanguagesDetected = sastResults.Select(x => x.LanguageName).Distinct().ToList();
+                //model.Queries = report.ScanResults.Sast.Languages.Sum(x => x.Queries.Count());
+            }
+
+            return model;
         }
 
         /// <summary>
@@ -428,12 +529,12 @@ namespace Checkmarx.API.AST
                 {
                     scanDetails.SASTResults = new ScanResultDetails
                     {
-                        Total = report.ScanResults.Sast.Vulnerabilities.Total,
-                        High = report.ScanResults.Sast.Vulnerabilities.High,
-                        Medium = report.ScanResults.Sast.Vulnerabilities.Medium,
-                        Low = report.ScanResults.Sast.Vulnerabilities.Low,
-                        Info = report.ScanResults.Sast.Vulnerabilities.Info,
-                        ToVerify = (uint)GetSASTScanVulnerabilitiesDetails(scanId).Where(x => x.State == Services.SASTResults.ResultsState.TO_VERIFY).Count(),
+                        Total = (int)report.ScanResults.Sast.Vulnerabilities.Total,
+                        High = (int)report.ScanResults.Sast.Vulnerabilities.High,
+                        Medium = (int)report.ScanResults.Sast.Vulnerabilities.Medium,
+                        Low = (int)report.ScanResults.Sast.Vulnerabilities.Low,
+                        Info = (int)report.ScanResults.Sast.Vulnerabilities.Info,
+                        ToVerify = GetSASTScanVulnerabilitiesDetails(scanId).Where(x => x.State == Services.SASTResults.ResultsState.TO_VERIFY).Count(),
                         //Queries = report.ScanResults.Sast.Languages.Sum(x => x.Queries.Count()),
                     };
 
@@ -445,11 +546,11 @@ namespace Checkmarx.API.AST
                 {
                     scanDetails.ScaResults = new ScanResultDetails
                     {
-                        Total = report.ScanResults.Sca.Vulnerabilities.Total,
-                        High = report.ScanResults.Sca.Vulnerabilities.High,
-                        Medium = report.ScanResults.Sca.Vulnerabilities.Medium,
-                        Low = report.ScanResults.Sca.Vulnerabilities.Low,
-                        Info = report.ScanResults.Sca.Vulnerabilities.Info
+                        Total = (int)report.ScanResults.Sca.Vulnerabilities.Total,
+                        High = (int)report.ScanResults.Sca.Vulnerabilities.High,
+                        Medium = (int)report.ScanResults.Sca.Vulnerabilities.Medium,
+                        Low = (int)report.ScanResults.Sca.Vulnerabilities.Low,
+                        Info = (int)report.ScanResults.Sca.Vulnerabilities.Info
                     };
                 }
 
@@ -457,11 +558,11 @@ namespace Checkmarx.API.AST
                 {
                     scanDetails.KicsResults = new ScanResultDetails
                     {
-                        Total = report.ScanResults.Kics.Vulnerabilities.Total,
-                        High = report.ScanResults.Kics.Vulnerabilities.High,
-                        Medium = report.ScanResults.Kics.Vulnerabilities.Medium,
-                        Low = report.ScanResults.Kics.Vulnerabilities.Low,
-                        Info = report.ScanResults.Kics.Vulnerabilities.Info
+                        Total = (int)report.ScanResults.Kics.Vulnerabilities.Total,
+                        High = (int)report.ScanResults.Kics.Vulnerabilities.High,
+                        Medium = (int)report.ScanResults.Kics.Vulnerabilities.Medium,
+                        Low = (int)report.ScanResults.Kics.Vulnerabilities.Low,
+                        Info = (int)report.ScanResults.Kics.Vulnerabilities.Info
                     };
                 }
             }

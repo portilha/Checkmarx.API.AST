@@ -6,7 +6,7 @@ using Newtonsoft.Json.Converters;
 
 namespace Checkmarx.API.AST.Models
 {
-    public partial class Scan
+    public partial class ScanToDelete
     {
         [JsonProperty("id")]
         public string Id { get; set; }
@@ -61,9 +61,7 @@ namespace Checkmarx.API.AST.Models
             set { _additionalProperties = value; }
         }
 
-        public IEnumerable<SASTScanResults> SASTResults { get; set; }
-
-        public static Scan FromJson(string json) => JsonConvert.DeserializeObject<Scan>(json, Converter.Settings);
+        public static ScanToDelete FromJson(string json) => JsonConvert.DeserializeObject<ScanToDelete>(json, Converter.Settings);
     }
 
     public enum StatusEnum
@@ -151,7 +149,7 @@ namespace Checkmarx.API.AST.Models
 
     public static class Serialize
     {
-        public static string ToJson(this Scan self) => JsonConvert.SerializeObject(self, Converter.Settings);
+        public static string ToJson(this ScanToDelete self) => JsonConvert.SerializeObject(self, Converter.Settings);
     }
 
     internal static class Converter
