@@ -278,7 +278,7 @@ namespace Checkmarx.API.AST.Services.Reports
                             throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
                         }
                     }
-                    catch (System.Exception ex)
+                    catch
                     {
                         throw;
                     }
