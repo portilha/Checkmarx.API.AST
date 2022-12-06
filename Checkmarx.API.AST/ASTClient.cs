@@ -15,6 +15,8 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using Checkmarx.API.AST.Models.Report;
 using System.Threading.Tasks;
+using Checkmarx.API.AST.Services;
+using Checkmarx.API.AST.Services.KicsResults;
 
 namespace Checkmarx.API.AST
 {
@@ -114,6 +116,19 @@ namespace Checkmarx.API.AST
                     _SASTResults = new SASTResults($"{ASTServer.AbsoluteUri}api/sast-results", _httpClient);
 
                 return _SASTResults;
+            }
+        }
+
+        // Engine Kics results
+        private KicsResults _KicsResults;
+        public KicsResults KicsResults
+        {
+            get
+            {
+                if (_KicsResults == null && Connected)
+                    _KicsResults = new KicsResults($"{ASTServer.AbsoluteUri}api/kics-results", _httpClient);
+
+                return _KicsResults;
             }
         }
 
@@ -293,6 +308,25 @@ namespace Checkmarx.API.AST
             }
         }
 
+        private IEnumerable<KicsResult> GetKicsScanResultsById(Guid scanId)
+        {
+            int startAt = 0;
+
+            while (true)
+            {
+                var response = KicsResults.GetKICSResultsByScanAsync(scanId, startAt, 100).Result;
+                foreach (var result in response.Results)
+                {
+                    yield return result;
+                }
+
+                if (response.Results.Count() < 100)
+                    yield break;
+
+                startAt += 100;
+            }
+        }
+
         #endregion
 
         #region Scans
@@ -316,6 +350,21 @@ namespace Checkmarx.API.AST
         public Scan GetLastSASTScan(Guid projectId, bool fullScanOnly = false, string branch = null)
         {
             var scans = GetScans(projectId, "sast", true, branch, ScanRetrieveKind.All);
+            if (fullScanOnly)
+            {
+                var fullScans = scans.Where(x => x.Metadata.Configs.Any(x => x.Value != null && !x.Value.Incremental)).OrderByDescending(x => x.CreatedAt);
+                if (fullScans.Any())
+                    return fullScans.FirstOrDefault();
+                else
+                    return scans.OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+            }
+            else
+                return scans.FirstOrDefault();
+        }
+
+        public Scan GetLastKicsScan(Guid projectId, bool fullScanOnly = false, string branch = null)
+        {
+            var scans = GetScans(projectId, "kics", true, branch, ScanRetrieveKind.All);
             if (fullScanOnly)
             {
                 var fullScans = scans.Where(x => x.Metadata.Configs.Any(x => x.Value != null && !x.Value.Incremental)).OrderByDescending(x => x.CreatedAt);
@@ -406,13 +455,13 @@ namespace Checkmarx.API.AST
             return list;
         }
 
-        public ScanDetails GetScanDetailsV2(Guid scanId)
+        public ScanDetails GetScanDetails(Guid projectId, Guid scanId)
         {
             var scan = Scans.GetScanAsync(scanId).Result;
-            return GetScanDetailsV2(scan);
+            return GetScanDetails(projectId, scan);
         }
 
-        public ScanDetails GetScanDetailsV2(Scan scan)
+        public ScanDetails GetScanDetails(Guid projectId, Scan scan)
         {
             if (scan == null)
                 throw new NullReferenceException($"No scan found.");
@@ -433,6 +482,7 @@ namespace Checkmarx.API.AST
                 if (scan.StatusDetails == null)
                     throw new Exception($"There is no information about scan engine status.");
 
+                // SAST
                 var sastStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "sast").FirstOrDefault();
                 if (sastStatusDetails != null)
                 {
@@ -450,6 +500,24 @@ namespace Checkmarx.API.AST
                             scanDetails.LoC = metadata.Loc;
                         }
                         scanDetails.SASTResults = GetSASTScanResultDetailsBydId(scanDetails.SASTResults, scanDetails.Id);
+                    }
+                    else
+                    {
+                        scanDetails.SASTResults.Details = $"Current scan status is {sastStatusDetails.Status}";
+                    }
+                }
+
+                // KICS
+                var kicsStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "kics").FirstOrDefault();
+                if (kicsStatusDetails != null)
+                {
+                    scanDetails.KicsResults = new ScanResultDetails();
+                    scanDetails.KicsResults.Status = kicsStatusDetails.Status;
+                    scanDetails.KicsResults.Successful = kicsStatusDetails.Status.ToLower() == "completed";
+                    if (scanDetails.KicsResults.Successful)
+                    {
+                        // Pode não ser o mesmo ID
+                        scanDetails.KicsResults = GetKicsScanResultDetailsBydId(scanDetails.KicsResults, scanDetails.Id);
                     }
                     else
                     {
@@ -475,6 +543,7 @@ namespace Checkmarx.API.AST
             {
                 var results = sastResults.Where(x => x.State != ResultsState.NOT_EXPLOITABLE);
 
+                model.Id = scanId;
                 model.Total = results.Count();
                 model.High = results.Where(x => x.Severity == ResultsSeverity.HIGH).Count();
                 model.Medium = results.Where(x => x.Severity == ResultsSeverity.MEDIUM).Count();
@@ -489,6 +558,26 @@ namespace Checkmarx.API.AST
             return model;
         }
 
+        private ScanResultDetails GetKicsScanResultDetailsBydId(ScanResultDetails model, Guid scanId)
+        {
+            var kicsResults = GetKicsScanResultsById(scanId);
+            if (kicsResults != null)
+            {
+                var results = kicsResults.Where(x => x.State != KicsResultState.NOT_EXPLOITABLE);
+
+                model.Id = scanId;
+                model.Total = results.Count();
+                model.High = results.Where(x => x.Severity == Services.KicsResults.SeverityEnum.HIGH).Count();
+                model.Medium = results.Where(x => x.Severity == Services.KicsResults.SeverityEnum.MEDIUM).Count();
+                model.Low = results.Where(x => x.Severity == Services.KicsResults.SeverityEnum.LOW).Count();
+                model.Info = results.Where(x => x.Severity == Services.KicsResults.SeverityEnum.INFO).Count();
+
+                //model.ToVerify = kicsResults.Where(x => x.State == KicsResultState.TO_VERIFY).Count();
+            }
+
+            return model;
+        }
+
         /// <summary>
         /// Get scan details
         /// </summary>
@@ -496,203 +585,203 @@ namespace Checkmarx.API.AST
         /// <param name="scanId"></param>
         /// <param name="createdAt"></param>
         /// <returns></returns>
-        public ScanDetails GetScanDetails(Guid projectId, Guid scanId, DateTime createdAt)
-        {
-            var result = GetAstScanJsonReport(projectId, scanId);
+        //public ScanDetails GetScanDetails(Guid projectId, Guid scanId, DateTime createdAt)
+        //{
+        //    var result = GetAstScanJsonReport(projectId, scanId);
 
-            ScanDetails scanDetails = new ScanDetails();
-            scanDetails.Id = scanId;
-            scanDetails.ErrorMessage = result.Item2;
+        //    ScanDetails scanDetails = new ScanDetails();
+        //    scanDetails.Id = scanId;
+        //    scanDetails.ErrorMessage = result.Item2;
 
-            var report = result.Item1;
-            if (report != null)
-            {
-                var metadata = SASTMetadata.GetMetadataAsync(scanId).Result;
-                if (metadata != null)
-                {
-                    scanDetails.Preset = metadata.QueryPreset;
-                    scanDetails.LoC = metadata.Loc;
-                }
+        //    var report = result.Item1;
+        //    if (report != null)
+        //    {
+        //        var metadata = SASTMetadata.GetMetadataAsync(scanId).Result;
+        //        if (metadata != null)
+        //        {
+        //            scanDetails.Preset = metadata.QueryPreset;
+        //            scanDetails.LoC = metadata.Loc;
+        //        }
 
-                var split = report.ScanSummary.ScanCompletedDate.Split(" ");
-                DateTime startedOn = createdAt;
-                DateTime endOn = Convert.ToDateTime($"{split[0]} {split[1]}");
+        //        var split = report.ScanSummary.ScanCompletedDate.Split(" ");
+        //        DateTime startedOn = createdAt;
+        //        DateTime endOn = Convert.ToDateTime($"{split[0]} {split[1]}");
 
-                scanDetails.FinishedOn = startedOn;
-                scanDetails.Duration = endOn - startedOn;
+        //        scanDetails.FinishedOn = startedOn;
+        //        scanDetails.Duration = endOn - startedOn;
 
-                if (report.ScanSummary.Languages != null && report.ScanSummary.Languages.Any())
-                    scanDetails.Languages = string.Join(";", report.ScanSummary.Languages.Where(x => x != "Common").Select(x => x).ToList());
+        //        if (report.ScanSummary.Languages != null && report.ScanSummary.Languages.Any())
+        //            scanDetails.Languages = string.Join(";", report.ScanSummary.Languages.Where(x => x != "Common").Select(x => x).ToList());
 
-                //Scan Results
-                if (report.ScanResults.Sast != null)
-                {
-                    scanDetails.SASTResults = new ScanResultDetails
-                    {
-                        Total = (int)report.ScanResults.Sast.Vulnerabilities.Total,
-                        High = (int)report.ScanResults.Sast.Vulnerabilities.High,
-                        Medium = (int)report.ScanResults.Sast.Vulnerabilities.Medium,
-                        Low = (int)report.ScanResults.Sast.Vulnerabilities.Low,
-                        Info = (int)report.ScanResults.Sast.Vulnerabilities.Info,
-                        ToVerify = GetSASTScanVulnerabilitiesDetails(scanId).Where(x => x.State == Services.SASTResults.ResultsState.TO_VERIFY).Count(),
-                        //Queries = report.ScanResults.Sast.Languages.Sum(x => x.Queries.Count()),
-                    };
+        //        //Scan Results
+        //        if (report.ScanResults.Sast != null)
+        //        {
+        //            scanDetails.SASTResults = new ScanResultDetails
+        //            {
+        //                Total = (int)report.ScanResults.Sast.Vulnerabilities.Total,
+        //                High = (int)report.ScanResults.Sast.Vulnerabilities.High,
+        //                Medium = (int)report.ScanResults.Sast.Vulnerabilities.Medium,
+        //                Low = (int)report.ScanResults.Sast.Vulnerabilities.Low,
+        //                Info = (int)report.ScanResults.Sast.Vulnerabilities.Info,
+        //                ToVerify = GetSASTScanVulnerabilitiesDetails(scanId).Where(x => x.State == Services.SASTResults.ResultsState.TO_VERIFY).Count(),
+        //                //Queries = report.ScanResults.Sast.Languages.Sum(x => x.Queries.Count()),
+        //            };
 
-                    if (report.ScanResults.Sast.Languages != null && report.ScanResults.Sast.Languages.Any())
-                        scanDetails.SASTResults.LanguagesDetected = report.ScanResults.Sast.Languages.Where(x => x.LanguageName != "Common").Select(x => x.LanguageName).ToList();
-                }
+        //            if (report.ScanResults.Sast.Languages != null && report.ScanResults.Sast.Languages.Any())
+        //                scanDetails.SASTResults.LanguagesDetected = report.ScanResults.Sast.Languages.Where(x => x.LanguageName != "Common").Select(x => x.LanguageName).ToList();
+        //        }
 
-                if (report.ScanResults.Sca != null)
-                {
-                    scanDetails.ScaResults = new ScanResultDetails
-                    {
-                        Total = (int)report.ScanResults.Sca.Vulnerabilities.Total,
-                        High = (int)report.ScanResults.Sca.Vulnerabilities.High,
-                        Medium = (int)report.ScanResults.Sca.Vulnerabilities.Medium,
-                        Low = (int)report.ScanResults.Sca.Vulnerabilities.Low,
-                        Info = (int)report.ScanResults.Sca.Vulnerabilities.Info
-                    };
-                }
+        //        if (report.ScanResults.Sca != null)
+        //        {
+        //            scanDetails.ScaResults = new ScanResultDetails
+        //            {
+        //                Total = (int)report.ScanResults.Sca.Vulnerabilities.Total,
+        //                High = (int)report.ScanResults.Sca.Vulnerabilities.High,
+        //                Medium = (int)report.ScanResults.Sca.Vulnerabilities.Medium,
+        //                Low = (int)report.ScanResults.Sca.Vulnerabilities.Low,
+        //                Info = (int)report.ScanResults.Sca.Vulnerabilities.Info
+        //            };
+        //        }
 
-                if (report.ScanResults.Kics != null)
-                {
-                    scanDetails.KicsResults = new ScanResultDetails
-                    {
-                        Total = (int)report.ScanResults.Kics.Vulnerabilities.Total,
-                        High = (int)report.ScanResults.Kics.Vulnerabilities.High,
-                        Medium = (int)report.ScanResults.Kics.Vulnerabilities.Medium,
-                        Low = (int)report.ScanResults.Kics.Vulnerabilities.Low,
-                        Info = (int)report.ScanResults.Kics.Vulnerabilities.Info
-                    };
-                }
-            }
-            else
-            {
-                try
-                {
-                    var metadata = SASTMetadata.GetMetadataAsync(scanId).Result;
-                    if (metadata != null)
-                    {
-                        scanDetails.Preset = metadata.QueryPreset;
-                        scanDetails.LoC = metadata.Loc;
-                    }
-                }
-                catch
-                {
-                    scanDetails.ErrorMessage = $"{scanDetails.ErrorMessage} It was not possible to verify the LoC and Preset of the project.";
-                }
-            }
+        //        if (report.ScanResults.Kics != null)
+        //        {
+        //            scanDetails.KicsResults = new ScanResultDetails
+        //            {
+        //                Total = (int)report.ScanResults.Kics.Vulnerabilities.Total,
+        //                High = (int)report.ScanResults.Kics.Vulnerabilities.High,
+        //                Medium = (int)report.ScanResults.Kics.Vulnerabilities.Medium,
+        //                Low = (int)report.ScanResults.Kics.Vulnerabilities.Low,
+        //                Info = (int)report.ScanResults.Kics.Vulnerabilities.Info
+        //            };
+        //        }
+        //    }
+        //    else
+        //    {
+        //        try
+        //        {
+        //            var metadata = SASTMetadata.GetMetadataAsync(scanId).Result;
+        //            if (metadata != null)
+        //            {
+        //                scanDetails.Preset = metadata.QueryPreset;
+        //                scanDetails.LoC = metadata.Loc;
+        //            }
+        //        }
+        //        catch
+        //        {
+        //            scanDetails.ErrorMessage = $"{scanDetails.ErrorMessage} It was not possible to verify the LoC and Preset of the project.";
+        //        }
+        //    }
 
-            return scanDetails;
-        }
+        //    return scanDetails;
+        //}
 
-        private Tuple<ReportResults, string> GetAstScanJsonReport(Guid projectId, Guid scanId)
-        {
-            string message = string.Empty;
+        //private Tuple<ReportResults, string> GetAstScanJsonReport(Guid projectId, Guid scanId)
+        //{
+        //    string message = string.Empty;
 
-            ScanReportCreateInput sc = new ScanReportCreateInput();
-            sc.ReportName = BaseReportCreateInputReportName.ScanReport;
-            sc.ReportType = BaseReportCreateInputReportType.Cli;
-            sc.FileFormat = BaseReportCreateInputFileFormat.Json;
-            sc.Data = new Data { ProjectId = projectId.ToString(), ScanId = scanId.ToString() };
+        //    ScanReportCreateInput sc = new ScanReportCreateInput();
+        //    sc.ReportName = BaseReportCreateInputReportName.ScanReport;
+        //    sc.ReportType = BaseReportCreateInputReportType.Cli;
+        //    sc.FileFormat = BaseReportCreateInputFileFormat.Json;
+        //    sc.Data = new Data { ProjectId = projectId.ToString(), ScanId = scanId.ToString() };
 
-            ReportCreateOutput createReportOutut = null;
-            //createReportOutut = Reports.CreateReportAsync(sc).Result;
-            int createNumberOfAttempts = 0;
-            while (createNumberOfAttempts < 3)
-            {
-                try
-                {
-                    createReportOutut = Reports.CreateReportAsync(sc).Result;
-                }
-                catch
-                {
-                    System.Threading.Thread.Sleep(500);
-                    createNumberOfAttempts++;
+        //    ReportCreateOutput createReportOutut = null;
+        //    //createReportOutut = Reports.CreateReportAsync(sc).Result;
+        //    int createNumberOfAttempts = 0;
+        //    while (createNumberOfAttempts < 3)
+        //    {
+        //        try
+        //        {
+        //            createReportOutut = Reports.CreateReportAsync(sc).Result;
+        //        }
+        //        catch
+        //        {
+        //            System.Threading.Thread.Sleep(500);
+        //            createNumberOfAttempts++;
 
-                    if (createNumberOfAttempts < 3)
-                        continue;
-                    else
-                        throw;
-                }
-                break;
-            }
+        //            if (createNumberOfAttempts < 3)
+        //                continue;
+        //            else
+        //                throw;
+        //        }
+        //        break;
+        //    }
 
-            if (createReportOutut != null)
-            {
-                var createReportId = createReportOutut.ReportId;
-                if (createReportId != Guid.Empty)
-                {
-                    string downloadUrl = null;
-                    Guid reportId = createReportId;
-                    string reportStatus = "Requested";
-                    string pastReportStatus = reportStatus;
-                    double aprox_seconds_passed = 0.0;
-                    while (reportStatus != "Completed")
-                    {
-                        System.Threading.Thread.Sleep(1000);
-                        aprox_seconds_passed += 1.020;
+        //    if (createReportOutut != null)
+        //    {
+        //        var createReportId = createReportOutut.ReportId;
+        //        if (createReportId != Guid.Empty)
+        //        {
+        //            string downloadUrl = null;
+        //            Guid reportId = createReportId;
+        //            string reportStatus = "Requested";
+        //            string pastReportStatus = reportStatus;
+        //            double aprox_seconds_passed = 0.0;
+        //            while (reportStatus != "Completed")
+        //            {
+        //                System.Threading.Thread.Sleep(1000);
+        //                aprox_seconds_passed += 1.020;
 
-                        //var statusResponse = Reports.GetReportAsync(reportId, true).GetAwaiter().GetResult();
-                        //reportId = statusResponse.ReportId;
-                        //reportStatus = statusResponse.Status.ToString();
-                        //downloadUrl = statusResponse.Url;
+        //                //var statusResponse = Reports.GetReportAsync(reportId, true).GetAwaiter().GetResult();
+        //                //reportId = statusResponse.ReportId;
+        //                //reportStatus = statusResponse.Status.ToString();
+        //                //downloadUrl = statusResponse.Url;
 
-                        int numberOfAttempts = 0;
-                        while (numberOfAttempts < 3)
-                        {
-                            try
-                            {
-                                var statusResponse = Reports.GetReportAsync(reportId, true).GetAwaiter().GetResult();
-                                reportId = statusResponse.ReportId;
-                                reportStatus = statusResponse.Status.ToString();
-                                downloadUrl = statusResponse.Url;
-                            }
-                            catch
-                            {
-                                System.Threading.Thread.Sleep(500);
-                                numberOfAttempts++;
+        //                int numberOfAttempts = 0;
+        //                while (numberOfAttempts < 3)
+        //                {
+        //                    try
+        //                    {
+        //                        var statusResponse = Reports.GetReportAsync(reportId, true).GetAwaiter().GetResult();
+        //                        reportId = statusResponse.ReportId;
+        //                        reportStatus = statusResponse.Status.ToString();
+        //                        downloadUrl = statusResponse.Url;
+        //                    }
+        //                    catch
+        //                    {
+        //                        System.Threading.Thread.Sleep(500);
+        //                        numberOfAttempts++;
 
-                                if (numberOfAttempts < 3)
-                                    continue;
-                                else
-                                    throw;
-                            }
-                            break;
-                        }
+        //                        if (numberOfAttempts < 3)
+        //                            continue;
+        //                        else
+        //                            throw;
+        //                    }
+        //                    break;
+        //                }
 
-                        if (reportStatus != "Requested" && reportStatus != "Completed" && reportStatus != "Started" && reportStatus != "Failed")
-                        {
-                            //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, "Abnormal AST json report status! You may want to [cancel all] and retry.");
-                        }
-                        if (pastReportStatus != reportStatus)
-                        {
-                            pastReportStatus = reportStatus;
-                        }
-                        if (aprox_seconds_passed > 60)
-                        {
-                            message = "AST Scan json report for project {0} is taking a long time! Try again later.";
-                            return new Tuple<ReportResults, string>(null, message);
-                        }
-                        if (reportStatus == "Failed")
-                        {
-                            message = "AST Scan API says it could not generate a json report for project {0}. You may want to try again later.";
-                            return new Tuple<ReportResults, string>(null, message);
-                        }
-                    }
+        //                if (reportStatus != "Requested" && reportStatus != "Completed" && reportStatus != "Started" && reportStatus != "Failed")
+        //                {
+        //                    //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, "Abnormal AST json report status! You may want to [cancel all] and retry.");
+        //                }
+        //                if (pastReportStatus != reportStatus)
+        //                {
+        //                    pastReportStatus = reportStatus;
+        //                }
+        //                if (aprox_seconds_passed > 60)
+        //                {
+        //                    message = "AST Scan json report for project {0} is taking a long time! Try again later.";
+        //                    return new Tuple<ReportResults, string>(null, message);
+        //                }
+        //                if (reportStatus == "Failed")
+        //                {
+        //                    message = "AST Scan API says it could not generate a json report for project {0}. You may want to try again later.";
+        //                    return new Tuple<ReportResults, string>(null, message);
+        //                }
+        //            }
 
-                    var reportString = Reports.DownloadScanReportJsonUrl(downloadUrl).GetAwaiter().GetResult();
+        //            var reportString = Reports.DownloadScanReportJsonUrl(downloadUrl).GetAwaiter().GetResult();
 
-                    return new Tuple<ReportResults, string>(JsonConvert.DeserializeObject<ReportResults>(reportString), message);
-                }
-                else
-                {
-                    message = $"Error getting Report of Scan {scanId}";
-                }
-            }
+        //            return new Tuple<ReportResults, string>(JsonConvert.DeserializeObject<ReportResults>(reportString), message);
+        //        }
+        //        else
+        //        {
+        //            message = $"Error getting Report of Scan {scanId}";
+        //        }
+        //    }
 
-            return null;
-        }
+        //    return null;
+        //}
 
         //public int GetScanVulnerabilitiesToVerifyNumber(Guid scanId)
         //{
@@ -701,24 +790,24 @@ namespace Checkmarx.API.AST
         //    return scanResult.Results.Where(x => x.State == Services.SASTResults.ResultsState.TO_VERIFY).Count();
         //}
 
-        private IEnumerable<Results> GetSASTScanVulnerabilitiesDetails(Guid scanId)
-        {
-            int startAt = 0;
+        //private IEnumerable<Results> GetSASTScanVulnerabilitiesDetails(Guid scanId)
+        //{
+        //    int startAt = 0;
 
-            while (true)
-            {
-                var response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, 100).Result;
-                foreach (var result in response.Results)
-                {
-                    yield return result;
-                }
+        //    while (true)
+        //    {
+        //        var response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, 100).Result;
+        //        foreach (var result in response.Results)
+        //        {
+        //            yield return result;
+        //        }
 
-                if (response.Results.Count() < 100)
-                    yield break;
+        //        if (response.Results.Count() < 100)
+        //            yield break;
 
-                startAt += 100;
-            }
-        }
+        //        startAt += 100;
+        //    }
+        //}
 
         #endregion
     }

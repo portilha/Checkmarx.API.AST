@@ -28,6 +28,7 @@ namespace Checkmarx.API.AST.Models
 
     public class ScanResultDetails
     {
+        public Guid Id { get; set; }
         public bool Successful { get; set; }
         public string Status { get; set; }
         public string Details { get; set; }

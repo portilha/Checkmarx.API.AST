@@ -115,18 +115,29 @@ namespace Checkmarx.API.AST.Tests
         {
             Assert.IsNotNull(astclient.Scans);
 
-            //var proj1 = astclient.Projects.GetListOfProjectsAsync().Result.Projects.Where(x => x.Name == "aic-admin-gateway-sca");
-
-            var proj = astclient.Projects.GetProjectAsync(new Guid("23701319-fbb4-471e-9462-cc9205da6a1f")).Result;
+            var proj = astclient.Projects.GetProjectAsync(new Guid("ee9feb1b-78b7-4a44-b007-8b8eca3e32b8")).Result;
             var scansList = astclient.Scans.GetListOfScansAsync(proj.Id).Result;
-            var lastScan = astclient.GetLastSASTScan(new Guid(proj.Id), true);
+            var lastSASTScan = astclient.GetLastSASTScan(new Guid(proj.Id), true);
 
-            var oldScanDetails = astclient.GetScanDetails(new Guid(proj.Id), new Guid(lastScan.Id), DateTime.Now);
-            Trace.WriteLine($"Total: {oldScanDetails.SASTResults.Total} | High: {oldScanDetails.SASTResults.High} | Medium: {oldScanDetails.SASTResults.Medium} | Low: {oldScanDetails.SASTResults.Low} | Info: {oldScanDetails.SASTResults.Info} | ToVerify: {oldScanDetails.SASTResults.ToVerify}");
+            //var oldScanDetails = astclient.GetScanDetails(new Guid(proj.Id), new Guid(lastSASTScan.Id), DateTime.Now);
+            //Trace.WriteLine($"Total: {oldScanDetails.SASTResults.Total} | High: {oldScanDetails.SASTResults.High} | Medium: {oldScanDetails.SASTResults.Medium} | Low: {oldScanDetails.SASTResults.Low} | Info: {oldScanDetails.SASTResults.Info} | ToVerify: {oldScanDetails.SASTResults.ToVerify}");
 
 
-            var newScanDetails = astclient.GetScanDetailsV2(new Guid(lastScan.Id));
+            var newScanDetails = astclient.GetScanDetails(new Guid(proj.Id), new Guid(lastSASTScan.Id));
             Trace.WriteLine($"Total: {newScanDetails.SASTResults.Total} | High: {newScanDetails.SASTResults.High} | Medium: {newScanDetails.SASTResults.Medium} | Low: {newScanDetails.SASTResults.Low} | Info: {newScanDetails.SASTResults.Info} | ToVerify: {newScanDetails.SASTResults.ToVerify}");
+        }
+
+        [TestMethod]
+        public void ListKicksScansTest()
+        {
+            Assert.IsNotNull(astclient.Scans);
+
+            var proj = astclient.Projects.GetProjectAsync(new Guid("89259431-5522-4d7d-9d6d-243adad1c9c1")).Result;
+            var scansList = astclient.Scans.GetListOfScansAsync(proj.Id).Result;
+            var lastSASTScan = astclient.GetLastSASTScan(new Guid(proj.Id), true);
+            var lastKicksScan = astclient.GetLastKicsScan(new Guid(proj.Id), true);
+
+            var scanDetails = astclient.GetScanDetails(new Guid(proj.Id), new Guid(lastSASTScan.Id));
         }
 
         [TestMethod]
@@ -135,7 +146,7 @@ namespace Checkmarx.API.AST.Tests
             Assert.IsNotNull(astclient.Scans);
 
             //var oldScanDetails = astclient.GetScanDetails(new Guid("f8a2b16b-0044-440b-85ed-474bd5d93fca"), new Guid("5963b856-d815-4b8d-990c-1f1eda9e01fe"), DateTime.Now);
-            var newScanDetails = astclient.GetScanDetailsV2(new Guid("5963b856-d815-4b8d-990c-1f1eda9e01fe"));
+            var newScanDetails = astclient.GetScanDetails(new Guid("f8a2b16b-0044-440b-85ed-474bd5d93fca"), new Guid("5963b856-d815-4b8d-990c-1f1eda9e01fe"));
             
         }
 
@@ -160,14 +171,14 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void ScanInfoTest()
         {
-            var teste = astclient.GetScanDetails(new Guid("453f8caf-c9f1-4359-8c58-4d5d3f8b28d8"), new Guid("154fe347-d237-49e4-80af-77dfd37fdc9c"), DateTime.Now);
+            var teste = astclient.GetScanDetails(new Guid("f8a2b16b-0044-440b-85ed-474bd5d93fca"), new Guid("154fe347-d237-49e4-80af-77dfd37fdc9c"));
         }
 
         [TestMethod]
         public void ScanInfoTest2()
         {
             // SCA scan failed
-            var teste = astclient.GetScanDetails(new Guid("eefc36e3-3483-4b32-a811-dbe09daf37e4"), new Guid("154fe347-d237-49e4-80af-77dfd37fdc9c"), DateTime.Now);
+            var teste = astclient.GetScanDetails(new Guid("f8a2b16b-0044-440b-85ed-474bd5d93fca"), new Guid("154fe347-d237-49e4-80af-77dfd37fdc9c"));
         }
 
         [TestMethod]
@@ -234,7 +245,7 @@ namespace Checkmarx.API.AST.Tests
 
                 try
                 {
-                    var scanDetails = astclient.GetScanDetails(new Guid(project.Id), new Guid(scan.Id), DateTime.Now);
+                    var scanDetails = astclient.GetScanDetails(new Guid(project.Id), new Guid(scan.Id));
                     if(!string.IsNullOrEmpty(scanDetails.ErrorMessage))
                         result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), new Guid(scan.Id), project.Name, 0, scanDetails.ErrorMessage));
                 }
