@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Checkmarx.API.AST.Models
 {
-    public class SASTScanResults
+    public class ScanResults
     {
         public Guid Id { get; set; }
 
@@ -40,29 +40,29 @@ namespace Checkmarx.API.AST.Models
         public ICollection<string> LanguagesDetected { get; set; }
     }
 
-    public class SCAScanResults
-    {
-        public Guid Id { get; set; }
+    //public class SCAScanResults
+    //{
+    //    public Guid Id { get; set; }
 
-        public int High { get; set; }
+    //    public int High { get; set; }
 
-        public int Medium { get; set; }
+    //    public int Medium { get; set; }
 
-        public int Low { get; set; }
+    //    public int Low { get; set; }
 
-        public int Info { get; set; }
-    }
+    //    public int Info { get; set; }
+    //}
 
-    public class KicksScanResults
-    {
-        public Guid Id { get; set; }
+    //public class KicsScanResults
+    //{
+    //    public Guid Id { get; set; }
 
-        public int High { get; set; }
+    //    public int? High { get; set; }
 
-        public int Medium { get; set; }
+    //    public int? Medium { get; set; }
 
-        public int Low { get; set; }
+    //    public int? Low { get; set; }
 
-        public int Info { get; set; }
-    }
+    //    public int? Info { get; set; }
+    //}
 }
