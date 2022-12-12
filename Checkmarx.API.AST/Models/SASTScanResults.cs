@@ -11,7 +11,7 @@ namespace Checkmarx.API.AST.Models
         public string Status { get; set; }
         public string Details { get; set; }
 
-        public int LoC { get; set; }
+        public long LoC { get; set; }
 
         public int FailedLoC { get; set; }
 
