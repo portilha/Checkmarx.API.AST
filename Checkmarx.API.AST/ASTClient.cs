@@ -17,6 +17,10 @@ using Checkmarx.API.AST.Models.Report;
 using System.Threading.Tasks;
 using Checkmarx.API.AST.Services;
 using Checkmarx.API.AST.Services.KicsResults;
+using Checkmarx.API.AST.Services.ScannersResults;
+using System.Reflection;
+using Checkmarx.API.AST.Services.ResultsSummary;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Checkmarx.API.AST
 {
@@ -129,6 +133,32 @@ namespace Checkmarx.API.AST
                     _KicsResults = new KicsResults($"{ASTServer.AbsoluteUri}api/kics-results", _httpClient);
 
                 return _KicsResults;
+            }
+        }
+
+        // Engine Scanners results
+        private ScannersResults _scannersResults;
+        public ScannersResults ScannersResults
+        {
+            get
+            {
+                if (_scannersResults == null && Connected)
+                    _scannersResults = new ScannersResults($"{ASTServer.AbsoluteUri}api/results", _httpClient);
+
+                return _scannersResults;
+            }
+        }
+
+        // Engine Results Summary
+        private ResultsSummary _resultsSummary;
+        public ResultsSummary ResultsSummary
+        {
+            get
+            {
+                if (_resultsSummary == null && Connected)
+                    _resultsSummary = new ResultsSummary($"{ASTServer.AbsoluteUri}api/scan-summary", _httpClient);
+
+                return _resultsSummary;
             }
         }
 
@@ -327,6 +357,31 @@ namespace Checkmarx.API.AST
             }
         }
 
+        private IEnumerable<ScannerResult> GetScannersResultsById(Guid scanId)
+        {
+            int startAt = 0;
+
+            while (true)
+            {
+                var response = ScannersResults.GetResultsByScanAsync(scanId, startAt, 100).Result;
+                foreach (var result in response.Results)
+                {
+                    yield return result;
+                }
+
+                if (response.Results.Count() < 100)
+                    yield break;
+
+                startAt += 100;
+            }
+        }
+
+        private IEnumerable<ResultsSummary> GetResultsSummaryById(Guid scanId)
+        {
+            var response = ResultsSummary.SummaryByScansIdsAsync(new string[] { scanId.ToString() }).Result;
+            return response.ScansSummaries;
+        }
+
         #endregion
 
         #region Scans
@@ -341,30 +396,9 @@ namespace Checkmarx.API.AST
             return GetScans(projectId, branch: branch);
         }
 
-        /// <summary>
-        /// Get last completed SAST scan, full or incremental
-        /// </summary>
-        /// <param name="projectId"></param>
-        /// <param name="fullScanOnly"></param>
-        /// <returns></returns>
-        public Scan GetLastSASTScan(Guid projectId, bool fullScanOnly = false, string branch = null)
+        public Scan GetLastScan(Guid projectId, bool fullScanOnly = false, string branch = null, ScanTypeEnum scanType = ScanTypeEnum.sast)
         {
-            var scans = GetScans(projectId, "sast", true, branch, ScanRetrieveKind.All);
-            if (fullScanOnly)
-            {
-                var fullScans = scans.Where(x => x.Metadata.Configs.Any(x => x.Value != null && !x.Value.Incremental)).OrderByDescending(x => x.CreatedAt);
-                if (fullScans.Any())
-                    return fullScans.FirstOrDefault();
-                else
-                    return scans.OrderByDescending(x => x.CreatedAt).FirstOrDefault();
-            }
-            else
-                return scans.FirstOrDefault();
-        }
-
-        public Scan GetLastKicsScan(Guid projectId, bool fullScanOnly = false, string branch = null)
-        {
-            var scans = GetScans(projectId, "kics", true, branch, ScanRetrieveKind.All);
+            var scans = GetScans(projectId, scanType.ToString(), true, branch, ScanRetrieveKind.All);
             if (fullScanOnly)
             {
                 var fullScans = scans.Where(x => x.Metadata.Configs.Any(x => x.Value != null && !x.Value.Incremental)).OrderByDescending(x => x.CreatedAt);
@@ -482,6 +516,8 @@ namespace Checkmarx.API.AST
                 if (scan.StatusDetails == null)
                     throw new Exception($"There is no information about scan engine status.");
 
+                var resultsSummary = GetResultsSummaryById(scanDetails.Id).FirstOrDefault();
+
                 // SAST
                 var sastStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "sast").FirstOrDefault();
                 if (sastStatusDetails != null)
@@ -499,7 +535,7 @@ namespace Checkmarx.API.AST
                             scanDetails.Preset = metadata.QueryPreset;
                             scanDetails.LoC = metadata.Loc;
                         }
-                        scanDetails.SASTResults = GetSASTScanResultDetailsBydId(scanDetails.SASTResults, scanDetails.Id);
+                        scanDetails.SASTResults = GetSASTScanResultDetails(scanDetails.SASTResults, resultsSummary);
                     }
                     else
                     {
@@ -514,28 +550,38 @@ namespace Checkmarx.API.AST
                     scanDetails.KicsResults = new ScanResultDetails();
                     scanDetails.KicsResults.Status = kicsStatusDetails.Status;
                     scanDetails.KicsResults.Successful = kicsStatusDetails.Status.ToLower() == "completed";
+
                     if (scanDetails.KicsResults.Successful)
-                    {
-                        // Pode não ser o mesmo ID
-                        scanDetails.KicsResults = GetKicsScanResultDetailsBydId(scanDetails.KicsResults, scanDetails.Id);
-                    }
+                        scanDetails.KicsResults = GetKicsScanResultDetails(scanDetails.KicsResults, resultsSummary);
                     else
-                    {
-                        scanDetails.SASTResults.Details = $"Current scan status is {sastStatusDetails.Status}";
-                    }
+                        scanDetails.KicsResults.Details = $"Current scan status is {sastStatusDetails.Status}";
+                }
+
+                // SCA
+                var scaStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "sca").FirstOrDefault();
+                if (scaStatusDetails != null)
+                {
+                    scanDetails.ScaResults = new ScanResultDetails();
+                    scanDetails.ScaResults.Status = scaStatusDetails.Status;
+                    scanDetails.ScaResults.Successful = scaStatusDetails.Status.ToLower() == "completed";
+
+                    if (scanDetails.ScaResults.Successful)
+                        scanDetails.ScaResults = GetScaScanResultDetails(scanDetails.ScaResults, resultsSummary);
+                    else
+                        scanDetails.ScaResults.Details = $"Current scan status is {scaStatusDetails.Status}";
                 }
             }
 
             // Languages detected in the SAST, Kicks and SCA scans
             // For now, just adding the SAST languages detected
-            if(scanDetails.SASTResults != null)
+            if (scanDetails.SASTResults != null)
             {
                 scanDetails.Languages = string.Join(";", scanDetails.SASTResults.LanguagesDetected.Where(x => x != "Common").Select(x => x).ToList());
             }
 
             return scanDetails;
         }
-          
+
         private ScanResultDetails GetSASTScanResultDetailsBydId(ScanResultDetails model, Guid scanId)
         {
             var sastResults = GetSASTScanResultsById(scanId);
@@ -558,6 +604,27 @@ namespace Checkmarx.API.AST
             return model;
         }
 
+        private ScanResultDetails GetSASTScanResultDetails(ScanResultDetails model, ResultsSummary resultsSummary)
+        {
+            if (resultsSummary != null)
+            {
+                var sastCounters = resultsSummary.SastCounters;
+
+                model.Id = new Guid(resultsSummary.ScanId);
+                model.High = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.HIGH).Sum(x => x.Counter);
+                model.Medium = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.MEDIUM).Sum(x => x.Counter);
+                model.Low = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.LOW).Sum(x => x.Counter);
+                model.Info = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.INFO).Sum(x => x.Counter);
+                model.ToVerify = sastCounters.StateCounters.Where(x => x.State == ResultsSummaryState.TO_VERIFY).Sum(x => x.Counter);
+                model.Total = sastCounters.TotalCounter;
+
+                model.LanguagesDetected = sastCounters.LanguageCounters.Select(x => x.Language).Distinct().ToList();
+                //model.Queries = report.ScanResults.Sast.Languages.Sum(x => x.Queries.Count());
+            }
+
+            return model;
+        }
+
         private ScanResultDetails GetKicsScanResultDetailsBydId(ScanResultDetails model, Guid scanId)
         {
             var kicsResults = GetKicsScanResultsById(scanId);
@@ -573,6 +640,42 @@ namespace Checkmarx.API.AST
                 model.Info = results.Where(x => x.Severity == Services.KicsResults.SeverityEnum.INFO).Count();
 
                 //model.ToVerify = kicsResults.Where(x => x.State == KicsResultState.TO_VERIFY).Count();
+            }
+
+            return model;
+        }
+
+        private ScanResultDetails GetKicsScanResultDetails(ScanResultDetails model, ResultsSummary resultsSummary)
+        {
+            if (resultsSummary != null)
+            {
+                var kicsCounters = resultsSummary.KicsCounters;
+
+                model.Id = new Guid(resultsSummary.ScanId);
+                model.High = kicsCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.HIGH).Sum(x => x.Counter);
+                model.Medium = kicsCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.MEDIUM).Sum(x => x.Counter);
+                model.Low = kicsCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.LOW).Sum(x => x.Counter);
+                model.Info = kicsCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.INFO).Sum(x => x.Counter);
+                model.ToVerify = kicsCounters.StateCounters.Where(x => x.State == ResultsSummaryState.TO_VERIFY).Sum(x => x.Counter);
+                model.Total = kicsCounters.TotalCounter;
+            }
+
+            return model;
+        }
+
+        private ScanResultDetails GetScaScanResultDetails(ScanResultDetails model, ResultsSummary resultsSummary)
+        {
+            if (resultsSummary != null)
+            {
+                var scaCounters = resultsSummary.ScaCounters;
+
+                model.Id = new Guid(resultsSummary.ScanId);
+                model.High = scaCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.HIGH).Sum(x => x.Counter);
+                model.Medium = scaCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.MEDIUM).Sum(x => x.Counter);
+                model.Low = scaCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.LOW).Sum(x => x.Counter);
+                model.Info = scaCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.INFO).Sum(x => x.Counter);
+                model.ToVerify = scaCounters.StateCounters.Where(x => x.State == ResultsSummaryState.TO_VERIFY).Sum(x => x.Counter);
+                model.Total = scaCounters.TotalCounter;
             }
 
             return model;
