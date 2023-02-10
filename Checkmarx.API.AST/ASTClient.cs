@@ -615,7 +615,10 @@ namespace Checkmarx.API.AST
                 model.Medium = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.MEDIUM).Sum(x => x.Counter);
                 model.Low = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.LOW).Sum(x => x.Counter);
                 model.Info = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.INFO).Sum(x => x.Counter);
-                model.ToVerify = sastCounters.StateCounters.Where(x => x.State == ResultsSummaryState.TO_VERIFY).Sum(x => x.Counter);
+                //model.ToVerify = sastCounters.StateCounters.Where(x => x.State == ResultsSummaryState.TO_VERIFY).Sum(x => x.Counter);
+                model.ToVerify = GetSASTScanVulnerabilitiesDetails(new Guid(resultsSummary.ScanId))
+                                .Where(x => x.State == Services.SASTResults.ResultsState.TO_VERIFY && x.Severity != ResultsSeverity.INFO).Count();
+
                 model.Total = sastCounters.TotalCounter;
 
                 model.LanguagesDetected = sastCounters.LanguageCounters.Select(x => x.Language).Distinct().ToList();
@@ -893,24 +896,24 @@ namespace Checkmarx.API.AST
         //    return scanResult.Results.Where(x => x.State == Services.SASTResults.ResultsState.TO_VERIFY).Count();
         //}
 
-        //private IEnumerable<Results> GetSASTScanVulnerabilitiesDetails(Guid scanId)
-        //{
-        //    int startAt = 0;
+        private IEnumerable<Results> GetSASTScanVulnerabilitiesDetails(Guid scanId)
+        {
+            int startAt = 0;
 
-        //    while (true)
-        //    {
-        //        var response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, 100).Result;
-        //        foreach (var result in response.Results)
-        //        {
-        //            yield return result;
-        //        }
+            while (true)
+            {
+                var response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, 100).Result;
+                foreach (var result in response.Results)
+                {
+                    yield return result;
+                }
 
-        //        if (response.Results.Count() < 100)
-        //            yield break;
+                if (response.Results.Count() < 100)
+                    yield break;
 
-        //        startAt += 100;
-        //    }
-        //}
+                startAt += 100;
+            }
+        }
 
         #endregion
     }
