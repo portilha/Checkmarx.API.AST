@@ -209,6 +209,15 @@ namespace Checkmarx.API.AST
             throw new Exception(response.Content.ReadAsStringAsync().Result);
         }
 
+        public void GetGroups()
+        {
+            if (Connected)
+            {
+                var groupAPI = new Services.GroupsResult.GroupsResults($"{ASTServer.AbsoluteUri}auth/realms/{Tenant}/pip/groups", _httpClient);
+                var groups = groupAPI.GetGroupsAsync().Result;
+            }
+        }
+
         #endregion
 
         #region Client
