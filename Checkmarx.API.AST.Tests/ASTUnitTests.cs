@@ -79,6 +79,14 @@ namespace Checkmarx.API.AST.Tests
         }
 
         [TestMethod]
+        public void GroupsTest()
+        {
+            Assert.IsNotNull(astclient);
+
+            astclient.GetGroups();
+        }
+
+        [TestMethod]
         public void ListApplications()
         {
             Assert.IsNotNull(astclient.Applications);
