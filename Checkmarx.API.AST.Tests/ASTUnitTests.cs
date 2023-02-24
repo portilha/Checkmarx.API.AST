@@ -140,7 +140,7 @@ namespace Checkmarx.API.AST.Tests
         {
             Assert.IsNotNull(astclient.Scans);
 
-            var proj = astclient.Projects.GetProjectAsync(new Guid("282b4f6a-a592-474f-b21b-dbe27d7c51d8")).Result;
+            var proj = astclient.Projects.GetProjectAsync(new Guid("049b1439-34b1-498b-bae1-c767652fcbc0")).Result;
             //var scansList = astclient.Scans.GetListOfScansAsync(proj.Id).Result;
             var lastSASTScan = astclient.GetLastScan(new Guid(proj.Id), true);
             //var lastKicksScan = astclient.GetLastKicsScan(new Guid(proj.Id), true);
