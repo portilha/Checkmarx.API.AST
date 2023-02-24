@@ -464,7 +464,7 @@ namespace Checkmarx.API.AST
             if (scans.Any())
             {
                 if (completed)
-                    scans = scans.Where(x => x.Status == Status.Completed);
+                    scans = scans.Where(x => x.Status == Status.Completed || x.Status == Status.Partial);
 
                 if (!string.IsNullOrEmpty(branch))
                     scans = scans.Where(x => x.Branch.ToLower() == branch.ToLower());
