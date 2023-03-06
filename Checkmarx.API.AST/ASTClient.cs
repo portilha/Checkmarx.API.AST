@@ -512,7 +512,7 @@ namespace Checkmarx.API.AST
             ScanDetails scanDetails = new ScanDetails();
             scanDetails.Id = new Guid(scan.Id);
             scanDetails.Status = scan.Status.ToString();
-            scanDetails.Successful = scan.Status == Status.Completed;
+            scanDetails.Successful = scan.Status == Status.Completed || scan.Status == Status.Partial;
             scanDetails.InitiatorName = scan.Initiator;
             scanDetails.Branch = scan.Branch;
             scanDetails.SourceType = scan.SourceType;
