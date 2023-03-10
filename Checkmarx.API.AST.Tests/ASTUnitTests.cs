@@ -123,7 +123,7 @@ namespace Checkmarx.API.AST.Tests
         {
             Assert.IsNotNull(astclient.Scans);
 
-            var proj = astclient.Projects.GetProjectAsync(new Guid("ee9feb1b-78b7-4a44-b007-8b8eca3e32b8")).Result;
+            var proj = astclient.Projects.GetProjectAsync(new Guid("9d0f8153-6da7-45ae-b471-e9fc335c9ed7")).Result;
             var scansList = astclient.Scans.GetListOfScansAsync(proj.Id).Result;
             var lastSASTScan = astclient.GetLastScan(new Guid(proj.Id), true);
 

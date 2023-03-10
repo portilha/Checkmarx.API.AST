@@ -583,7 +583,7 @@ namespace Checkmarx.API.AST
 
             // Languages detected in the SAST, Kicks and SCA scans
             // For now, just adding the SAST languages detected
-            if (scanDetails.SASTResults != null)
+            if (scanDetails.SASTResults != null && scanDetails.SASTResults.LanguagesDetected != null)
             {
                 scanDetails.Languages = string.Join(";", scanDetails.SASTResults.LanguagesDetected.Where(x => x != "Common").Select(x => x).ToList());
             }
