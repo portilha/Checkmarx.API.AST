@@ -123,8 +123,12 @@ namespace Checkmarx.API.AST.Tests
         {
             Assert.IsNotNull(astclient.Scans);
 
-            var proj = astclient.Projects.GetProjectAsync(new Guid("9d0f8153-6da7-45ae-b471-e9fc335c9ed7")).Result;
-            var scansList = astclient.Scans.GetListOfScansAsync(proj.Id).Result;
+            var projects = astclient.GetAllProjectsDetails().Projects.ToList();
+            var proj = projects.Where(x => x.Name == "EM-AMD/bcait-bcaresearch").FirstOrDefault();
+
+            //var proj = astclient.Projects.GetProjectAsync(new Guid("9d0f8153-6da7-45ae-b471-e9fc335c9ed7")).Result;
+            var scansList = astclient.GetScans(new Guid(proj.Id)).ToList();
+            //var scansList = astclient.Scans.GetListOfScansAsync(proj.Id).Result;
             var lastSASTScan = astclient.GetLastScan(new Guid(proj.Id), true);
 
             //var oldScanDetails = astclient.GetScanDetails(new Guid(proj.Id), new Guid(lastSASTScan.Id), DateTime.Now);
