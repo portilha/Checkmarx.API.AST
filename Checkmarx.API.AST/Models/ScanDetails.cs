@@ -16,6 +16,9 @@ namespace Checkmarx.API.AST.Models
         public string InitiatorName { get; set; }
         public string SourceType { get; set; }
         public string SourceOrigin { get; set; }
+        public string Type { get; set; }
+        public string RepoUrl { get; set; }
+        public string UploadUrl { get; set; }
         public DateTimeOffset? FinishedOn { get; set; }
         public TimeSpan Duration { get; set; }
         public string Languages { get; set; }

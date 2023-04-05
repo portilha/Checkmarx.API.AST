@@ -21,6 +21,7 @@ using Checkmarx.API.AST.Services.ScannersResults;
 using System.Reflection;
 using Checkmarx.API.AST.Services.ResultsSummary;
 using System.Security.Cryptography.X509Certificates;
+using Checkmarx.API.AST.Services.Configuration;
 
 namespace Checkmarx.API.AST
 {
@@ -162,6 +163,19 @@ namespace Checkmarx.API.AST
             }
         }
 
+        // Configurations
+        private Configuration _configuration;
+        public Configuration Configuration
+        {
+            get
+            {
+                if (_configuration == null && Connected)
+                    _configuration = new Configuration($"{ASTServer.AbsoluteUri}api/configuration", _httpClient);
+
+                return _configuration;
+            }
+        }
+
 
         #region Connection
 
@@ -169,11 +183,18 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_httpClient == null || (_bearerValidTo - DateTime.UtcNow).TotalMinutes < 5)
+                try
                 {
-                    var token = Autenticate();
-                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                    _bearerValidTo = DateTime.UtcNow.AddHours(1);
+                    if (_httpClient == null || (_bearerValidTo - DateTime.UtcNow).TotalMinutes < 5)
+                    {
+                        var token = Autenticate();
+                        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                        _bearerValidTo = DateTime.UtcNow.AddHours(1);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return false;
                 }
                 return true;
             }
@@ -207,15 +228,6 @@ namespace Checkmarx.API.AST
                 return authToken;
             }
             throw new Exception(response.Content.ReadAsStringAsync().Result);
-        }
-
-        public void GetGroups()
-        {
-            if (Connected)
-            {
-                var groupAPI = new Services.GroupsResult.GroupsResults($"{ASTServer.AbsoluteUri}auth/realms/{Tenant}/pip/groups", _httpClient);
-                var groups = groupAPI.GetGroupsAsync().Result;
-            }
         }
 
         #endregion
@@ -519,6 +531,9 @@ namespace Checkmarx.API.AST
             scanDetails.SourceOrigin = scan.SourceOrigin;
             scanDetails.FinishedOn = scan.UpdatedAt.DateTime;
             scanDetails.Duration = scan.UpdatedAt.DateTime - scan.CreatedAt.DateTime;
+            scanDetails.Type = scan.Metadata?.Type;
+            scanDetails.RepoUrl = scan.Metadata?.Handler?.GitHandler?.RepoUrl;
+            scanDetails.UploadUrl = scan.Metadata?.Handler?.UploadHandler?.UploadUrl;
 
             if (scanDetails.Successful)
             {
@@ -922,6 +937,83 @@ namespace Checkmarx.API.AST
 
                 startAt += 100;
             }
+        }
+
+        public Scan ReRunGitScan(Guid projectId, string branch, string preset, string repoUrl)
+        {
+            ScanInput scanInput = new ScanInput();
+            scanInput.Project = new Services.Scans.Project() { Id = projectId.ToString() };
+            scanInput.Type = ScanInputType.Git;
+            scanInput.Handler = new Git() { Branch = branch, RepoUrl = repoUrl };
+            scanInput.Config = new List<Config>() {
+                    new Config(){
+                        Type = ConfigType.Sast,
+                        Value = new Dictionary<string, string>() { ["incremental"] = "false", ["presetName"] = preset }
+                    }
+                };
+
+            return Scans.CreateScanAsync(scanInput).Result;
+        }
+
+        public Scan ReRunUploadScan(Guid projectId, string branch, string preset, string uploadUrl)
+        {
+            ScanUploadInput scanInput = new ScanUploadInput();
+            scanInput.Project = new Services.Scans.Project() { Id = projectId.ToString() };
+            scanInput.Type = ScanInputType.Upload;
+            scanInput.Handler = new Upload() { Branch = branch,  UploadUrl = uploadUrl };
+            scanInput.Config = new List<Config>() {
+                    new Config(){
+                        Type = ConfigType.Sast,
+                        Value = new Dictionary<string, string>() { ["incremental"] = "false", ["presetName"] = preset }
+                    }
+                };
+
+            return Scans.CreateScanUploadAsync(scanInput).Result;
+        }
+
+        #endregion
+
+        #region Groups
+
+        public void GetGroups()
+        {
+            if (Connected)
+            {
+                var groupAPI = new Services.GroupsResult.GroupsResults($"{ASTServer.AbsoluteUri}auth/realms/{Tenant}/pip/groups", _httpClient);
+                var groups = groupAPI.GetGroupsAsync().Result;
+            }
+        }
+
+        #endregion
+
+        #region Configurations
+
+        public IEnumerable<ScanParameter> GetProjectConfigurations(Guid projectId)
+        {
+            return Configuration.ProjectAllAsync(projectId.ToString()).Result;
+        }
+
+        public IEnumerable<ScanParameter> GetTenantConfigurations()
+        {
+            return Configuration.TenantAllAsync().Result;
+        }
+
+        public string GetProjectRepoUrl(Guid projectId)
+        {
+            var config = GetProjectConfigurations(projectId).Where(x => x.Key == "scan.handler.git.repository").FirstOrDefault();
+            if (config != null)
+                return config.Value;
+
+            return null;
+        }
+
+        public List<string> GetPresetsNames()
+        {
+            var config = GetTenantConfigurations().Where(x => x.Key == "scan.config.sast.presetName").FirstOrDefault();
+            if (config != null && !string.IsNullOrWhiteSpace(config.ValueTypeParams))
+                return config.ValueTypeParams.Split(',').Select(x => x.Trim()).ToList();
+
+            return null;
         }
 
         #endregion
