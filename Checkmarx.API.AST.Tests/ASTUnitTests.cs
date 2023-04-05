@@ -1,6 +1,8 @@
 using Checkmarx.API.AST.Models;
 using Checkmarx.API.AST.Models.Report;
 using Checkmarx.API.AST.Services.Reports;
+using Checkmarx.API.AST.Services.SASTMetadata;
+using Checkmarx.API.AST.Services.Scans;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -41,6 +43,34 @@ namespace Checkmarx.API.AST.Tests
         public void ConnectTest()
         {
             Assert.IsTrue(astclient.Connected);
+        }
+
+        [TestMethod]
+        public void ReRunScanGitTest()
+        {
+            var gitProj = astclient.Projects.GetProjectAsync(new Guid("ea02d59d-a3ff-4d8b-abf4-62b629179a48")).Result;
+            var gitProjLastScan = astclient.GetLastScan(new Guid(gitProj.Id), true);
+            var gitProjScanDetails = astclient.GetScanDetails(new Guid(gitProj.Id), new Guid(gitProjLastScan.Id));
+            string gitProjbranch = gitProjLastScan.Branch;
+
+            var gitReScanResult = astclient.ReRunGitScan(new Guid(gitProj.Id), gitProjbranch, gitProjScanDetails.Preset, gitProjScanDetails.RepoUrl);
+        }
+
+        [TestMethod]
+        public void ReRunScanZipTest()
+        {
+            var uploadProj = astclient.Projects.GetProjectAsync(new Guid("fd71de0b-b3db-40a8-a885-8c2d0eb481b6")).Result;
+            var uploadProjLastScan = astclient.GetLastScan(new Guid(uploadProj.Id), true);
+            var uploadProjScanDetails = astclient.GetScanDetails(new Guid(uploadProj.Id), new Guid(uploadProjLastScan.Id));
+            string uploadProjBranch = uploadProjLastScan.Branch;
+
+            var uploadReScanResult = astclient.ReRunUploadScan(new Guid(uploadProj.Id), uploadProjBranch, uploadProjScanDetails.Preset, uploadProjScanDetails.UploadUrl);
+        }
+
+        [TestMethod]
+        public void GetPresetsTest()
+        {
+            var presets = astclient.GetPresetsNames();
         }
 
         [TestMethod]
@@ -224,10 +254,10 @@ namespace Checkmarx.API.AST.Tests
                 {
                     var scanMetadata = astclient.SASTMetadata.GetMetadataAsync(new Guid(scan.Id)).Result;
                 }
-                catch (ApiException apiEx)
-                {
-                    result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), new Guid(scan.Id), project.Name, apiEx.StatusCode, apiEx.Message));
-                }
+                //catch (ApiException apiEx)
+                //{
+                //    result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), new Guid(scan.Id), project.Name, apiEx.StatusCode, apiEx.Message));
+                //}
                 catch (Exception ex)
                 {
                     result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), new Guid(scan.Id), project.Name, 0, ex.Message));
@@ -261,10 +291,10 @@ namespace Checkmarx.API.AST.Tests
                     if(!string.IsNullOrEmpty(scanDetails.ErrorMessage))
                         result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), new Guid(scan.Id), project.Name, 0, scanDetails.ErrorMessage));
                 }
-                catch (ApiException apiEx)
-                {
-                    result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), new Guid(scan.Id), project.Name, apiEx.StatusCode, apiEx.Message));
-                }
+                //catch (ApiException apiEx)
+                //{
+                //    result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), new Guid(scan.Id), project.Name, apiEx.StatusCode, apiEx.Message));
+                //}
                 catch (Exception ex)
                 {
                     result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), new Guid(scan.Id), project.Name, 0, ex.Message));
