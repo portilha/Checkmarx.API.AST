@@ -54,6 +54,8 @@ namespace Checkmarx.API.AST.Tests
             string gitProjbranch = gitProjLastScan.Branch;
 
             var gitReScanResult = astclient.ReRunGitScan(new Guid(gitProj.Id), gitProjbranch, gitProjScanDetails.Preset, gitProjScanDetails.RepoUrl);
+
+            //astclient.DeleteScan(new Guid(gitReScanResult.Id));
         }
 
         [TestMethod]
@@ -68,9 +70,30 @@ namespace Checkmarx.API.AST.Tests
         }
 
         [TestMethod]
+        public void DeleteScansTest()
+        {
+            List<Guid> ids = new List<Guid>();
+
+            var response = astclient.Projects.GetListOfProjectsAsync().Result;
+            foreach (var project in response.Projects)
+            {
+                var scans = astclient.Scans.GetListOfScansAsync(project.Id).Result;
+                foreach(var scan in scans.Scans.Where(x => x.SourceOrigin == "Amazon CloudFront"))
+                {
+                    ids.Add(new Guid(scan.Id));
+                }
+            }
+
+            foreach(var id in ids)
+            {
+                astclient.DeleteScan(id);
+            }
+        }
+
+        [TestMethod]
         public void GetPresetsTest()
         {
-            var presets = astclient.GetPresetsNames();
+            var presets = astclient.GetTenantPresets();
         }
 
         [TestMethod]
