@@ -985,7 +985,7 @@ namespace Checkmarx.API.AST.Services.Scans
         /// <param name="id">The scan ID</param>
         /// <returns>No Content</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task CancelScanAsync(string authorization, string accept, System.Guid? correlationId, System.Guid id, Body body, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task CancelScanAsync(System.Guid id, Body body, string authorization = null, string accept = null, System.Guid? correlationId = null,  System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (id == null)
                 throw new System.ArgumentNullException("id");
@@ -1094,7 +1094,7 @@ namespace Checkmarx.API.AST.Services.Scans
         /// <param name="id">The scan ID</param>
         /// <returns>No Content</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task DeleteScanAsync(string authorization, string accept, System.Guid? correlationId, System.Guid id, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task DeleteScanAsync(System.Guid id, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (id == null)
                 throw new System.ArgumentNullException("id");
@@ -2037,7 +2037,6 @@ namespace Checkmarx.API.AST.Services.Scans
             get { return _additionalProperties; }
             set { _additionalProperties = value; }
         }
-
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.15.10.0 (NJsonSchema v10.6.10.0 (Newtonsoft.Json v12.0.0.0))")]

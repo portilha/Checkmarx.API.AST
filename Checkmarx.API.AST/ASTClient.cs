@@ -971,6 +971,23 @@ namespace Checkmarx.API.AST
             return Scans.CreateScanUploadAsync(scanInput).Result;
         }
 
+        public void DeleteScan(Guid scanId)
+        {
+            var scan = Scans.GetScanAsync(scanId).Result;
+            if(scan != null)
+            {
+                if (scan.Status == Status.Running || scan.Status == Status.Queued)
+                    CancelScan(scanId);
+
+                Scans.DeleteScanAsync(scanId);
+            }
+        }
+
+        public void CancelScan(Guid scanId)
+        {
+            Scans.CancelScanAsync(scanId, new Body { Status = Status.Canceled.ToString() }).Wait();
+        }
+
         #endregion
 
         #region Groups
@@ -1007,7 +1024,7 @@ namespace Checkmarx.API.AST
             return null;
         }
 
-        public List<string> GetPresetsNames()
+        public List<string> GetTenantPresets()
         {
             var config = GetTenantConfigurations().Where(x => x.Key == "scan.config.sast.presetName").FirstOrDefault();
             if (config != null && !string.IsNullOrWhiteSpace(config.ValueTypeParams))
