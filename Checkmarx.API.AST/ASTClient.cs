@@ -22,6 +22,8 @@ using System.Reflection;
 using Checkmarx.API.AST.Services.ResultsSummary;
 using System.Security.Cryptography.X509Certificates;
 using Checkmarx.API.AST.Services.Configuration;
+using Checkmarx.API.AST.Services.Repostore;
+using Checkmarx.API.AST.Services.Uploads;
 
 namespace Checkmarx.API.AST
 {
@@ -176,6 +178,35 @@ namespace Checkmarx.API.AST
             }
         }
 
+        private Repostore _repostore;
+        public Repostore Repostore
+        {
+            get
+            {
+                if (_repostore == null && Connected)
+                    _repostore = new Repostore(_httpClient)
+                    {
+                        BaseUrl = $"{ASTServer.AbsoluteUri}api/repostore/code"
+                    };
+
+                return _repostore;
+            }
+        }
+
+        private Uploads _uploads;
+        public Uploads Uploads
+        {
+            get
+            {
+                if (_uploads == null && Connected)
+                    _uploads = new Uploads(_httpClient)
+                    {
+                        BaseUrl = $"{ASTServer.AbsoluteUri}api/uploads"
+                    };
+
+                return _uploads;
+            }
+        }
 
         #region Connection
 
@@ -939,7 +970,7 @@ namespace Checkmarx.API.AST
             }
         }
 
-        public Scan ReRunGitScan(Guid projectId, string branch, string preset, string repoUrl)
+        public Scan ReRunGitScan(Guid projectId, string repoUrl, string branch, string preset)
         {
             ScanInput scanInput = new ScanInput();
             scanInput.Project = new Services.Scans.Project() { Id = projectId.ToString() };
@@ -955,8 +986,13 @@ namespace Checkmarx.API.AST
             return Scans.CreateScanAsync(scanInput).Result;
         }
 
-        public Scan ReRunUploadScan(Guid projectId, string branch, string preset, string uploadUrl)
+        public Scan ReRunUploadScan(Guid projectId, Guid lastScanId, string branch, string preset)
         {
+            byte[] source = Repostore.GetSourceCode(lastScanId).Result;
+
+            string uploadUrl = Uploads.GetPresignedURLForUploading().Result;
+            Uploads.SendHTTPRequestByFullURL(uploadUrl, source).Wait();
+
             ScanUploadInput scanInput = new ScanUploadInput();
             scanInput.Project = new Services.Scans.Project() { Id = projectId.ToString() };
             scanInput.Type = ScanInputType.Upload;
@@ -978,6 +1014,11 @@ namespace Checkmarx.API.AST
             {
                 if (scan.Status == Status.Running || scan.Status == Status.Queued)
                     CancelScan(scanId);
+
+                ////if(scan.SourceType == "Upload")
+                ////{
+                //    var test = Scans.RecalculateAsync(new RecalculateInput() { Project_id = scan.ProjectId, Id = scanId.ToString(), Branch = scan.Branch, Status = "Queued" }).Result;
+                ////}
 
                 Scans.DeleteScanAsync(scanId);
             }

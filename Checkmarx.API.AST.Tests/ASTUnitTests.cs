@@ -53,9 +53,9 @@ namespace Checkmarx.API.AST.Tests
             var gitProjScanDetails = astclient.GetScanDetails(new Guid(gitProj.Id), new Guid(gitProjLastScan.Id));
             string gitProjbranch = gitProjLastScan.Branch;
 
-            var gitReScanResult = astclient.ReRunGitScan(new Guid(gitProj.Id), gitProjbranch, gitProjScanDetails.Preset, gitProjScanDetails.RepoUrl);
+            var gitReScanResult = astclient.ReRunGitScan(new Guid(gitProj.Id), gitProjScanDetails.RepoUrl, gitProjbranch, gitProjScanDetails.Preset);
 
-            //astclient.DeleteScan(new Guid(gitReScanResult.Id));
+            astclient.DeleteScan(new Guid(gitReScanResult.Id));
         }
 
         [TestMethod]
@@ -63,10 +63,29 @@ namespace Checkmarx.API.AST.Tests
         {
             var uploadProj = astclient.Projects.GetProjectAsync(new Guid("fd71de0b-b3db-40a8-a885-8c2d0eb481b6")).Result;
             var uploadProjLastScan = astclient.GetLastScan(new Guid(uploadProj.Id), true);
+            //var uploadProjLastScan = astclient.Scans.GetScanAsync(new Guid("8f252210-cd6f-4d68-b158-9d7cece265ca")).Result;
             var uploadProjScanDetails = astclient.GetScanDetails(new Guid(uploadProj.Id), new Guid(uploadProjLastScan.Id));
             string uploadProjBranch = uploadProjLastScan.Branch;
 
-            var uploadReScanResult = astclient.ReRunUploadScan(new Guid(uploadProj.Id), uploadProjBranch, uploadProjScanDetails.Preset, uploadProjScanDetails.UploadUrl);
+            var uploadReScanResult = astclient.ReRunUploadScan(new Guid(uploadProj.Id), new Guid(uploadProjLastScan.Id), uploadProjBranch, uploadProjScanDetails.Preset);
+
+            //astclient.DeleteScan(new Guid("fb20eb3c-29aa-461d-ac29-12d238d7e976"));
+        }
+
+        [TestMethod]
+        public void DownloadSourceCodeTest()
+        {
+            var uploadProj = astclient.Projects.GetProjectAsync(new Guid("f8a2b16b-0044-440b-85ed-474bd5d93fca")).Result;
+            var uploadProjLastScan = astclient.GetLastScan(new Guid(uploadProj.Id), true);
+            var uploadProjScanDetails = astclient.GetScanDetails(new Guid(uploadProj.Id), new Guid(uploadProjLastScan.Id));
+            string uploadProjBranch = uploadProjLastScan.Branch;
+
+            byte[] source = astclient.Repostore.GetSourceCode(new Guid(uploadProjLastScan.Id)).Result;
+
+            string uploadUrl = astclient.Uploads.GetPresignedURLForUploading().Result;
+            astclient.Uploads.SendHTTPRequestByFullURL(uploadUrl, source).Wait();
+
+            //var uploadReScanResult = astclient.ReRunUploadScan(new Guid(uploadProj.Id), uploadProjBranch, uploadProjScanDetails.Preset, uploadUrl);
         }
 
         [TestMethod]
