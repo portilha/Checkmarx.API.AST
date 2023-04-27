@@ -93,11 +93,13 @@ namespace Checkmarx.API.AST.Tests
         {
             List<Guid> ids = new List<Guid>();
 
-            var response = astclient.Projects.GetListOfProjectsAsync().Result;
-            foreach (var project in response.Projects)
+            var prjcts = astclient.GetAllProjectsDetails();
+            var projects = prjcts.Projects.ToList();
+            foreach (var project in projects)
             {
                 var scans = astclient.Scans.GetListOfScansAsync(project.Id).Result;
-                foreach(var scan in scans.Scans.Where(x => x.SourceOrigin == "Amazon CloudFront"))
+                //foreach(var scan in scans.Scans.Where(x => x.SourceOrigin == "ASAProgramTracker"))
+                foreach (var scan in scans.Scans.Where(x => x.SourceOrigin == "Amazon CloudFront"))
                 {
                     ids.Add(new Guid(scan.Id));
                 }
