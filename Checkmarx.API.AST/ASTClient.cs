@@ -951,7 +951,7 @@ namespace Checkmarx.API.AST
         //    return scanResult.Results.Where(x => x.State == Services.SASTResults.ResultsState.TO_VERIFY).Count();
         //}
 
-        private IEnumerable<Results> GetSASTScanVulnerabilitiesDetails(Guid scanId)
+        public IEnumerable<Results> GetSASTScanVulnerabilitiesDetails(Guid scanId)
         {
             int startAt = 0;
 
