@@ -670,9 +670,11 @@ namespace Checkmarx.API.AST
                 model.Medium = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.MEDIUM).Sum(x => x.Counter);
                 model.Low = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.LOW).Sum(x => x.Counter);
                 model.Info = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.INFO).Sum(x => x.Counter);
-                //model.ToVerify = sastCounters.StateCounters.Where(x => x.State == ResultsSummaryState.TO_VERIFY).Sum(x => x.Counter);
-                model.ToVerify = GetSASTScanVulnerabilitiesDetails(new Guid(resultsSummary.ScanId))
-                                .Where(x => x.State == Services.SASTResults.ResultsState.TO_VERIFY && x.Severity != ResultsSeverity.INFO).Count();
+
+                // ToVerify -> we dont want to include the info vulns
+                model.ToVerify = sastCounters.StateCounters.Where(x => x.State == ResultsSummaryState.TO_VERIFY).Sum(x => x.Counter) - model.Info;
+                //model.ToVerify = GetSASTScanVulnerabilitiesDetails(new Guid(resultsSummary.ScanId))
+                //                .Where(x => x.State == Services.SASTResults.ResultsState.TO_VERIFY && x.Severity != ResultsSeverity.INFO).Count();
 
                 model.Total = sastCounters.TotalCounter;
 
