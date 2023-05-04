@@ -193,6 +193,21 @@ namespace Checkmarx.API.AST.Tests
         }
 
         [TestMethod]
+        public void GetScanInfoTest()
+        {
+            var projects = astclient.GetAllProjectsDetails().Projects.ToList();
+            var proj = projects.Where(x => x.Name == "EM-NextGen/bfg-nextgen-newsletter-processor-azure").FirstOrDefault();
+
+            //var proj = astclient.Projects.GetProjectAsync(new Guid("f1618910-d726-4e8b-95e8-c1eaf1a546ad")).Result;
+            var scansList = astclient.GetScans(new Guid(proj.Id)).ToList();
+            var lastSASTScan = astclient.GetLastScan(new Guid(proj.Id), true);
+
+            var newScanDetails = astclient.GetScanDetails(new Guid(proj.Id), new Guid(lastSASTScan.Id));
+            Trace.WriteLine($"Total: {newScanDetails.SASTResults.Total} | High: {newScanDetails.SASTResults.High} | Medium: {newScanDetails.SASTResults.Medium} | Low: {newScanDetails.SASTResults.Low} | Info: {newScanDetails.SASTResults.Info} | ToVerify: {newScanDetails.SASTResults.ToVerify}");
+        }
+
+
+        [TestMethod]
         public void ListScansTest()
         {
             Assert.IsNotNull(astclient.Scans);
