@@ -295,6 +295,59 @@ namespace Checkmarx.API.AST
 
         #endregion
 
+        #region Applications
+
+        private Services.Applications.ApplicationsCollection _apps { get; set; }
+        public Services.Applications.ApplicationsCollection Apps
+        {
+            get 
+            {
+                if(_apps == null)
+                    _apps = GetAllApplications();
+
+                return _apps;
+            }
+        }
+
+        public Services.Applications.ApplicationsCollection GetAllApplications()
+        {
+            checkConnection();
+
+            var getLimit = 20;
+
+            var listApplications = Applications.GetListOfApplicationsAsync(getLimit).Result;
+            if (listApplications.TotalCount > getLimit)
+            {
+                var offset = getLimit;
+                bool cont = true;
+                do
+                {
+                    var next = Applications.GetListOfApplicationsAsync(getLimit, offset).Result;
+                    if (next.Applications.Any())
+                    {
+                        next.Applications.ToList().ForEach(o => listApplications.Applications.Add(o));
+                        offset += getLimit;
+
+                        if (listApplications.Applications.Count == listApplications.TotalCount) cont = false;
+                    }
+                    else
+                        cont = false;
+
+                } while (cont);
+            }
+
+            return listApplications;
+        }
+
+        public Services.Applications.Application GetProjectApplication(Guid projectId)
+        {
+            checkConnection();
+
+            return Apps.Applications.Where(x => x.ProjectIds.Any(x => x == projectId.ToString()))?.FirstOrDefault();
+        }
+
+        #endregion
+
         #region Projects
 
         public ProjectsCollection GetAllProjectsDetails()
@@ -998,7 +1051,7 @@ namespace Checkmarx.API.AST
             ScanUploadInput scanInput = new ScanUploadInput();
             scanInput.Project = new Services.Scans.Project() { Id = projectId.ToString() };
             scanInput.Type = ScanInputType.Upload;
-            scanInput.Handler = new Upload() { Branch = branch,  UploadUrl = uploadUrl };
+            scanInput.Handler = new Upload() { Branch = branch, UploadUrl = uploadUrl };
             scanInput.Config = new List<Config>() {
                     new Config(){
                         Type = ConfigType.Sast,
@@ -1012,7 +1065,7 @@ namespace Checkmarx.API.AST
         public void DeleteScan(Guid scanId)
         {
             var scan = Scans.GetScanAsync(scanId).Result;
-            if(scan != null)
+            if (scan != null)
             {
                 if (scan.Status == Status.Running || scan.Status == Status.Queued)
                     CancelScan(scanId);

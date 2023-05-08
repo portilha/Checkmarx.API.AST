@@ -16,7 +16,7 @@ using System.Net;
 namespace Checkmarx.API.AST.Tests
 {
     [TestClass]
-    public class ASTUnitTests
+    public class ProjectTests
     {
 
         private static ASTClient astclient;
@@ -28,7 +28,7 @@ namespace Checkmarx.API.AST.Tests
         public static void InitializeTest(TestContext testContext)
         {
             var builder = new ConfigurationBuilder()
-                .AddUserSecrets<ASTUnitTests>();
+                .AddUserSecrets<ProjectTests>();
 
             Configuration = builder.Build();
 
@@ -37,12 +37,6 @@ namespace Checkmarx.API.AST.Tests
                 new System.Uri(Configuration["AccessControlServer"]), 
                 Configuration["Tenant"], 
                 Configuration["API_KEY"]);
-        }
-
-        [TestMethod]
-        public void ConnectTest()
-        {
-            Assert.IsTrue(astclient.Connected);
         }
 
         [TestMethod]
@@ -112,87 +106,6 @@ namespace Checkmarx.API.AST.Tests
         }
 
         [TestMethod]
-        public void GetPresetsTest()
-        {
-            var presets = astclient.GetTenantPresets();
-        }
-
-        [TestMethod]
-        public void UpdateTagTests()
-        {
-            UpdateProjectStatus(new Guid("ee9feb1b-78b7-4a44-b007-8b8eca3e32b8"), "pipeline");
-            //astclient.UpdateProjectTags("ee9feb1b-78b7-4a44-b007-8b8eca3e32b8", new Dictionary<string, string>() { { "asa_status", "pipeline" } });
-        }
-
-        public void UpdateProjectStatus(Guid id, string tag)
-        {
-            var proj = astclient.Projects.GetProjectAsync(id).Result;
-            if (proj != null)
-            {
-                var tags = proj.Tags;
-                if (tags.ContainsKey("asa_status"))
-                    tags["asa_status"] = tag;
-                else
-                    tags.Add("asa_status", tag);
-
-                astclient.UpdateProjectTags(id, tags);
-            }
-        }
-
-        [TestMethod]
-        public void ListProjects()
-        {
-            Assert.IsNotNull(astclient.Projects);
-
-            var projectsList = astclient.Projects.GetListOfProjectsAsync().Result;
-
-            foreach (var item in projectsList.Projects)
-            {
-                Trace.WriteLine(item.Id + " " + item.Name + " " + item.RepoUrl);
-            }
-        }
-
-        [TestMethod]
-        public void GroupsTest()
-        {
-            Assert.IsNotNull(astclient);
-
-            astclient.GetGroups();
-        }
-
-        [TestMethod]
-        public void ListApplications()
-        {
-            Assert.IsNotNull(astclient.Applications);
-
-            var applicationsList = astclient.Applications.GetListOfApplicationsAsync().Result;
-
-            foreach (var item in applicationsList.Applications)
-            {
-                Trace.WriteLine(item.Id + " " + item.Name);
-            }
-        }
-
-        [TestMethod]
-        public void UpdateTags()
-        {
-            Assert.IsNotNull(astclient.Projects);
-
-            var proj = astclient.Projects.GetProjectAsync(new Guid("ee9feb1b-78b7-4a44-b007-8b8eca3e32b8")).Result;
-
-            var currentTags = proj.Tags;
-            if (currentTags.ContainsKey("asa_status"))
-            {
-                currentTags["asa_status"] = "Pipeline";
-            }
-
-            Services.Projects.ProjectInput input = new Services.Projects.ProjectInput();
-            input.Tags = currentTags;
-
-            astclient.Projects.UpdateProjectAsync(new Guid("ee9feb1b-78b7-4a44-b007-8b8eca3e32b8"), input).Wait();
-        }
-
-        [TestMethod]
         public void GetScanInfoTest()
         {
             var projects = astclient.GetAllProjectsDetails().Projects.ToList();
@@ -252,33 +165,8 @@ namespace Checkmarx.API.AST.Tests
         }
 
         [TestMethod]
-        public void BranchesTest()
-        {
-            Guid projectId = new Guid("e85542eb-ee28-45ce-890f-f0a86999c489");
-
-            Assert.IsNotNull(astclient.Projects);
-            Assert.IsNotNull(astclient.Projects.GetProjectAsync(projectId).Result);
-
-
-            var branchesV2 = astclient.GetProjectBranches(projectId).ToList();
-
-            foreach (var item in branchesV2)
-                Trace.WriteLine(item);
-
-            Assert.IsNotNull(branchesV2);
-            Assert.IsTrue(branchesV2.Count > 0);
-        }
-
-        [TestMethod]
         public void ScanInfoTest()
         {
-            var teste = astclient.GetScanDetails(new Guid("f8a2b16b-0044-440b-85ed-474bd5d93fca"), new Guid("154fe347-d237-49e4-80af-77dfd37fdc9c"));
-        }
-
-        [TestMethod]
-        public void ScanInfoTest2()
-        {
-            // SCA scan failed
             var teste = astclient.GetScanDetails(new Guid("f8a2b16b-0044-440b-85ed-474bd5d93fca"), new Guid("154fe347-d237-49e4-80af-77dfd37fdc9c"));
         }
 
