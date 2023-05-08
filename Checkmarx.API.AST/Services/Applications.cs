@@ -191,7 +191,7 @@ namespace Checkmarx.API.AST.Services.Applications
         /// <param name="tags_values">Application tags, filter by the values in the tags map (OR operation between the items)</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<ApplicationsCollection> GetListOfApplicationsAsync(string authorization = null, string accept = null, System.Guid? correlationId = null, int? offset = null, int? limit = null, string name = null, System.Collections.Generic.IEnumerable<string> tags_keys = null, System.Collections.Generic.IEnumerable<string> tags_values = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<ApplicationsCollection> GetListOfApplicationsAsync(int? limit = null, int? offset = null, string authorization = null, string accept = null, System.Guid? correlationId = null,   string name = null, System.Collections.Generic.IEnumerable<string> tags_keys = null, System.Collections.Generic.IEnumerable<string> tags_values = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/?");
