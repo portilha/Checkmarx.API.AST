@@ -300,9 +300,9 @@ namespace Checkmarx.API.AST
         private Services.Applications.ApplicationsCollection _apps { get; set; }
         public Services.Applications.ApplicationsCollection Apps
         {
-            get 
+            get
             {
-                if(_apps == null)
+                if (_apps == null)
                     _apps = GetAllApplications();
 
                 return _apps;
@@ -624,59 +624,98 @@ namespace Checkmarx.API.AST
                 if (scan.StatusDetails == null)
                     throw new Exception($"There is no information about scan engine status.");
 
-                var resultsSummary = GetResultsSummaryById(scanDetails.Id).FirstOrDefault();
-
-                // SAST
-                var sastStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "sast").FirstOrDefault();
-                if (sastStatusDetails != null)
+                // Known issue where there is a successful scan, but ResultsSummary throws a 404
+                // In this case, we are going to try to fetch the sast results in another way
+                bool fetchedResultsSuccessfuly = true;
+                try
                 {
-                    scanDetails.SASTResults = new ScanResultDetails();
-                    scanDetails.SASTResults.Status = sastStatusDetails.Status;
-                    scanDetails.SASTResults.Successful = sastStatusDetails.Status.ToLower() == "completed";
+                    var resultsSummary = GetResultsSummaryById(scanDetails.Id).FirstOrDefault();
 
-                    if (scanDetails.SASTResults.Successful)
+                    // SAST
+                    var sastStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "sast").FirstOrDefault();
+                    if (sastStatusDetails != null)
                     {
-                        // Get sast metadata
-                        var metadata = SASTMetadata.GetMetadataAsync(scanDetails.Id).Result;
-                        if (metadata != null)
+                        scanDetails.SASTResults = new ScanResultDetails();
+                        scanDetails.SASTResults.Status = sastStatusDetails.Status;
+                        scanDetails.SASTResults.Successful = sastStatusDetails.Status.ToLower() == "completed";
+
+                        if (scanDetails.SASTResults.Successful)
                         {
-                            scanDetails.Preset = metadata.QueryPreset;
-                            scanDetails.LoC = metadata.Loc;
+                            // Get sast metadata
+                            var metadata = SASTMetadata.GetMetadataAsync(scanDetails.Id).Result;
+                            if (metadata != null)
+                            {
+                                scanDetails.Preset = metadata.QueryPreset;
+                                scanDetails.LoC = metadata.Loc;
+                            }
+                            scanDetails.SASTResults = GetSASTScanResultDetails(scanDetails.SASTResults, resultsSummary);
                         }
-                        scanDetails.SASTResults = GetSASTScanResultDetails(scanDetails.SASTResults, resultsSummary);
+                        else
+                        {
+                            scanDetails.SASTResults.Details = $"Current scan status is {sastStatusDetails.Status}";
+                        }
                     }
-                    else
+
+                    // KICS
+                    var kicsStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "kics").FirstOrDefault();
+                    if (kicsStatusDetails != null)
                     {
-                        scanDetails.SASTResults.Details = $"Current scan status is {sastStatusDetails.Status}";
+                        scanDetails.KicsResults = new ScanResultDetails();
+                        scanDetails.KicsResults.Status = kicsStatusDetails.Status;
+                        scanDetails.KicsResults.Successful = kicsStatusDetails.Status.ToLower() == "completed";
+
+                        if (scanDetails.KicsResults.Successful)
+                            scanDetails.KicsResults = GetKicsScanResultDetails(scanDetails.KicsResults, resultsSummary);
+                        else
+                            scanDetails.KicsResults.Details = $"Current scan status is {sastStatusDetails.Status}";
                     }
+
+                    // SCA
+                    var scaStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "sca").FirstOrDefault();
+                    if (scaStatusDetails != null)
+                    {
+                        scanDetails.ScaResults = new ScanResultDetails();
+                        scanDetails.ScaResults.Status = scaStatusDetails.Status;
+                        scanDetails.ScaResults.Successful = scaStatusDetails.Status.ToLower() == "completed";
+
+                        if (scanDetails.ScaResults.Successful)
+                            scanDetails.ScaResults = GetScaScanResultDetails(scanDetails.ScaResults, resultsSummary);
+                        else
+                            scanDetails.ScaResults.Details = $"Current scan status is {scaStatusDetails.Status}";
+                    }
+
+                }
+                catch
+                {
+                    fetchedResultsSuccessfuly = false;
                 }
 
-                // KICS
-                var kicsStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "kics").FirstOrDefault();
-                if (kicsStatusDetails != null)
+                if (!fetchedResultsSuccessfuly)
                 {
-                    scanDetails.KicsResults = new ScanResultDetails();
-                    scanDetails.KicsResults.Status = kicsStatusDetails.Status;
-                    scanDetails.KicsResults.Successful = kicsStatusDetails.Status.ToLower() == "completed";
+                    // SAST
+                    var sastStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "sast").FirstOrDefault();
+                    if (sastStatusDetails != null)
+                    {
+                        scanDetails.SASTResults = new ScanResultDetails();
+                        scanDetails.SASTResults.Status = sastStatusDetails.Status;
+                        scanDetails.SASTResults.Successful = sastStatusDetails.Status.ToLower() == "completed";
 
-                    if (scanDetails.KicsResults.Successful)
-                        scanDetails.KicsResults = GetKicsScanResultDetails(scanDetails.KicsResults, resultsSummary);
-                    else
-                        scanDetails.KicsResults.Details = $"Current scan status is {sastStatusDetails.Status}";
-                }
-
-                // SCA
-                var scaStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "sca").FirstOrDefault();
-                if (scaStatusDetails != null)
-                {
-                    scanDetails.ScaResults = new ScanResultDetails();
-                    scanDetails.ScaResults.Status = scaStatusDetails.Status;
-                    scanDetails.ScaResults.Successful = scaStatusDetails.Status.ToLower() == "completed";
-
-                    if (scanDetails.ScaResults.Successful)
-                        scanDetails.ScaResults = GetScaScanResultDetails(scanDetails.ScaResults, resultsSummary);
-                    else
-                        scanDetails.ScaResults.Details = $"Current scan status is {scaStatusDetails.Status}";
+                        if (scanDetails.SASTResults.Successful)
+                        {
+                            // Get sast metadata
+                            var metadata = SASTMetadata.GetMetadataAsync(scanDetails.Id).Result;
+                            if (metadata != null)
+                            {
+                                scanDetails.Preset = metadata.QueryPreset;
+                                scanDetails.LoC = metadata.Loc;
+                            }
+                            scanDetails.SASTResults = GetSASTScanResultDetailsBydId(scanDetails.SASTResults, scanDetails.Id);
+                        }
+                        else
+                        {
+                            scanDetails.SASTResults.Details = $"Current scan status is {sastStatusDetails.Status}";
+                        }
+                    }
                 }
             }
 

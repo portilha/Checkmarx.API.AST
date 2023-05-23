@@ -109,7 +109,7 @@ namespace Checkmarx.API.AST.Tests
         public void GetScanInfoTest()
         {
             var projects = astclient.GetAllProjectsDetails().Projects.ToList();
-            var proj = projects.Where(x => x.Name == "EM-NextGen/bfg-nextgen-newsletter-processor-azure").FirstOrDefault();
+            var proj = projects.Where(x => x.Name == "CxAPI-Security/apisec-sast-schema").FirstOrDefault();
 
             //var proj = astclient.Projects.GetProjectAsync(new Guid("f1618910-d726-4e8b-95e8-c1eaf1a546ad")).Result;
             var scansList = astclient.GetScans(new Guid(proj.Id)).ToList();
