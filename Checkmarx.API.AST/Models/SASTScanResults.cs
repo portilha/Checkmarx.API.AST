@@ -37,6 +37,10 @@ namespace Checkmarx.API.AST.Models
 
         public int? Queries { get; set; }
 
+        public int? QueriesHigh { get; set; }
+        public int? QueriesMedium { get; set; }
+        public int? QueriesLow { get; set; }
+
         public ICollection<string> LanguagesDetected { get; set; }
     }
 
