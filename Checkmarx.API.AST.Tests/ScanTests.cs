@@ -108,15 +108,25 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void GetScanInfoTest()
         {
-            var projects = astclient.GetAllProjectsDetails().Projects.ToList();
-            var proj = projects.Where(x => x.Name == "CxAPI-Security/apisec-sast-schema").FirstOrDefault();
+            //var projects = astclient.GetAllProjectsDetails().Projects.ToList();
+            //var proj = projects.Where(x => x.Name == "CxAPI-Security/apisec-sast-schema").FirstOrDefault();
 
-            //var proj = astclient.Projects.GetProjectAsync(new Guid("f1618910-d726-4e8b-95e8-c1eaf1a546ad")).Result;
+            var proj = astclient.Projects.GetProjectAsync(new Guid("f8a2b16b-0044-440b-85ed-474bd5d93fca")).Result;
             var scansList = astclient.GetScans(new Guid(proj.Id)).ToList();
             var lastSASTScan = astclient.GetLastScan(new Guid(proj.Id), true);
 
-            var newScanDetails = astclient.GetScanDetails(new Guid(proj.Id), new Guid(lastSASTScan.Id));
+            var newScanDetails = astclient.GetScanDetails(new Guid(proj.Id), new Guid("278bc4d7-dbb5-44a2-ba3b-c9c42d080a6f"));
             Trace.WriteLine($"Total: {newScanDetails.SASTResults.Total} | High: {newScanDetails.SASTResults.High} | Medium: {newScanDetails.SASTResults.Medium} | Low: {newScanDetails.SASTResults.Low} | Info: {newScanDetails.SASTResults.Info} | ToVerify: {newScanDetails.SASTResults.ToVerify}");
+        }
+
+        [TestMethod]
+        public void GetScanResultsTest()
+        {
+            var proj = astclient.Projects.GetProjectAsync(new Guid("f8a2b16b-0044-440b-85ed-474bd5d93fca")).Result;
+            var lastSASTScan = astclient.GetLastScan(new Guid(proj.Id), true);
+
+            var newScanDetails = astclient.ScannersResults.GetResultsByScanAsync(new Guid(lastSASTScan.Id)).Result;
+            var newScanDetails2 = astclient.GetSASTScanVulnerabilitiesDetails(new Guid(lastSASTScan.Id)).ToList();
         }
 
 
