@@ -34,15 +34,15 @@ namespace Checkmarx.API.AST.Tests
 
             astclient = new ASTClient(
                 new System.Uri(Configuration["ASTServer"]),
-                new System.Uri(Configuration["AccessControlServer"]), 
-                Configuration["Tenant"], 
+                new System.Uri(Configuration["AccessControlServer"]),
+                Configuration["Tenant"],
                 Configuration["API_KEY"]);
         }
 
         [TestMethod]
         public void ReRunScanGitTest()
         {
-            var gitProj = astclient.Projects.GetProjectAsync(new Guid("ea02d59d-a3ff-4d8b-abf4-62b629179a48")).Result;
+            var gitProj = astclient.Projects.GetProjectAsync(new Guid("fd71de0b-b3db-40a8-a885-8c2d0eb481b6")).Result;
             var gitProjLastScan = astclient.GetLastScan(new Guid(gitProj.Id), true);
             var gitProjScanDetails = astclient.GetScanDetails(new Guid(gitProj.Id), new Guid(gitProjLastScan.Id));
             string gitProjbranch = gitProjLastScan.Branch;
@@ -99,7 +99,7 @@ namespace Checkmarx.API.AST.Tests
                 }
             }
 
-            foreach(var id in ids)
+            foreach (var id in ids)
             {
                 astclient.DeleteScan(id);
             }
@@ -108,15 +108,23 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void GetScanInfoTest()
         {
-            //var projects = astclient.GetAllProjectsDetails().Projects.ToList();
+            var projects = astclient.GetAllProjectsDetails().Projects.ToList();
             //var proj = projects.Where(x => x.Name == "CxAPI-Security/apisec-sast-schema").FirstOrDefault();
+            foreach (var proj in projects)
+            {
+                //var proj = astclient.Projects.GetProjectAsync(new Guid("fd71de0b-b3db-40a8-a885-8c2d0eb481b6")).Result;
+                //var scansList = astclient.GetScans(new Guid(proj.Id)).ToList();
+                var lastSASTScan = astclient.GetLastScan(new Guid(proj.Id), true);
+                if (lastSASTScan == null)
+                    continue;
 
-            var proj = astclient.Projects.GetProjectAsync(new Guid("f8a2b16b-0044-440b-85ed-474bd5d93fca")).Result;
-            var scansList = astclient.GetScans(new Guid(proj.Id)).ToList();
-            var lastSASTScan = astclient.GetLastScan(new Guid(proj.Id), true);
+                var newScanDetails = astclient.GetScanDetails(new Guid(proj.Id), new Guid(lastSASTScan.Id));
 
-            var newScanDetails = astclient.GetScanDetails(new Guid(proj.Id), new Guid("278bc4d7-dbb5-44a2-ba3b-c9c42d080a6f"));
-            Trace.WriteLine($"Total: {newScanDetails.SASTResults.Total} | High: {newScanDetails.SASTResults.High} | Medium: {newScanDetails.SASTResults.Medium} | Low: {newScanDetails.SASTResults.Low} | Info: {newScanDetails.SASTResults.Info} | ToVerify: {newScanDetails.SASTResults.ToVerify}");
+                if (newScanDetails.SASTResults == null)
+                    continue;
+
+                Trace.WriteLine($"Total: {newScanDetails.SASTResults?.Total} | High: {newScanDetails.SASTResults?.High} | Medium: {newScanDetails.SASTResults?.Medium} | Low: {newScanDetails.SASTResults?.Low} | Info: {newScanDetails.SASTResults?.Info} | ToVerify: {newScanDetails.SASTResults?.ToVerify}");
+            }
         }
 
         [TestMethod]
@@ -171,7 +179,7 @@ namespace Checkmarx.API.AST.Tests
 
             //var oldScanDetails = astclient.GetScanDetails(new Guid("f8a2b16b-0044-440b-85ed-474bd5d93fca"), new Guid("5963b856-d815-4b8d-990c-1f1eda9e01fe"), DateTime.Now);
             var newScanDetails = astclient.GetScanDetails(new Guid("f8a2b16b-0044-440b-85ed-474bd5d93fca"), new Guid("5963b856-d815-4b8d-990c-1f1eda9e01fe"));
-            
+
         }
 
         [TestMethod]
@@ -198,10 +206,10 @@ namespace Checkmarx.API.AST.Tests
             List<Tuple<Guid, Guid, string, int?, string>> result = new List<Tuple<Guid, Guid, string, int?, string>>();
 
             var projectList = astclient.Projects.GetListOfProjectsAsync().Result;
-            foreach(var project in projectList.Projects)
+            foreach (var project in projectList.Projects)
             {
                 var scan = astclient.GetLastScan(new Guid(project.Id));
-                if(scan == null)
+                if (scan == null)
                 {
                     result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), Guid.Empty, project.Name, 0, "No completed scans found"));
                     continue;
@@ -220,8 +228,8 @@ namespace Checkmarx.API.AST.Tests
                     result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), new Guid(scan.Id), project.Name, 0, ex.Message));
                 }
             }
-            
-            foreach(var item in result)
+
+            foreach (var item in result)
             {
                 Console.WriteLine($"Project Id: {item.Item1} | Scan Id: {item.Item2} | Project Name: {item.Item3} | Status Code: {item.Item4} | Message: {item.Item5}");
             }
@@ -245,7 +253,7 @@ namespace Checkmarx.API.AST.Tests
                 try
                 {
                     var scanDetails = astclient.GetScanDetails(new Guid(project.Id), new Guid(scan.Id));
-                    if(!string.IsNullOrEmpty(scanDetails.ErrorMessage))
+                    if (!string.IsNullOrEmpty(scanDetails.ErrorMessage))
                         result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), new Guid(scan.Id), project.Name, 0, scanDetails.ErrorMessage));
                 }
                 //catch (ApiException apiEx)
