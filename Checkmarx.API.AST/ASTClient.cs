@@ -24,6 +24,7 @@ using System.Security.Cryptography.X509Certificates;
 using Checkmarx.API.AST.Services.Configuration;
 using Checkmarx.API.AST.Services.Repostore;
 using Checkmarx.API.AST.Services.Uploads;
+using System.Diagnostics;
 
 namespace Checkmarx.API.AST
 {
@@ -356,7 +357,7 @@ namespace Checkmarx.API.AST
 
             //return Projects.GetListOfProjectsAsync(200).Result;
 
-            var getLimit = 20;
+            var getLimit = 10000;
 
             var listProjects = Projects.GetListOfProjectsAsync(getLimit).Result;
             if (listProjects.TotalCount > getLimit)
@@ -411,16 +412,16 @@ namespace Checkmarx.API.AST
 
             while (true)
             {
-                var response = Projects.BranchesAsync(projectId, startAt, 100).Result;
+                var response = Projects.BranchesAsync(projectId, startAt, 10000).Result;
                 foreach (var result in response)
                 {
                     yield return result;
                 }
 
-                if (response.Count() < 100)
+                if (response.Count() < 10000)
                     yield break;
 
-                startAt += 100;
+                startAt += 10000;
             }
         }
 
@@ -430,16 +431,16 @@ namespace Checkmarx.API.AST
 
             while (true)
             {
-                var response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, 100).Result;
+                var response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, 10000).Result;
                 foreach (var result in response.Results)
                 {
                     yield return result;
                 }
 
-                if (response.Results.Count() < 100)
+                if (response.Results.Count() < 10000)
                     yield break;
 
-                startAt += 100;
+                startAt += 10000;
             }
         }
 
@@ -449,16 +450,16 @@ namespace Checkmarx.API.AST
 
             while (true)
             {
-                var response = KicsResults.GetKICSResultsByScanAsync(scanId, startAt, 100).Result;
+                var response = KicsResults.GetKICSResultsByScanAsync(scanId, startAt, 10000).Result;
                 foreach (var result in response.Results)
                 {
                     yield return result;
                 }
 
-                if (response.Results.Count() < 100)
+                if (response.Results.Count() < 10000)
                     yield break;
 
-                startAt += 100;
+                startAt += 10000;
             }
         }
 
@@ -468,16 +469,16 @@ namespace Checkmarx.API.AST
 
             while (true)
             {
-                var response = ScannersResults.GetResultsByScanAsync(scanId, startAt, 100).Result;
+                var response = ScannersResults.GetResultsByScanAsync(scanId, startAt, 10000).Result;
                 foreach (var result in response.Results)
                 {
                     yield return result;
                 }
 
-                if (response.Results.Count() < 100)
+                if (response.Results.Count() < 10000)
                     yield break;
 
-                startAt += 100;
+                startAt += 10000;
             }
         }
 
@@ -597,10 +598,10 @@ namespace Checkmarx.API.AST
         public ScanDetails GetScanDetails(Guid projectId, Guid scanId)
         {
             var scan = Scans.GetScanAsync(scanId).Result;
-            return GetScanDetails(projectId, scan);
+            return GetScanDetails(scan);
         }
 
-        public ScanDetails GetScanDetails(Guid projectId, Scan scan)
+        public ScanDetails GetScanDetails(Scan scan)
         {
             if (scan == null)
                 throw new NullReferenceException($"No scan found.");
@@ -629,59 +630,111 @@ namespace Checkmarx.API.AST
                 bool fetchedResultsSuccessfuly = true;
                 try
                 {
-                    var resultsSummary = GetResultsSummaryById(scanDetails.Id).FirstOrDefault();
+#if DEBUG
+                    Stopwatch st = new Stopwatch();
+                    st.Start();
 
-                    // SAST
-                    var sastStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "sast").FirstOrDefault();
-                    if (sastStatusDetails != null)
+                    Stopwatch total = new Stopwatch();
+                    total.Start();
+#endif
+
+                    try
                     {
-                        scanDetails.SASTResults = new ScanResultDetails();
-                        scanDetails.SASTResults.Status = sastStatusDetails.Status;
-                        scanDetails.SASTResults.Successful = sastStatusDetails.Status.ToLower() == "completed";
+                        var resultsSummary = GetResultsSummaryById(scanDetails.Id).FirstOrDefault();
 
-                        if (scanDetails.SASTResults.Successful)
+#if DEBUG
+                        Trace.WriteLine($"GetResultsSummaryById '{scan.Id}' - Time:{st.ElapsedMilliseconds} ms");
+                        st.Restart();
+#endif
+
+                        // SAST
+                        var sastStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "sast").FirstOrDefault();
+                        if (sastStatusDetails != null)
                         {
-                            // Get sast metadata
-                            var metadata = SASTMetadata.GetMetadataAsync(scanDetails.Id).Result;
-                            if (metadata != null)
+                            scanDetails.SASTResults = new ScanResultDetails
                             {
-                                scanDetails.Preset = metadata.QueryPreset;
-                                scanDetails.LoC = metadata.Loc;
+                                Status = sastStatusDetails.Status,
+                                Successful = sastStatusDetails.Status.ToLower() == "completed"
+                            };
+
+                            if (scanDetails.SASTResults.Successful)
+                            {
+                                // Get sast metadata
+                                ScanInfo metadata = SASTMetadata.GetMetadataAsync(scanDetails.Id).Result;
+                                if (metadata != null)
+                                {
+                                    scanDetails.Preset = metadata.QueryPreset;
+                                    scanDetails.LoC = metadata.Loc;
+                                }
+
+#if DEBUG
+                                Trace.WriteLine($"SASTMetadata '{scan.Id}' - Time:{st.ElapsedMilliseconds} ms");
+                                st.Restart();
+#endif
+
+                                scanDetails.SASTResults = GetSASTScanResultDetails(scanDetails.SASTResults, resultsSummary);
                             }
-                            scanDetails.SASTResults = GetSASTScanResultDetails(scanDetails.SASTResults, resultsSummary);
+                            else
+                            {
+                                scanDetails.SASTResults.Details = $"Current scan status is {sastStatusDetails.Status}";
+                            }
+
+#if DEBUG
+                            Trace.WriteLine($"SASTResults '{scan.Id}' - Time:{st.ElapsedMilliseconds} ms");
+                            st.Restart();
+#endif
+
                         }
-                        else
+
+#if DEBUG
+                        Trace.WriteLine($"SAST '{scan.Id}' - Time:{st.ElapsedMilliseconds} ms");
+                        st.Restart();
+#endif
+
+                        // KICS
+                        var kicsStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "kics").FirstOrDefault();
+                        if (kicsStatusDetails != null)
                         {
-                            scanDetails.SASTResults.Details = $"Current scan status is {sastStatusDetails.Status}";
+                            scanDetails.KicsResults = new ScanResultDetails();
+                            scanDetails.KicsResults.Status = kicsStatusDetails.Status;
+                            scanDetails.KicsResults.Successful = kicsStatusDetails.Status.ToLower() == "completed";
+
+                            if (scanDetails.KicsResults.Successful)
+                                scanDetails.KicsResults = GetKicsScanResultDetails(scanDetails.KicsResults, resultsSummary);
+                            else
+                                scanDetails.KicsResults.Details = $"Current scan status is {sastStatusDetails.Status}";
                         }
+
+#if DEBUG
+                        Trace.WriteLine($"KICS '{scan.Id}' - Time:{st.ElapsedMilliseconds} ms");
+                        st.Restart();
+#endif
+
+                        // SCA
+                        var scaStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "sca").FirstOrDefault();
+                        if (scaStatusDetails != null)
+                        {
+                            scanDetails.ScaResults = new ScanResultDetails();
+                            scanDetails.ScaResults.Status = scaStatusDetails.Status;
+                            scanDetails.ScaResults.Successful = scaStatusDetails.Status.ToLower() == "completed";
+
+                            if (scanDetails.ScaResults.Successful)
+                                scanDetails.ScaResults = GetScaScanResultDetails(scanDetails.ScaResults, resultsSummary);
+                            else
+                                scanDetails.ScaResults.Details = $"Current scan status is {scaStatusDetails.Status}";
+                        }
+
+
+#if DEBUG
+                        Trace.WriteLine($"SCA '{scan.Id}' - Time:{st.ElapsedMilliseconds} ms");
+                        st.Restart();
+#endif
                     }
-
-                    // KICS
-                    var kicsStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "kics").FirstOrDefault();
-                    if (kicsStatusDetails != null)
+                    finally
                     {
-                        scanDetails.KicsResults = new ScanResultDetails();
-                        scanDetails.KicsResults.Status = kicsStatusDetails.Status;
-                        scanDetails.KicsResults.Successful = kicsStatusDetails.Status.ToLower() == "completed";
-
-                        if (scanDetails.KicsResults.Successful)
-                            scanDetails.KicsResults = GetKicsScanResultDetails(scanDetails.KicsResults, resultsSummary);
-                        else
-                            scanDetails.KicsResults.Details = $"Current scan status is {sastStatusDetails.Status}";
-                    }
-
-                    // SCA
-                    var scaStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "sca").FirstOrDefault();
-                    if (scaStatusDetails != null)
-                    {
-                        scanDetails.ScaResults = new ScanResultDetails();
-                        scanDetails.ScaResults.Status = scaStatusDetails.Status;
-                        scanDetails.ScaResults.Successful = scaStatusDetails.Status.ToLower() == "completed";
-
-                        if (scanDetails.ScaResults.Successful)
-                            scanDetails.ScaResults = GetScaScanResultDetails(scanDetails.ScaResults, resultsSummary);
-                        else
-                            scanDetails.ScaResults.Details = $"Current scan status is {scaStatusDetails.Status}";
+#if DEBUG
+                        Trace.WriteLine($"Total '{scan.Id}' - Time:{total.ElapsedMilliseconds} ms");
+#endif
                     }
 
                 }
@@ -692,6 +745,11 @@ namespace Checkmarx.API.AST
 
                 if (!fetchedResultsSuccessfuly)
                 {
+
+#if DEBUG
+                    Trace.WriteLine($"Entrei AQUI {scan.Id}");
+#endif
+
                     // SAST
                     var sastStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "sast").FirstOrDefault();
                     if (sastStatusDetails != null)
@@ -753,51 +811,51 @@ namespace Checkmarx.API.AST
 
         private ScanResultDetails GetSASTScanResultDetails(ScanResultDetails model, ResultsSummary resultsSummary)
         {
-            if (resultsSummary != null)
+            if (resultsSummary == null)
+                return model;
+
+            var sastCounters = resultsSummary.SastCounters;
+
+            model.Id = new Guid(resultsSummary.ScanId);
+            model.High = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.HIGH).Sum(x => x.Counter);
+            model.Medium = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.MEDIUM).Sum(x => x.Counter);
+            model.Low = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.LOW).Sum(x => x.Counter);
+            model.Info = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.INFO).Sum(x => x.Counter);
+
+            // ToVerify -> we dont want to include the info vulns
+            model.ToVerify = sastCounters.StateCounters.Where(x => x.State == ResultsSummaryState.TO_VERIFY).Sum(x => x.Counter) - model.Info;
+            //model.ToVerify = GetSASTScanVulnerabilitiesDetails(new Guid(resultsSummary.ScanId))
+            //                .Where(x => x.State == Services.SASTResults.ResultsState.TO_VERIFY && x.Severity != ResultsSeverity.INFO).Count();
+
+            model.Total = sastCounters.TotalCounter;
+
+            model.LanguagesDetected = sastCounters.LanguageCounters.Select(x => x.Language).Distinct().ToList();
+            model.Queries = sastCounters.QueriesCounters.Count;
+
+            // Number of queries
+            try
             {
-                var sastCounters = resultsSummary.SastCounters;
+                // Scan query categories
+                var scanResults = GetSASTScanVulnerabilitiesDetails(model.Id).ToList();
 
-                model.Id = new Guid(resultsSummary.ScanId);
-                model.High = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.HIGH).Sum(x => x.Counter);
-                model.Medium = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.MEDIUM).Sum(x => x.Counter);
-                model.Low = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.LOW).Sum(x => x.Counter);
-                model.Info = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.INFO).Sum(x => x.Counter);
+                var scanResultsHigh = scanResults.Where(x => x.Severity == ResultsSeverity.HIGH);
+                var scanResultsMedium = scanResults.Where(x => x.Severity == ResultsSeverity.MEDIUM);
+                var scanResultsLow = scanResults.Where(x => x.Severity == ResultsSeverity.LOW);
 
-                // ToVerify -> we dont want to include the info vulns
-                model.ToVerify = sastCounters.StateCounters.Where(x => x.State == ResultsSummaryState.TO_VERIFY).Sum(x => x.Counter) - model.Info;
-                //model.ToVerify = GetSASTScanVulnerabilitiesDetails(new Guid(resultsSummary.ScanId))
-                //                .Where(x => x.State == Services.SASTResults.ResultsState.TO_VERIFY && x.Severity != ResultsSeverity.INFO).Count();
+                var scanQueriesHigh = scanResultsHigh.Select(x => x.QueryID).Distinct().ToList();
+                var scanQueriesMedium = scanResultsMedium.Select(x => x.QueryID).Distinct().ToList();
+                var scanQueriesLow = scanResultsLow.Select(x => x.QueryID).Distinct().ToList();
 
-                model.Total = sastCounters.TotalCounter;
-
-                model.LanguagesDetected = sastCounters.LanguageCounters.Select(x => x.Language).Distinct().ToList();
-                model.Queries = sastCounters.QueriesCounters.Count;
-
-                // Number of queries
-                try
-                {
-                    // Scan query categories
-                    var scanResults = GetSASTScanVulnerabilitiesDetails(model.Id).ToList();
-
-                    var scanResultsHigh = scanResults.Where(x => x.Severity == ResultsSeverity.HIGH);
-                    var scanResultsMedium = scanResults.Where(x => x.Severity == ResultsSeverity.MEDIUM);
-                    var scanResultsLow = scanResults.Where(x => x.Severity == ResultsSeverity.LOW);
-
-                    var scanQueriesHigh = scanResultsHigh.Select(x => x.QueryID).Distinct().ToList();
-                    var scanQueriesMedium = scanResultsMedium.Select(x => x.QueryID).Distinct().ToList();
-                    var scanQueriesLow = scanResultsLow.Select(x => x.QueryID).Distinct().ToList();
-
-                    model.QueriesHigh = scanQueriesHigh.Count();
-                    model.QueriesMedium = scanQueriesMedium.Count();
-                    model.QueriesLow = scanQueriesLow.Count();
-                    model.Queries = model.QueriesHigh + model.QueriesMedium + model.QueriesLow;
-                }
-                catch 
-                {
-                    model.QueriesHigh = null;
-                    model.QueriesMedium = null;
-                    model.QueriesLow = null;
-                }
+                model.QueriesHigh = scanQueriesHigh.Count();
+                model.QueriesMedium = scanQueriesMedium.Count();
+                model.QueriesLow = scanQueriesLow.Count();
+                model.Queries = model.QueriesHigh + model.QueriesMedium + model.QueriesLow;
+            }
+            catch
+            {
+                model.QueriesHigh = null;
+                model.QueriesMedium = null;
+                model.QueriesLow = null;
             }
 
             return model;
@@ -1077,16 +1135,16 @@ namespace Checkmarx.API.AST
 
             while (true)
             {
-                var response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, 100).Result;
+                var response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, 10000).Result;
                 foreach (var result in response.Results)
                 {
                     yield return result;
                 }
 
-                if (response.Results.Count() < 100)
+                if (response.Results.Count() < 10000)
                     yield break;
 
-                startAt += 100;
+                startAt += 10000;
             }
         }
 
