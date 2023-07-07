@@ -804,6 +804,29 @@ namespace Checkmarx.API.AST
                 model.ToVerify = sastResults.Where(x => x.State == ResultsState.TO_VERIFY).Count();
                 model.LanguagesDetected = sastResults.Select(x => x.LanguageName).Distinct().ToList();
                 //model.Queries = report.ScanResults.Sast.Languages.Sum(x => x.Queries.Count());
+
+                try
+                {
+                    // Scan query categories
+                    var scanResultsHigh = results.Where(x => x.Severity == ResultsSeverity.HIGH);
+                    var scanResultsMedium = results.Where(x => x.Severity == ResultsSeverity.MEDIUM);
+                    var scanResultsLow = results.Where(x => x.Severity == ResultsSeverity.LOW);
+
+                    var scanQueriesHigh = scanResultsHigh.Select(x => x.QueryID).Distinct().ToList();
+                    var scanQueriesMedium = scanResultsMedium.Select(x => x.QueryID).Distinct().ToList();
+                    var scanQueriesLow = scanResultsLow.Select(x => x.QueryID).Distinct().ToList();
+
+                    model.QueriesHigh = scanQueriesHigh.Count();
+                    model.QueriesMedium = scanQueriesMedium.Count();
+                    model.QueriesLow = scanQueriesLow.Count();
+                    model.Queries = model.QueriesHigh + model.QueriesMedium + model.QueriesLow;
+                }
+                catch
+                {
+                    model.QueriesHigh = null;
+                    model.QueriesMedium = null;
+                    model.QueriesLow = null;
+                }
             }
 
             return model;
