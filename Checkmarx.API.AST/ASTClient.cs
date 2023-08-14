@@ -1245,6 +1245,17 @@ namespace Checkmarx.API.AST
 
         #endregion
 
+        public static Uri GetProjectUri(Uri astServer, Guid projectId)
+        {
+            if (astServer == null)
+                throw new ArgumentNullException(nameof(astServer));
+
+            if (projectId == Guid.Empty)
+                throw new ArgumentException("Empty is not a valid project Id");
+
+            return new Uri(astServer, $"projects/{projectId.ToString("D")}");
+        }
+
         #region Configurations
 
         public IEnumerable<ScanParameter> GetProjectConfigurations(Guid projectId)
