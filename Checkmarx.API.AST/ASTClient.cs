@@ -1253,7 +1253,7 @@ namespace Checkmarx.API.AST
             if (projectId == Guid.Empty)
                 throw new ArgumentException("Empty is not a valid project Id");
 
-            return new Uri(astServer, $"projects/{projectId.ToString("D")}");
+            return new Uri(astServer, $"projects/{projectId.ToString("D")}/overview");
         }
 
         #region Configurations
