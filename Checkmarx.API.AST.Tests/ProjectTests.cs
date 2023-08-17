@@ -34,9 +34,12 @@ namespace Checkmarx.API.AST.Tests
 
             Configuration = builder.Build();
 
+            string astServer = Configuration["ASTServer"];
+            string accessControl = Configuration["AccessControlServer"];
+
             astclient = new ASTClient(
-                new System.Uri(Configuration["ASTServer"]),
-                new System.Uri(Configuration["AccessControlServer"]), 
+                new System.Uri(astServer),
+                new System.Uri(accessControl), 
                 Configuration["Tenant"], 
                 Configuration["API_KEY"]);
         }
