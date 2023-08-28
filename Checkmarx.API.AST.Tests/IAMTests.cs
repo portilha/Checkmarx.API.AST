@@ -45,9 +45,5 @@ namespace Checkmarx.API.AST.Tests
                 Trace.WriteLine(item.Name);
             }
         }
-
-        
-
-
     }
 }

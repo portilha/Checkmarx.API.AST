@@ -39,71 +39,7 @@ namespace Checkmarx.API.AST.Tests
                 Configuration["API_KEY"]);
         }
 
-        [TestMethod]
-        public void ReRunScanGitTest()
-        {
-            var gitProj = astclient.Projects.GetProjectAsync(new Guid("fd71de0b-b3db-40a8-a885-8c2d0eb481b6")).Result;
-            var gitProjLastScan = astclient.GetLastScan(new Guid(gitProj.Id), true);
-            var gitProjScanDetails = astclient.GetScanDetails(new Guid(gitProj.Id), new Guid(gitProjLastScan.Id));
-            string gitProjbranch = gitProjLastScan.Branch;
-
-            var gitReScanResult = astclient.ReRunGitScan(new Guid(gitProj.Id), gitProjScanDetails.RepoUrl, gitProjbranch, gitProjScanDetails.Preset);
-
-            astclient.DeleteScan(new Guid(gitReScanResult.Id));
-        }
-
-        [TestMethod]
-        public void ReRunScanZipTest()
-        {
-            var uploadProj = astclient.Projects.GetProjectAsync(new Guid("fd71de0b-b3db-40a8-a885-8c2d0eb481b6")).Result;
-            var uploadProjLastScan = astclient.GetLastScan(new Guid(uploadProj.Id), true);
-            //var uploadProjLastScan = astclient.Scans.GetScanAsync(new Guid("8f252210-cd6f-4d68-b158-9d7cece265ca")).Result;
-            var uploadProjScanDetails = astclient.GetScanDetails(new Guid(uploadProj.Id), new Guid(uploadProjLastScan.Id));
-            string uploadProjBranch = uploadProjLastScan.Branch;
-
-            var uploadReScanResult = astclient.ReRunUploadScan(new Guid(uploadProj.Id), new Guid(uploadProjLastScan.Id), uploadProjBranch, uploadProjScanDetails.Preset);
-
-            //astclient.DeleteScan(new Guid("fb20eb3c-29aa-461d-ac29-12d238d7e976"));
-        }
-
-        [TestMethod]
-        public void DownloadSourceCodeTest()
-        {
-            var uploadProj = astclient.Projects.GetProjectAsync(new Guid("f8a2b16b-0044-440b-85ed-474bd5d93fca")).Result;
-            var uploadProjLastScan = astclient.GetLastScan(new Guid(uploadProj.Id), true);
-            var uploadProjScanDetails = astclient.GetScanDetails(new Guid(uploadProj.Id), new Guid(uploadProjLastScan.Id));
-            string uploadProjBranch = uploadProjLastScan.Branch;
-
-            byte[] source = astclient.Repostore.GetSourceCode(new Guid(uploadProjLastScan.Id)).Result;
-
-            string uploadUrl = astclient.Uploads.GetPresignedURLForUploading().Result;
-            astclient.Uploads.SendHTTPRequestByFullURL(uploadUrl, source).Wait();
-
-            //var uploadReScanResult = astclient.ReRunUploadScan(new Guid(uploadProj.Id), uploadProjBranch, uploadProjScanDetails.Preset, uploadUrl);
-        }
-
-        [TestMethod]
-        public void DeleteScansTest()
-        {
-            List<Guid> ids = new List<Guid>();
-
-            var prjcts = astclient.GetAllProjectsDetails();
-            var projects = prjcts.Projects.ToList();
-            foreach (var project in projects)
-            {
-                var scans = astclient.Scans.GetListOfScansAsync(project.Id).Result;
-                //foreach(var scan in scans.Scans.Where(x => x.SourceOrigin == "ASAProgramTracker"))
-                foreach (var scan in scans.Scans.Where(x => x.SourceOrigin == "Amazon CloudFront"))
-                {
-                    ids.Add(new Guid(scan.Id));
-                }
-            }
-
-            foreach (var id in ids)
-            {
-                astclient.DeleteScan(id);
-            }
-        }
+        
 
         [TestMethod]
         public void GetScanInfoTest()
@@ -136,7 +72,6 @@ namespace Checkmarx.API.AST.Tests
             var newScanDetails = astclient.ScannersResults.GetResultsByScanAsync(new Guid(lastSASTScan.Id)).Result;
             var newScanDetails2 = astclient.GetSASTScanVulnerabilitiesDetails(new Guid(lastSASTScan.Id)).ToList();
         }
-
 
         [TestMethod]
         public void ListScansTest()
@@ -277,5 +212,71 @@ namespace Checkmarx.API.AST.Tests
         {
             var teste = astclient.SASTResults.GetSASTResultsByScanAsync(new Guid("b0e11442-2694-4102-ae4f-e3a3dcb3559e")).Result;
         }
+
+        #region ReRun Scans
+
+        public void ReRunScanGitTest()
+        {
+            var gitProj = astclient.Projects.GetProjectAsync(new Guid("fd71de0b-b3db-40a8-a885-8c2d0eb481b6")).Result;
+            var gitProjLastScan = astclient.GetLastScan(new Guid(gitProj.Id), true);
+            var gitProjScanDetails = astclient.GetScanDetails(new Guid(gitProj.Id), new Guid(gitProjLastScan.Id));
+            string gitProjbranch = gitProjLastScan.Branch;
+
+            var gitReScanResult = astclient.ReRunGitScan(new Guid(gitProj.Id), gitProjScanDetails.RepoUrl, gitProjbranch, gitProjScanDetails.Preset);
+
+            astclient.DeleteScan(new Guid(gitReScanResult.Id));
+        }
+
+        public void ReRunScanZipTest()
+        {
+            var uploadProj = astclient.Projects.GetProjectAsync(new Guid("fd71de0b-b3db-40a8-a885-8c2d0eb481b6")).Result;
+            var uploadProjLastScan = astclient.GetLastScan(new Guid(uploadProj.Id), true);
+            //var uploadProjLastScan = astclient.Scans.GetScanAsync(new Guid("8f252210-cd6f-4d68-b158-9d7cece265ca")).Result;
+            var uploadProjScanDetails = astclient.GetScanDetails(new Guid(uploadProj.Id), new Guid(uploadProjLastScan.Id));
+            string uploadProjBranch = uploadProjLastScan.Branch;
+
+            var uploadReScanResult = astclient.ReRunUploadScan(new Guid(uploadProj.Id), new Guid(uploadProjLastScan.Id), uploadProjBranch, uploadProjScanDetails.Preset);
+
+            //astclient.DeleteScan(new Guid("fb20eb3c-29aa-461d-ac29-12d238d7e976"));
+        }
+
+        public void DownloadSourceCodeTest()
+        {
+            var uploadProj = astclient.Projects.GetProjectAsync(new Guid("f8a2b16b-0044-440b-85ed-474bd5d93fca")).Result;
+            var uploadProjLastScan = astclient.GetLastScan(new Guid(uploadProj.Id), true);
+            var uploadProjScanDetails = astclient.GetScanDetails(new Guid(uploadProj.Id), new Guid(uploadProjLastScan.Id));
+            string uploadProjBranch = uploadProjLastScan.Branch;
+
+            byte[] source = astclient.Repostore.GetSourceCode(new Guid(uploadProjLastScan.Id)).Result;
+
+            string uploadUrl = astclient.Uploads.GetPresignedURLForUploading().Result;
+            astclient.Uploads.SendHTTPRequestByFullURL(uploadUrl, source).Wait();
+
+            //var uploadReScanResult = astclient.ReRunUploadScan(new Guid(uploadProj.Id), uploadProjBranch, uploadProjScanDetails.Preset, uploadUrl);
+        }
+
+        public void DeleteScansTest()
+        {
+            List<Guid> ids = new List<Guid>();
+
+            var prjcts = astclient.GetAllProjectsDetails();
+            var projects = prjcts.Projects.ToList();
+            foreach (var project in projects)
+            {
+                var scans = astclient.Scans.GetListOfScansAsync(project.Id).Result;
+                //foreach(var scan in scans.Scans.Where(x => x.SourceOrigin == "ASAProgramTracker"))
+                foreach (var scan in scans.Scans.Where(x => x.SourceOrigin == "Amazon CloudFront"))
+                {
+                    ids.Add(new Guid(scan.Id));
+                }
+            }
+
+            foreach (var id in ids)
+            {
+                astclient.DeleteScan(id);
+            }
+        }
+
+        #endregion
     }
 }
