@@ -1268,6 +1268,21 @@ namespace Checkmarx.API.AST
             return Configuration.TenantAllAsync().Result;
         }
 
+        public IEnumerable<ScanParameter> GetScanConfigurations(Guid projectId, Guid scanId)
+        {
+            return Configuration.ScanAsync(projectId.ToString(), scanId.ToString()).Result;
+        }
+
+        public string GetProjectConfiguration(Guid projectId)
+        {
+            //var config = GetProjectConfigurations(projectId).Where(x => x.Key == "scan.config.sast.defaultConfigId").FirstOrDefault();
+            var config = GetProjectConfigurations(projectId).Where(x => x.Key == "scan.config.sast.languageMode").FirstOrDefault();
+            if (config != null && !string.IsNullOrWhiteSpace(config.Value))
+                return config.Value;
+
+            return "Default";
+        }
+
         public string GetProjectRepoUrl(Guid projectId)
         {
             var config = GetProjectConfigurations(projectId).Where(x => x.Key == "scan.handler.git.repository").FirstOrDefault();

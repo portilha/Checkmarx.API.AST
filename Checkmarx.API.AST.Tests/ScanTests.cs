@@ -39,7 +39,11 @@ namespace Checkmarx.API.AST.Tests
                 Configuration["API_KEY"]);
         }
 
-        
+        [TestMethod]
+        public void GetScanConfigurationTest()
+        {
+            var test = astclient.GetProjectConfiguration(new Guid("0c04039e-69f5-41f7-89f5-2e3fd94bd547"));
+        }
 
         [TestMethod]
         public void GetScanInfoTest()
