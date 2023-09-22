@@ -20,6 +20,47 @@ namespace Checkmarx.API.AST.Services
             _token = token;
         }
 
+        public IEnumerable<Query> GetQueries()
+        {
+            string serverRestEndpoint = $"{_baseUrl}api/cx-audit/queries";
+            WebRequest request = WebRequest.Create(serverRestEndpoint);
+            request.Method = "GET";
+            request.Headers.Add("Authorization", _token);
+
+            try
+            {
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                {
+                    using (Stream dataStream = response.GetResponseStream())
+                    {
+                        using (StreamReader reader = new StreamReader(dataStream))
+                        {
+                            string responseFromServer = reader.ReadToEnd();
+                            return JsonConvert.DeserializeObject<IEnumerable<Query>>(responseFromServer);//["results"].ToObject<IEnumerable<dynamic>>();
+                        }
+                    }
+                }
+            }
+            catch (WebException we)
+            {
+                if (we.Response != null)
+                {
+                    if (we.Status == WebExceptionStatus.ProtocolError)
+                        throw new WebException($"Server response HTTP status: {((HttpWebResponse)we.Response).StatusCode} ({(int)((HttpWebResponse)we.Response).StatusCode})");
+
+                    using (Stream dataStream = we.Response.GetResponseStream())
+                    {
+                        using (StreamReader reader = new StreamReader(dataStream))
+                        {
+                            string responseFromServer = reader.ReadToEnd();
+                        }
+                    }
+                }
+                throw we;
+            }
+
+        }
+
         public IEnumerable<Query> GetQueriesForProject(string projId)
         {
             string serverRestEndpoint = $"{_baseUrl}api/cx-audit/queries?projectId={projId}";
@@ -67,7 +108,6 @@ namespace Checkmarx.API.AST.Services
             WebRequest request = WebRequest.Create(serverRestEndpoint);
             request.Method = "GET";
             request.Headers.Add("Authorization", _token);
-
 
             try
             {

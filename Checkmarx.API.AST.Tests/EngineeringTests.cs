@@ -57,8 +57,10 @@ namespace Checkmarx.API.AST.Tests
             var projects = astclient.GetAllProjectsDetails();
             var project = projects.Projects.Where(x => x.Name == "tst_csharp_w_vuln").FirstOrDefault();
 
+            
+
             // Get scan accuraci and languages
-            var scanInfo = GetScanAccuracyAndLanguagesFromScanLog(new Guid("d64ffd85-c129-4c52-8b2f-29cbfec84b82"));
+            var scanInfo = GetScanAccuracyAndLanguagesFromScanLog(new Guid("f14b672f-2823-4dbf-b1d0-13830bb15460"));
 
             if (!scanInfo.Item2.Any())
                 throw new Exception($"No query group found to override with the name {queryName}");
@@ -94,6 +96,12 @@ namespace Checkmarx.API.AST.Tests
                     if (queryTOOverride != null)
                         break;
                 }
+            }
+
+            var searchForAnExistingQuery = astclient.GetProjectQuery(new Guid(project.Id), queryTOOverride.Path, false);
+            if(searchForAnExistingQuery.Level == "Project")
+            {
+                // Error -> Already a query at Project level
             }
 
             // Insert query

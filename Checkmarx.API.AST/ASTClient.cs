@@ -1346,6 +1346,11 @@ namespace Checkmarx.API.AST
             return Configuration.ScanAsync(projectId.ToString(), scanId.ToString()).Result;
         }
 
+        public IEnumerable<ScanParameter> GetTenantProjectConfigurations()
+        {
+            return GetTenantConfigurations().Where(x => x.Key == "scan.config.sast.languageMode");
+        }
+
         public string GetProjectConfiguration(Guid projectId)
         {
             //var config = GetProjectConfigurations(projectId).Where(x => x.Key == "scan.config.sast.defaultConfigId").FirstOrDefault();
@@ -1377,6 +1382,11 @@ namespace Checkmarx.API.AST
         #endregion
 
         #region Queries
+
+        public IEnumerable<Services.SASTQuery.Query> GetTenantQueries()
+        {
+            return SASTQuery.GetQueries();
+        }
 
         public IEnumerable<Services.SASTQuery.Query> GetProjectQueries(Guid projectId)
         {
