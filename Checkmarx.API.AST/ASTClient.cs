@@ -25,6 +25,11 @@ using Checkmarx.API.AST.Services.Configuration;
 using Checkmarx.API.AST.Services.Repostore;
 using Checkmarx.API.AST.Services.Uploads;
 using System.Diagnostics;
+using Checkmarx.API.AST.Services.SASTQueriesAudit;
+using Checkmarx.API.AST.Services.Logs;
+using System.IO;
+using System.Net;
+using System.Text;
 
 namespace Checkmarx.API.AST
 {
@@ -206,6 +211,48 @@ namespace Checkmarx.API.AST
                     };
 
                 return _uploads;
+            }
+        }
+
+        private SASTQueriesAudit _sastQueriesAudit;
+        public SASTQueriesAudit SASTQueriesAudit
+        {
+            get
+            {
+                if (_sastQueriesAudit == null && Connected)
+                    _sastQueriesAudit = new SASTQueriesAudit(_httpClient)
+                    {
+                        BaseUrl = $"{ASTServer.AbsoluteUri}api/cx-audit"
+                    };
+
+                return _sastQueriesAudit;
+            }
+        }
+
+        private SASTQuery _sastQuery;
+        public SASTQuery SASTQuery
+        {
+            get
+            {
+                if (_sastQuery == null && Connected)
+                    _sastQuery = new SASTQuery(ASTServer.AbsoluteUri, Autenticate());
+
+                return _sastQuery;
+            }
+        }
+
+        private Logs _logs;
+        public Logs Logs
+        {
+            get
+            {
+                if (_logs == null && Connected)
+                    _logs = new Logs(_httpClient)
+                    {
+                        BaseUrl = $"{ASTServer.AbsoluteUri}api/logs"
+                    };
+
+                return _logs;
             }
         }
 
@@ -1171,23 +1218,36 @@ namespace Checkmarx.API.AST
             }
         }
 
-        public Scan ReRunGitScan(Guid projectId, string repoUrl, string branch, string preset)
+        public Scan ReRunGitScan(Guid projectId, string repoUrl, string branch, string preset, string configuration = null)
         {
             ScanInput scanInput = new ScanInput();
             scanInput.Project = new Services.Scans.Project() { Id = projectId.ToString() };
             scanInput.Type = ScanInputType.Git;
             scanInput.Handler = new Git() { Branch = branch, RepoUrl = repoUrl };
-            scanInput.Config = new List<Config>() {
+
+            if (!string.IsNullOrWhiteSpace(configuration))
+            {
+                scanInput.Config = new List<Config>() {
+                    new Config(){
+                        Type = ConfigType.Sast,
+                        Value = new Dictionary<string, string>() { ["incremental"] = "false", ["presetName"] = preset, ["defaultConfig"] = configuration }
+                    }
+                };
+            }
+            else
+            {
+                scanInput.Config = new List<Config>() {
                     new Config(){
                         Type = ConfigType.Sast,
                         Value = new Dictionary<string, string>() { ["incremental"] = "false", ["presetName"] = preset }
                     }
                 };
+            }
 
             return Scans.CreateScanAsync(scanInput).Result;
         }
 
-        public Scan ReRunUploadScan(Guid projectId, Guid lastScanId, string branch, string preset)
+        public Scan ReRunUploadScan(Guid projectId, Guid lastScanId, string branch, string preset, string configuration = null)
         {
             byte[] source = Repostore.GetSourceCode(lastScanId).Result;
 
@@ -1198,12 +1258,25 @@ namespace Checkmarx.API.AST
             scanInput.Project = new Services.Scans.Project() { Id = projectId.ToString() };
             scanInput.Type = ScanInputType.Upload;
             scanInput.Handler = new Upload() { Branch = branch, UploadUrl = uploadUrl };
-            scanInput.Config = new List<Config>() {
+
+            if (!string.IsNullOrWhiteSpace(configuration))
+            {
+                scanInput.Config = new List<Config>() {
+                    new Config(){
+                        Type = ConfigType.Sast,
+                        Value = new Dictionary<string, string>() { ["incremental"] = "false", ["presetName"] = preset, ["defaultConfig"] = configuration }
+                    }
+                };
+            }
+            else
+            {
+                scanInput.Config = new List<Config>() {
                     new Config(){
                         Type = ConfigType.Sast,
                         Value = new Dictionary<string, string>() { ["incremental"] = "false", ["presetName"] = preset }
                     }
                 };
+            }
 
             return Scans.CreateScanUploadAsync(scanInput).Result;
         }
@@ -1299,6 +1372,82 @@ namespace Checkmarx.API.AST
                 return config.ValueTypeParams.Split(',').Select(x => x.Trim()).ToList();
 
             return null;
+        }
+
+        #endregion
+
+        #region Queries
+
+        public IEnumerable<Services.SASTQuery.Query> GetProjectQueries(Guid projectId)
+        {
+            return SASTQuery.GetQueriesForProject(projectId.ToString());
+        }
+
+        public Services.SASTQuery.Query GetProjectQuery(Guid projectId, string queryPath, bool tenantLevel)
+        {
+            return SASTQuery.GetQueryForProject(projectId.ToString(), queryPath, tenantLevel);
+        }
+
+        public void SaveProjectQuery(Guid projectId, string queryName, string queryPath, string source)
+        {
+            SASTQuery.SaveProjectQuery(projectId.ToString(), queryName, queryPath, source);
+        }
+
+        public void DeleteProjectQuery(Guid projectId, string queryPath)
+        {
+            SASTQuery.DeleteProjectQuery(projectId.ToString(), queryPath);
+        }
+
+        #endregion
+
+        #region Logs
+
+        public string GetSASTScanLog(Guid scanId)
+        {
+            return GetScanLogs(scanId.ToString(), "sast");
+        }
+
+        private string GetScanLogs(string scanId, string engine)
+        {
+            string serverRestEndpoint = $"{ASTServer.AbsoluteUri}api/logs/{scanId}/{engine}";
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(serverRestEndpoint);
+            request.Method = "GET";
+            request.Headers.Add("Authorization", Autenticate());
+            request.AllowAutoRedirect = false;
+
+            string result = null;
+
+            try
+            {
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                {
+                    if (response.StatusCode == HttpStatusCode.TemporaryRedirect || response.StatusCode == HttpStatusCode.Redirect)
+                    {
+                        string serverRestEndpoint2 = response.Headers.Get("location");
+                        HttpWebRequest request2 = (HttpWebRequest)WebRequest.Create(serverRestEndpoint2);
+                        request2.Method = "GET";
+                        request2.Headers.Add("Authorization", Autenticate());
+                        request2.AllowAutoRedirect = false;
+                        using (HttpWebResponse response2 = (HttpWebResponse)request2.GetResponse())
+                        {
+                            using (Stream dataStream2 = response2.GetResponseStream())
+                            {
+                                using (StreamReader reader = new StreamReader(dataStream2))
+                                {
+                                    string responseFromServer = reader.ReadToEnd();
+                                    result = responseFromServer;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
+            return result;
         }
 
         #endregion
