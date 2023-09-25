@@ -20,7 +20,7 @@ using static System.Net.Mime.MediaTypeNames;
 namespace Checkmarx.API.AST.Tests
 {
     [TestClass]
-    public class EngineeringTests
+    public class ProcessTests
     {
 
         private static ASTClient astclient;
