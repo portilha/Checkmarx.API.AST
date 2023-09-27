@@ -57,8 +57,6 @@ namespace Checkmarx.API.AST.Tests
             var projects = astclient.GetAllProjectsDetails();
             var project = projects.Projects.Where(x => x.Name == "tst_csharp_w_vuln").FirstOrDefault();
 
-            
-
             // Get scan accuraci and languages
             var scanInfo = GetScanAccuracyAndLanguagesFromScanLog(new Guid("f14b672f-2823-4dbf-b1d0-13830bb15460"));
 

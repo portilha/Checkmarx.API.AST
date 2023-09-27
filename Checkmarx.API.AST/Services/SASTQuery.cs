@@ -418,6 +418,9 @@ namespace Checkmarx.API.AST.Services
             [Newtonsoft.Json.JsonProperty("isExecutable", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
             public bool? IsExecutable { get; set; } = default!;
 
+            [Newtonsoft.Json.JsonProperty("source", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+            public string? Source { get; set; } = default!;
+
             private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
             [Newtonsoft.Json.JsonExtensionData]
