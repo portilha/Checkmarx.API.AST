@@ -43,15 +43,17 @@ namespace Checkmarx.API.AST.Models
 
         public int? OtherStates { get; set; }
 
-        public int? FalseNegatives { get; set; }
-
-        public int? FalsePositives { get; set; }
-
         public int? Queries { get; set; }
 
         public int? QueriesHigh { get; set; }
         public int? QueriesMedium { get; set; }
         public int? QueriesLow { get; set; }
+
+        public int? FPRemoved { get; set; }
+        public int? FNAdded { get; set; }
+        public int? FNAddedHigh { get; set; }
+        public int? FNAddedMedium { get; set; }
+        public int? FNAddedLow { get; set; }
 
         public ICollection<string> LanguagesDetected { get; set; }
     }

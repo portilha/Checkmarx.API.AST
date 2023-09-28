@@ -840,7 +840,7 @@ namespace Checkmarx.API.AST
                 model.ToVerify = sastResults.Where(x => x.State == ResultsState.TO_VERIFY).Count();
                 model.NotExploitableMarked = sastResults.Where(x => x.State == ResultsState.NOT_EXPLOITABLE).Count();
                 model.PNEMarked = sastResults.Where(x => x.State == ResultsState.PROPOSED_NOT_EXPLOITABLE).Count();
-                model.OtherStates = sastResults.Where(x => x.State != ResultsState.CONFIRMED && x.State != ResultsState.URGENT && x.State != ResultsState.NOT_EXPLOITABLE && x.State != ResultsState.PROPOSED_NOT_EXPLOITABLE).Count();
+                model.OtherStates = sastResults.Where(x => x.State != ResultsState.CONFIRMED && x.State != ResultsState.URGENT && x.State != ResultsState.NOT_EXPLOITABLE && x.State != ResultsState.PROPOSED_NOT_EXPLOITABLE && x.State != ResultsState.TO_VERIFY).Count();
                 model.LanguagesDetected = sastResults.Select(x => x.LanguageName).Distinct().ToList();
                 //model.Queries = report.ScanResults.Sast.Languages.Sum(x => x.Queries.Count());
 
@@ -1286,7 +1286,7 @@ namespace Checkmarx.API.AST
                 //    var test = Scans.RecalculateAsync(new RecalculateInput() { Project_id = scan.ProjectId, Id = scanId.ToString(), Branch = scan.Branch, Status = "Queued" }).Result;
                 ////}
 
-                Scans.DeleteScanAsync(scanId);
+                Scans.DeleteScanAsync(scanId).Wait();
             }
         }
 
@@ -1415,6 +1415,11 @@ namespace Checkmarx.API.AST
         }
 
         public IEnumerable<Services.SASTQuery.Query> GetProjectQueries(Guid projectId)
+        {
+            return SASTQuery.GetQueriesForProject(projectId.ToString());
+        }
+
+        public IEnumerable<Services.SASTQuery.Query> GetTeamCorpLevelQueries(Guid projectId)
         {
             return SASTQuery.GetQueriesForProject(projectId.ToString());
         }
