@@ -172,24 +172,5 @@ namespace Checkmarx.API.AST.Tests
 
             return new Tuple<double, List<string>>(scanAccuracy, scanLanguages);
         }
-
-        private void InsertQuery(Services.SASTQueriesAudit.Queries baseQuery, string query)
-        {
-            var queryRequest = new Services.SASTQueriesAudit.QueryRequest()
-            {
-                Name = baseQuery.Name,
-                Source = query,
-                Path = baseQuery.Path,
-                Metadata = new Services.SASTQueriesAudit.Metadata()
-                {
-                    //Cwe =  baseQuery.Id,
-                    Severity = 1,
-                    IsExecutable = true,
-                    //CxDescriptionID =
-                },
-            };
-
-            astclient.SASTQueriesAudit.QueriesPOSTAsync(queryRequest).Wait();
-        }
     }
 }

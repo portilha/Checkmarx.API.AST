@@ -214,21 +214,6 @@ namespace Checkmarx.API.AST
             }
         }
 
-        private SASTQueriesAudit _sastQueriesAudit;
-        public SASTQueriesAudit SASTQueriesAudit
-        {
-            get
-            {
-                if (_sastQueriesAudit == null && Connected)
-                    _sastQueriesAudit = new SASTQueriesAudit(_httpClient)
-                    {
-                        BaseUrl = $"{ASTServer.AbsoluteUri}api/cx-audit"
-                    };
-
-                return _sastQueriesAudit;
-            }
-        }
-
         private SASTQuery _sastQuery;
         public SASTQuery SASTQuery
         {
@@ -848,7 +833,14 @@ namespace Checkmarx.API.AST
                 model.Low = results.Where(x => x.Severity == ResultsSeverity.LOW).Count();
                 model.Info = results.Where(x => x.Severity == ResultsSeverity.INFO).Count();
 
+                model.HighToVerify = sastResults.Where(x => x.Severity == ResultsSeverity.HIGH && x.State == ResultsState.TO_VERIFY).Count();
+                model.MediumToVerify = sastResults.Where(x => x.Severity == ResultsSeverity.MEDIUM && x.State == ResultsState.TO_VERIFY).Count();
+                model.LowToVerify = sastResults.Where(x => x.Severity == ResultsSeverity.LOW && x.State == ResultsState.TO_VERIFY).Count();
+
                 model.ToVerify = sastResults.Where(x => x.State == ResultsState.TO_VERIFY).Count();
+                model.NotExploitableMarked = sastResults.Where(x => x.State == ResultsState.NOT_EXPLOITABLE).Count();
+                model.PNEMarked = sastResults.Where(x => x.State == ResultsState.PROPOSED_NOT_EXPLOITABLE).Count();
+                model.OtherStates = sastResults.Where(x => x.State != ResultsState.CONFIRMED && x.State != ResultsState.URGENT && x.State != ResultsState.NOT_EXPLOITABLE && x.State != ResultsState.PROPOSED_NOT_EXPLOITABLE).Count();
                 model.LanguagesDetected = sastResults.Select(x => x.LanguageName).Distinct().ToList();
                 //model.Queries = report.ScanResults.Sast.Languages.Sum(x => x.Queries.Count());
 
@@ -1361,6 +1353,40 @@ namespace Checkmarx.API.AST
             return "Default";
         }
 
+        public Tuple<string, string> GetProjectExclusions(Guid projectId)
+        {
+            var config = GetProjectConfigurations(projectId).Where(x => x.Key == "scan.config.sast.filter").FirstOrDefault();
+            if (config != null && !string.IsNullOrWhiteSpace(config.Value))
+            {
+                char[] delimiters = new[] { ',', ';' };
+                var exclusions = config.Value.Split(delimiters, StringSplitOptions.RemoveEmptyEntries).ToList().Select(x => x.Trim());
+
+                var filesList = exclusions.Where(x => x.StartsWith("."));
+                var foldersList = exclusions.Where(x => !x.StartsWith("."));
+
+                var files = filesList.Any() ? string.Join(",", filesList) : string.Empty;
+                var folders = foldersList.Any() ? string.Join(",", foldersList) : string.Empty;
+
+                return new Tuple<string, string>(files, folders);
+            }
+
+            return new Tuple<string, string>(string.Empty, string.Empty);
+        }
+
+        public void SetProjectExclusions(Guid projectId, string exclusions)
+        {
+            List<ScanParameter> body = new List<ScanParameter>() {
+                new ScanParameter()
+                {
+                    Key = "scan.config.sast.filter",
+                    Value = exclusions
+                }
+            };
+
+            Configuration.UpdateProjectConfigurationAsync(projectId.ToString(), body).Wait();
+        }
+
+
         public string GetProjectRepoUrl(Guid projectId)
         {
             var config = GetProjectConfigurations(projectId).Where(x => x.Key == "scan.handler.git.repository").FirstOrDefault();
@@ -1461,5 +1487,7 @@ namespace Checkmarx.API.AST
         }
 
         #endregion
+
+
     }
 }

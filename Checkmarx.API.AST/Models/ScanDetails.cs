@@ -41,6 +41,14 @@ namespace Checkmarx.API.AST.Models
         public int? Low { get; set; }
         public int? Info { get; set; }
         public int? ToVerify { get; set; }
+        public int? NotExploitableMarked { get; set; }
+        public int? PNEMarked { get; set; }
+        public int? OtherStates { get; set; }
+
+        public int? HighToVerify { get; set; }
+        public int? MediumToVerify { get; set; }
+        public int? LowToVerify { get; set; }
+
         public int? Queries { get; set; }
         public ICollection<string> LanguagesDetected { get; set; }
 

@@ -31,6 +31,18 @@ namespace Checkmarx.API.AST.Models
 
         public int? ToVerify { get; set; }
 
+        public int? HighToVerify { get; set; }
+
+        public int? MediumToVerify { get; set; }
+
+        public int? LowToVerify { get; set; }
+
+        public int? NotExploitableMarked { get; set; }
+
+        public int? PNEMarked { get; set; }
+
+        public int? OtherStates { get; set; }
+
         public int? FalseNegatives { get; set; }
 
         public int? FalsePositives { get; set; }

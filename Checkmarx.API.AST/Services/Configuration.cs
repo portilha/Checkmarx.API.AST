@@ -372,20 +372,6 @@ namespace Checkmarx.API.AST.Services.Configuration
             }
         }
 
-        /// <summary>
-        /// Defines parameters in the input list for a specific project
-        /// </summary>
-        /// <param name="authorization">REQUIRED: JWT authorization token</param>
-        /// <param name="accept">API version should be appended to this header</param>
-        /// <param name="correlationId">correlation id to keep track of a flow if many APIs are involved</param>
-        /// <param name="body">A list of parameters that we would like to add / update in the configuration</param>
-        /// <returns>No Content</returns>
-        /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task ProjectAsync(string authorization, string accept, System.Guid? correlationId, string project_id, System.Collections.Generic.IEnumerable<ScanParameter> body)
-        {
-            return ProjectAsync(authorization, accept, correlationId, project_id, body, System.Threading.CancellationToken.None);
-        }
-
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
         /// Defines parameters in the input list for a specific project
@@ -396,7 +382,7 @@ namespace Checkmarx.API.AST.Services.Configuration
         /// <param name="body">A list of parameters that we would like to add / update in the configuration</param>
         /// <returns>No Content</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task ProjectAsync(string authorization, string accept, System.Guid? correlationId, string project_id, System.Collections.Generic.IEnumerable<ScanParameter> body, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task UpdateProjectConfigurationAsync(string project_id, System.Collections.Generic.IEnumerable<ScanParameter> body, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (project_id == null)
                 throw new System.ArgumentNullException("project_id");
@@ -409,7 +395,7 @@ namespace Checkmarx.API.AST.Services.Configuration
             urlBuilder_.Append(System.Uri.EscapeDataString("project-id") + "=").Append(System.Uri.EscapeDataString(ConvertToString(project_id, System.Globalization.CultureInfo.InvariantCulture))).Append("&");
             urlBuilder_.Length--;
 
-            var client_ = new System.Net.Http.HttpClient();
+            var client_ = _httpClient;
             var disposeClient_ = true;
             try
             {
