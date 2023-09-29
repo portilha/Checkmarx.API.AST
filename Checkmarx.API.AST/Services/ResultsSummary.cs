@@ -281,7 +281,7 @@ namespace Checkmarx.API.AST.Services.ResultsSummary
             urlBuilder_.Length--;
 
             var client_ = new System.Net.Http.HttpClient();
-            var disposeClient_ = true;
+            var disposeClient_ = false;
             try
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())

@@ -25,8 +25,9 @@ namespace Checkmarx.API.AST.Services.Reports
         private System.Net.Http.HttpClient _httpClient;
         private System.Lazy<Newtonsoft.Json.JsonSerializerSettings> _settings;
 
-        public Reports(System.Net.Http.HttpClient httpClient)
+        public Reports(string baseUrl, System.Net.Http.HttpClient httpClient)
         {
+            BaseUrl = baseUrl;
             _httpClient = httpClient;
             _settings = new System.Lazy<Newtonsoft.Json.JsonSerializerSettings>(CreateSerializerSettings);
             ReadResponseAsString = true;

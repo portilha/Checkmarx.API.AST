@@ -178,7 +178,7 @@ namespace Checkmarx.API.AST.Services.Configuration
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/tenant");
 
             var client_ = new System.Net.Http.HttpClient();
-            var disposeClient_ = true;
+            var disposeClient_ = false;
             try
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
@@ -396,7 +396,7 @@ namespace Checkmarx.API.AST.Services.Configuration
             urlBuilder_.Length--;
 
             var client_ = _httpClient;
-            var disposeClient_ = true;
+            var disposeClient_ = false;
             try
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
@@ -647,7 +647,7 @@ namespace Checkmarx.API.AST.Services.Configuration
             urlBuilder_.Length--;
 
             var client_ = new System.Net.Http.HttpClient();
-            var disposeClient_ = true;
+            var disposeClient_ = false;
             try
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
@@ -758,7 +758,7 @@ namespace Checkmarx.API.AST.Services.Configuration
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/sast/default-config");
 
             var client_ = new System.Net.Http.HttpClient();
-            var disposeClient_ = true;
+            var disposeClient_ = false;
             try
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
@@ -862,7 +862,7 @@ namespace Checkmarx.API.AST.Services.Configuration
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/sast/default-config/{id}");
 
             var client_ = new System.Net.Http.HttpClient();
-            var disposeClient_ = true;
+            var disposeClient_ = false;
             try
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
@@ -973,7 +973,7 @@ namespace Checkmarx.API.AST.Services.Configuration
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/sast/default-config/{id}");
 
             var client_ = new System.Net.Http.HttpClient();
-            var disposeClient_ = true;
+            var disposeClient_ = false;
             try
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
@@ -1077,7 +1077,7 @@ namespace Checkmarx.API.AST.Services.Configuration
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/sast/default-config/{id}");
 
             var client_ = new System.Net.Http.HttpClient();
-            var disposeClient_ = true;
+            var disposeClient_ = false;
             try
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())

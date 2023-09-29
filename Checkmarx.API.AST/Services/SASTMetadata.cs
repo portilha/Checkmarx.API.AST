@@ -24,8 +24,9 @@ namespace Checkmarx.API.AST.Services.SASTMetadata
         private System.Net.Http.HttpClient _httpClient;
         private System.Lazy<Newtonsoft.Json.JsonSerializerSettings> _settings;
 
-        public SASTMetadata(System.Net.Http.HttpClient httpClient)
+        public SASTMetadata(string baseUrl, System.Net.Http.HttpClient httpClient)
         {
+            BaseUrl = baseUrl;
             _httpClient = httpClient;
             _settings = new System.Lazy<Newtonsoft.Json.JsonSerializerSettings>(CreateSerializerSettings);
         }

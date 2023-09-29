@@ -50,10 +50,7 @@ namespace Checkmarx.API.AST
             get
             {
                 if (_projects == null && Connected)
-                    _projects = new Projects(_httpClient)
-                    {
-                        BaseUrl = $"{ASTServer.AbsoluteUri}api/projects"
-                    };
+                    _projects = new Projects($"{ASTServer.AbsoluteUri}api/projects", _httpClient);
 
                 return _projects;
             }
@@ -65,10 +62,7 @@ namespace Checkmarx.API.AST
             get
             {
                 if (_scans == null && Connected)
-                    _scans = new Scans(_httpClient)
-                    {
-                        BaseUrl = $"{ASTServer.AbsoluteUri}api/scans"
-                    };
+                    _scans = new Scans($"{ASTServer.AbsoluteUri}api/scans", _httpClient);
 
                 return _scans;
             }
@@ -80,10 +74,7 @@ namespace Checkmarx.API.AST
             get
             {
                 if (_reports == null && Connected)
-                    _reports = new Reports(_httpClient)
-                    {
-                        BaseUrl = $"{ASTServer.AbsoluteUri}api/reports"
-                    };
+                    _reports = new Reports($"{ASTServer.AbsoluteUri}api/reports", _httpClient);
 
                 return _reports;
             }
@@ -95,10 +86,7 @@ namespace Checkmarx.API.AST
             get
             {
                 if (_SASTMetadata == null && Connected)
-                    _SASTMetadata = new SASTMetadata(_httpClient)
-                    {
-                        BaseUrl = $"{ASTServer.AbsoluteUri}api/sast-metadata"
-                    };
+                    _SASTMetadata = new SASTMetadata($"{ASTServer.AbsoluteUri}api/sast-metadata", _httpClient);
 
                 return _SASTMetadata;
             }
@@ -110,10 +98,7 @@ namespace Checkmarx.API.AST
             get
             {
                 if (_applications == null && Connected)
-                    _applications = new Applications(_httpClient)
-                    {
-                        BaseUrl = $"{ASTServer.AbsoluteUri}api/applications"
-                    };
+                    _applications = new Applications($"{ASTServer.AbsoluteUri}api/applications", _httpClient);
 
                 return _applications;
             }
@@ -190,10 +175,7 @@ namespace Checkmarx.API.AST
             get
             {
                 if (_repostore == null && Connected)
-                    _repostore = new Repostore(_httpClient)
-                    {
-                        BaseUrl = $"{ASTServer.AbsoluteUri}api/repostore/code"
-                    };
+                    _repostore = new Repostore($"{ASTServer.AbsoluteUri}api/repostore/code", _httpClient);
 
                 return _repostore;
             }
@@ -205,10 +187,7 @@ namespace Checkmarx.API.AST
             get
             {
                 if (_uploads == null && Connected)
-                    _uploads = new Uploads(_httpClient)
-                    {
-                        BaseUrl = $"{ASTServer.AbsoluteUri}api/uploads"
-                    };
+                    _uploads = new Uploads($"{ASTServer.AbsoluteUri}api/uploads", _httpClient);
 
                 return _uploads;
             }
@@ -232,10 +211,7 @@ namespace Checkmarx.API.AST
             get
             {
                 if (_logs == null && Connected)
-                    _logs = new Logs(_httpClient)
-                    {
-                        BaseUrl = $"{ASTServer.AbsoluteUri}api/logs"
-                    };
+                    _logs = new Logs($"{ASTServer.AbsoluteUri}api/logs", _httpClient);
 
                 return _logs;
             }
@@ -889,6 +865,8 @@ namespace Checkmarx.API.AST
             //model.ToVerify = GetSASTScanVulnerabilitiesDetails(new Guid(resultsSummary.ScanId))
             //                .Where(x => x.State == Services.SASTResults.ResultsState.TO_VERIFY && x.Severity != ResultsSeverity.INFO).Count();
 
+            
+
             model.Total = sastCounters.TotalCounter;
 
             model.LanguagesDetected = sastCounters.LanguageCounters.Select(x => x.Language).Distinct().ToList();
@@ -912,6 +890,15 @@ namespace Checkmarx.API.AST
                 model.QueriesMedium = scanQueriesMedium.Count();
                 model.QueriesLow = scanQueriesLow.Count();
                 model.Queries = model.QueriesHigh + model.QueriesMedium + model.QueriesLow;
+
+                model.HighToVerify = scanResults.Where(x => x.Severity == ResultsSeverity.HIGH && x.State == ResultsState.TO_VERIFY).Count();
+                model.MediumToVerify = scanResults.Where(x => x.Severity == ResultsSeverity.MEDIUM && x.State == ResultsState.TO_VERIFY).Count();
+                model.LowToVerify = scanResults.Where(x => x.Severity == ResultsSeverity.LOW && x.State == ResultsState.TO_VERIFY).Count();
+
+                model.ToVerify = scanResults.Where(x => x.State == ResultsState.TO_VERIFY).Count();
+                model.NotExploitableMarked = scanResults.Where(x => x.State == ResultsState.NOT_EXPLOITABLE).Count();
+                model.PNEMarked = scanResults.Where(x => x.State == ResultsState.PROPOSED_NOT_EXPLOITABLE).Count();
+                model.OtherStates = scanResults.Where(x => x.State != ResultsState.CONFIRMED && x.State != ResultsState.URGENT && x.State != ResultsState.NOT_EXPLOITABLE && x.State != ResultsState.PROPOSED_NOT_EXPLOITABLE && x.State != ResultsState.TO_VERIFY).Count();
             }
             catch
             {
