@@ -510,9 +510,9 @@ namespace Checkmarx.API.AST
             return GetScans(projectId, branch: branch);
         }
 
-        public Scan GetLastScan(Guid projectId, bool fullScanOnly = false, string branch = null, ScanTypeEnum scanType = ScanTypeEnum.sast)
+        public Scan GetLastScan(Guid projectId, bool fullScanOnly = false, bool completed = true, string branch = null, ScanTypeEnum scanType = ScanTypeEnum.sast)
         {
-            var scans = GetScans(projectId, scanType.ToString(), true, branch, ScanRetrieveKind.All);
+            var scans = GetScans(projectId, scanType.ToString(), completed, branch, ScanRetrieveKind.All);
             if (fullScanOnly)
             {
                 var fullScans = scans.Where(x => x.Metadata.Configs.Any(x => x.Value != null && !x.Value.Incremental)).OrderByDescending(x => x.CreatedAt);
