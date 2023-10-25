@@ -47,7 +47,15 @@ namespace Checkmarx.API.AST.Tests
         }
 
         [TestMethod]
-        public void QueriesTest()
+        public void QuerieTest()
+        {
+            var queries = astclient.GetTenantQueries().ToList();
+            var queries1 = astclient.GetTeamCorpLevelQueries(new Guid("e85542eb-ee28-45ce-890f-f0a86999c489")).ToList();
+            var queries2 = astclient.GetProjectQueries(new Guid("e85542eb-ee28-45ce-890f-f0a86999c489")).ToList();
+        }
+
+        [TestMethod]
+        public void CustomQuerieTest()
         {
             // Get query
             var queryFile = "D:\\Users\\bruno.vilela\\OneDrive - Checkmarx\\Documents\\use_of_hardcoded_password.txt";
