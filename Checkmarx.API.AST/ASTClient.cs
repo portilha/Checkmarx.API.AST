@@ -496,6 +496,40 @@ namespace Checkmarx.API.AST
             return response.ScansSummaries;
         }
 
+        public Checkmarx.API.AST.Services.Projects.Project CreateProject(string name, Dictionary<string, string> tags)
+        {
+            var input = new ProjectInput()
+            {
+                Name = name,
+                Tags = tags
+            };
+
+            return Projects.CreateProjectAsync(input).Result;
+        }
+
+        //public string CreateProject(string name, Dictionary<string, string> tags, string appId = null)
+        //{
+        //    string createdId = null;
+
+        //    var input = new ProjectInput()
+        //    {
+        //        Name = name
+        //    };
+
+        //    if (appId != null)
+        //        createdId = Projects.ApplicationAsync(appId, input).Result.Id;
+        //    else
+        //        createdId = Projects.CreateProjectAsync(input).Result.Id;
+
+        //    if (tags != null)
+        //    {
+        //        input.Tags = tags;
+        //        Projects.UpdateProjectAsync(new Guid(createdId), input).Wait();
+        //    }
+
+        //    return createdId;
+        //}
+
         #endregion
 
         #region Scans
@@ -865,7 +899,7 @@ namespace Checkmarx.API.AST
             //model.ToVerify = GetSASTScanVulnerabilitiesDetails(new Guid(resultsSummary.ScanId))
             //                .Where(x => x.State == Services.SASTResults.ResultsState.TO_VERIFY && x.Severity != ResultsSeverity.INFO).Count();
 
-            
+
 
             model.Total = sastCounters.TotalCounter;
 
@@ -1252,6 +1286,38 @@ namespace Checkmarx.API.AST
                 scanInput.Config = new List<Config>() {
                     new Config(){
                         Type = ConfigType.Sast,
+                        Value = new Dictionary<string, string>() { ["incremental"] = "false", ["presetName"] = preset }
+                    }
+                };
+            }
+
+            return Scans.CreateScanUploadAsync(scanInput).Result;
+        }
+
+        public Scan RunUploadScan(Guid projectId, byte[] source, ConfigType scanType, string branch, string preset, string configuration = null)
+        {
+            string uploadUrl = Uploads.GetPresignedURLForUploading().Result;
+            Uploads.SendHTTPRequestByFullURL(uploadUrl, source).Wait();
+
+            ScanUploadInput scanInput = new ScanUploadInput();
+            scanInput.Project = new Services.Scans.Project() { Id = projectId.ToString() };
+            scanInput.Type = ScanInputType.Upload;
+            scanInput.Handler = new Upload() { Branch = branch, UploadUrl = uploadUrl };
+
+            if (!string.IsNullOrWhiteSpace(configuration))
+            {
+                scanInput.Config = new List<Config>() {
+                    new Config(){
+                        Type = scanType,
+                        Value = new Dictionary<string, string>() { ["incremental"] = "false", ["presetName"] = preset, ["defaultConfig"] = configuration }
+                    }
+                };
+            }
+            else
+            {
+                scanInput.Config = new List<Config>() {
+                    new Config(){
+                        Type = scanType,
                         Value = new Dictionary<string, string>() { ["incremental"] = "false", ["presetName"] = preset }
                     }
                 };

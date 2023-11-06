@@ -56,19 +56,6 @@ namespace Checkmarx.API.AST.Services.Applications
         partial void PrepareRequest(System.Net.Http.HttpClient client, System.Net.Http.HttpRequestMessage request, System.Text.StringBuilder urlBuilder);
         partial void ProcessResponse(System.Net.Http.HttpClient client, System.Net.Http.HttpResponseMessage response);
 
-        /// <summary>
-        /// Create an application
-        /// </summary>
-        /// <param name="authorization">REQUIRED: JWT authorization token</param>
-        /// <param name="accept">API version should be appended to this header</param>
-        /// <param name="correlationId">correlation id to keep track of a flow if many APIs are involved</param>
-        /// <returns>OK</returns>
-        /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<CreatedApplication> CreateApplicationAsync(string authorization, string accept, System.Guid? correlationId, ApplicationInput body)
-        {
-            return CreateApplicationAsync(authorization, accept, correlationId, body, System.Threading.CancellationToken.None);
-        }
-
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
         /// Create an application
@@ -78,7 +65,7 @@ namespace Checkmarx.API.AST.Services.Applications
         /// <param name="correlationId">correlation id to keep track of a flow if many APIs are involved</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<CreatedApplication> CreateApplicationAsync(string authorization, string accept, System.Guid? correlationId, ApplicationInput body, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<CreatedApplication> CreateApplicationAsync(ApplicationInput body, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (body == null)
                 throw new System.ArgumentNullException("body");
@@ -1603,7 +1590,7 @@ namespace Checkmarx.API.AST.Services.Applications
         /// <summary>
         /// A description of the application
         /// </summary>
-        [Newtonsoft.Json.JsonProperty("description", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("description", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Description { get; set; }
 
         /// <summary>
@@ -1613,13 +1600,13 @@ namespace Checkmarx.API.AST.Services.Applications
         [System.ComponentModel.DataAnnotations.Range(1, 5)]
         public int Criticality { get; set; } = 3;
 
-        [Newtonsoft.Json.JsonProperty("rules", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("rules", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.Collections.Generic.ICollection<Rule> Rules { get; set; }
 
         /// <summary>
         /// Application tags
         /// </summary>
-        [Newtonsoft.Json.JsonProperty("tags", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("tags", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.Collections.Generic.IDictionary<string, string> Tags { get; set; }
 
         [Newtonsoft.Json.JsonProperty("createdAt", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
