@@ -39,6 +39,8 @@ namespace Checkmarx.API.AST
         public Uri ASTServer { get; private set; }
         public string Tenant { get; }
         public string KeyApi { get; set; }
+        public string ClientId { get; set; }
+        public string ClientSecret { get; set; }
 
         private readonly HttpClient _httpClient = new HttpClient();
 
@@ -249,12 +251,27 @@ namespace Checkmarx.API.AST
         private string Autenticate()
         {
             var identityURL = $"{AcessControlServer.AbsoluteUri}auth/realms/{Tenant}/protocol/openid-connect/token";
-            var kv = new Dictionary<string, string>
+
+            Dictionary<string, string> kv;
+
+            if (!string.IsNullOrWhiteSpace(KeyApi))
             {
-                { "grant_type", "refresh_token" },
-                { "client_id", "ast-app" },
-                { "refresh_token", $"{KeyApi}" }
-            };
+                kv = new Dictionary<string, string>
+                {
+                    { "grant_type", "refresh_token" },
+                    { "client_id", "ast-app" },
+                    { "refresh_token", $"{KeyApi}" }
+                };
+            }
+            else
+            {
+                kv = new Dictionary<string, string>
+                {
+                    { "grant_type", "client_credentials" },
+                    { "client_id", $"{ClientId}" },
+                    { "client_secret", $"{ClientSecret}" }
+                };
+            }
 
             var req = new HttpRequestMessage(HttpMethod.Post, identityURL) { Content = new FormUrlEncodedContent(kv) };
             req.Headers.UserAgent.Add(new ProductInfoHeaderValue("ASAProgramTracker", "1.0"));
@@ -300,6 +317,21 @@ namespace Checkmarx.API.AST
             AcessControlServer = acessControlServer;
             Tenant = tenant;
             KeyApi = apiKey;
+        }
+
+        public ASTClient(Uri astServer, Uri acessControlServer, string tenant, string clientId, string clientSecret)
+        {
+            if (astServer == null) throw new ArgumentNullException(nameof(astServer));
+            if (acessControlServer == null) throw new ArgumentNullException(nameof(acessControlServer));
+            if (string.IsNullOrWhiteSpace(tenant)) throw new ArgumentNullException(nameof(tenant));
+            if (string.IsNullOrWhiteSpace(clientId)) throw new ArgumentNullException(nameof(clientId));
+            if (string.IsNullOrWhiteSpace(clientSecret)) throw new ArgumentNullException(nameof(clientSecret));
+
+            ASTServer = astServer;
+            AcessControlServer = acessControlServer;
+            Tenant = tenant;
+            ClientId = clientId;
+            ClientSecret = clientSecret;
         }
 
         #endregion
