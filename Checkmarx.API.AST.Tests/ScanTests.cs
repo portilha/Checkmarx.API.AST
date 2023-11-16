@@ -32,11 +32,24 @@ namespace Checkmarx.API.AST.Tests
 
             Configuration = builder.Build();
 
-            astclient = new ASTClient(
+            if (!string.IsNullOrWhiteSpace(Configuration["API_KEY"]))
+            {
+                astclient = new ASTClient(
                 new System.Uri(Configuration["ASTServer"]),
                 new System.Uri(Configuration["AccessControlServer"]),
                 Configuration["Tenant"],
                 Configuration["API_KEY"]);
+            }
+            else
+            {
+                astclient = new ASTClient(
+                new System.Uri(Configuration["ASTServer"]),
+                new System.Uri(Configuration["AccessControlServer"]),
+                Configuration["Tenant"],
+                Configuration["ClientId"],
+                Configuration["ClientSecret"]);
+            }
+            
         }
 
         [TestMethod]
@@ -45,11 +58,29 @@ namespace Checkmarx.API.AST.Tests
             var test = astclient.GetProjectConfiguration(new Guid("0c04039e-69f5-41f7-89f5-2e3fd94bd547"));
         }
 
+
+        [TestMethod]
+        public void GetSCAInfoTest()
+        {
+            var projects = astclient.GetAllProjectsDetails().Projects.ToList();
+
+            var proj = projects.Where(x => x.Name == "cs_lac_tyt_ws5bfel_util_prod").FirstOrDefault();
+
+            var resultsOverview = astclient.ResultsOverview.ProjectsAsync(new List<string>() { proj.Id }).Result;
+
+            var lastSASTScan = astclient.GetLastScan(new Guid(proj.Id), true, true, scanType: Enums.ScanTypeEnum.sca);
+
+            //var scanners = astclient.GetScanDetailsOLD(new Guid(proj.Id), new Guid(lastSASTScan.Id), DateTime.Now);
+
+            var newScanDetails = astclient.GetScanDetails(new Guid(proj.Id), new Guid(lastSASTScan.Id));
+        }
+
         [TestMethod]
         public void GetScanInfoTest()
         {
             var projects = astclient.GetAllProjectsDetails().Projects.ToList();
-            //var proj = projects.Where(x => x.Name == "CxAPI-Security/apisec-sast-schema").FirstOrDefault();
+            //var proj = projects.Where(x => x.Name == "cs_lac_tyt_ws5bfel_util_prod").FirstOrDefault();
+
             foreach (var proj in projects)
             {
                 //var proj = astclient.Projects.GetProjectAsync(new Guid("fd71de0b-b3db-40a8-a885-8c2d0eb481b6")).Result;
