@@ -53,11 +53,20 @@ namespace Checkmarx.API.AST.Tests
         }
 
         [TestMethod]
+        public void GetScanDetailsTest()
+        {
+            var automatedScanDetails = astclient.GetScanDetails(new Guid("33bb4417-c2d5-4c85-bfe0-be80c604a4bf"), new Guid("26976ec1-b0d8-4da8-929e-2f46e4b1b9fa"));
+
+            var log1 = astclient.GetScanLog(new Guid("26976ec1-b0d8-4da8-929e-2f46e4b1b9fa"), "sca");
+
+            var manualScanDetails = astclient.GetScanDetails(new Guid("33bb4417-c2d5-4c85-bfe0-be80c604a4bf"), new Guid("f5926dc0-3442-42be-b9c6-63d346a4f166"));
+        }
+
+        [TestMethod]
         public void GetScanConfigurationTest()
         {
             var test = astclient.GetProjectConfiguration(new Guid("0c04039e-69f5-41f7-89f5-2e3fd94bd547"));
         }
-
 
         [TestMethod]
         public void GetSCAInfoTest()

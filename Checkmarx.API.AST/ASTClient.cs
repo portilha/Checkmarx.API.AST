@@ -1627,6 +1627,11 @@ namespace Checkmarx.API.AST
             return GetScanLogs(scanId.ToString(), "sast");
         }
 
+        public string GetScanLog(Guid scanId, string engine)
+        {
+            return GetScanLogs(scanId.ToString(), engine);
+        }
+
         private string GetScanLogs(string scanId, string engine)
         {
             string serverRestEndpoint = $"{ASTServer.AbsoluteUri}api/logs/{scanId}/{engine}";
