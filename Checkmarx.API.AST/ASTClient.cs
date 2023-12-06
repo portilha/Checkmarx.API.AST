@@ -717,22 +717,9 @@ namespace Checkmarx.API.AST
                 bool fetchedResultsSuccessfuly = true;
                 try
                 {
-#if DEBUG
-                    Stopwatch st = new Stopwatch();
-                    st.Start();
-
-                    Stopwatch total = new Stopwatch();
-                    total.Start();
-#endif
-
                     try
                     {
                         var resultsSummary = GetResultsSummaryById(scanDetails.Id).FirstOrDefault();
-
-#if DEBUG
-                        Trace.WriteLine($"GetResultsSummaryById '{scan.Id}' - Time:{st.ElapsedMilliseconds} ms");
-                        st.Restart();
-#endif
 
                         // SAST
                         var sastStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "sast").FirstOrDefault();
@@ -754,11 +741,6 @@ namespace Checkmarx.API.AST
                                     scanDetails.LoC = metadata.Loc;
                                 }
 
-#if DEBUG
-                                Trace.WriteLine($"SASTMetadata '{scan.Id}' - Time:{st.ElapsedMilliseconds} ms");
-                                st.Restart();
-#endif
-
                                 scanDetails.SASTResults = GetSASTScanResultDetails(scanDetails.SASTResults, resultsSummary);
                             }
                             else
@@ -766,17 +748,8 @@ namespace Checkmarx.API.AST
                                 scanDetails.SASTResults.Details = $"Current scan status is {sastStatusDetails.Status}";
                             }
 
-#if DEBUG
-                            Trace.WriteLine($"SASTResults '{scan.Id}' - Time:{st.ElapsedMilliseconds} ms");
-                            st.Restart();
-#endif
 
                         }
-
-#if DEBUG
-                        Trace.WriteLine($"SAST '{scan.Id}' - Time:{st.ElapsedMilliseconds} ms");
-                        st.Restart();
-#endif
 
                         // KICS
                         var kicsStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "kics").FirstOrDefault();
@@ -792,11 +765,6 @@ namespace Checkmarx.API.AST
                                 scanDetails.KicsResults.Details = $"Current scan status is {sastStatusDetails.Status}";
                         }
 
-#if DEBUG
-                        Trace.WriteLine($"KICS '{scan.Id}' - Time:{st.ElapsedMilliseconds} ms");
-                        st.Restart();
-#endif
-
                         // SCA
                         var scaStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "sca").FirstOrDefault();
                         if (scaStatusDetails != null)
@@ -810,20 +778,11 @@ namespace Checkmarx.API.AST
                             else
                                 scanDetails.ScaResults.Details = $"Current scan status is {scaStatusDetails.Status}";
                         }
-
-
-#if DEBUG
-                        Trace.WriteLine($"SCA '{scan.Id}' - Time:{st.ElapsedMilliseconds} ms");
-                        st.Restart();
-#endif
                     }
                     finally
                     {
-#if DEBUG
-                        Trace.WriteLine($"Total '{scan.Id}' - Time:{total.ElapsedMilliseconds} ms");
-#endif
-                    }
 
+                    }
                 }
                 catch
                 {
@@ -832,11 +791,6 @@ namespace Checkmarx.API.AST
 
                 if (!fetchedResultsSuccessfuly)
                 {
-
-#if DEBUG
-                    Trace.WriteLine($"Entrei AQUI {scan.Id}");
-#endif
-
                     // SAST
                     var sastStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "sast").FirstOrDefault();
                     if (sastStatusDetails != null)

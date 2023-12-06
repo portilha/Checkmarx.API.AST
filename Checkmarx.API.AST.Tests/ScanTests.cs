@@ -49,17 +49,47 @@ namespace Checkmarx.API.AST.Tests
                 Configuration["ClientId"],
                 Configuration["ClientSecret"]);
             }
-            
+
         }
 
         [TestMethod]
         public void GetScanDetailsTest()
         {
-            var automatedScanDetails = astclient.GetScanDetails(new Guid("33bb4417-c2d5-4c85-bfe0-be80c604a4bf"), new Guid("26976ec1-b0d8-4da8-929e-2f46e4b1b9fa"));
+            var projects = astclient.GetAllProjectsDetails();
 
-            var log1 = astclient.GetScanLog(new Guid("26976ec1-b0d8-4da8-929e-2f46e4b1b9fa"), "sca");
+            var lastScan = astclient.GetLastScan(new Guid("b246660f-dfad-4e99-9384-6c5f5928b770"), scanType: Enums.ScanTypeEnum.sca);
 
-            var manualScanDetails = astclient.GetScanDetails(new Guid("33bb4417-c2d5-4c85-bfe0-be80c604a4bf"), new Guid("f5926dc0-3442-42be-b9c6-63d346a4f166"));
+            var automatedScanDetails = astclient.GetScanDetails(new Guid("b246660f-dfad-4e99-9384-6c5f5928b770"), new Guid(lastScan.Id));
+        }
+
+        [TestMethod]
+        public void DeleteProjectsTest()
+        {
+            var projects = astclient.GetAllProjectsDetails().Projects.ToList();
+
+            var projsScanned = projects.Where(x => x.Tags.ContainsKey("sast_id"));
+
+            foreach (var project in projsScanned)
+            {
+                var lastScan = astclient.GetLastScan(new Guid(project.Id), scanType: Enums.ScanTypeEnum.sca);
+                if(lastScan != null)
+                {
+                    var scanDetails = astclient.GetScanDetails(new Guid(project.Id), new Guid(lastScan.Id));
+                    var scaResults = scanDetails.ScaResults;
+                    if(scaResults != null)
+                    {
+                        Trace.WriteLine($"Prtoject {project.Name}: Scan Status - {scaResults.Status} | Scan Results - {scaResults.High ?? 0} Highs, {scaResults.Medium ?? 0} Mediums, {scaResults.Low ?? 0} Lows");
+                    }
+                    else
+                    {
+                        Trace.WriteLine($"Prtoject {project.Name} has no SCA results.");
+                    }
+                }
+                else
+                {
+                    Trace.WriteLine($"Prtoject {project.Name} has no scan.");
+                }
+            }
         }
 
         [TestMethod]
