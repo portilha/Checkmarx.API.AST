@@ -49,16 +49,20 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void QuerieTest()
         {
-            var queries = astclient.GetTenantQueries().ToList();
-            var queries1 = astclient.GetTeamCorpLevelQueries(new Guid("e85542eb-ee28-45ce-890f-f0a86999c489")).ToList();
-            var queries2 = astclient.GetProjectQueries(new Guid("e85542eb-ee28-45ce-890f-f0a86999c489")).ToList();
+            var presetsDetails = astclient.GetAllPresetsDetails().ToList();
+
+            var queries2 = astclient.GetProjectQueries(new Guid("e7b46f39-0bd9-4386-b05e-45a799c67e8d")).ToList();
+            var query = queries2.FirstOrDefault(x => x.Level != "Cx");
+
+            var presetQuery = astclient.GetProjectQuery(new Guid("e7b46f39-0bd9-4386-b05e-45a799c67e8d"), query.Path, true);
+            var cxQuery = astclient.GetCxLevelQuery(query.Path);
         }
 
         [TestMethod]
         public void CustomQuerieTest()
         {
             // Get query
-            var queryFile = "D:\\Users\\bruno.vilela\\OneDrive - Checkmarx\\Documents\\use_of_hardcoded_password.txt";
+            var queryFile = "relative path";
             string customQuery = File.ReadAllText(queryFile);
             string queryName = Path.GetFileNameWithoutExtension(queryFile);
 

@@ -31,6 +31,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using Checkmarx.API.AST.Services.ResultsOverview;
+using Checkmarx.API.AST.Services.PresetManagement;
 
 namespace Checkmarx.API.AST
 {
@@ -205,6 +206,18 @@ namespace Checkmarx.API.AST
                     _uploads = new Uploads($"{ASTServer.AbsoluteUri}api/uploads", _httpClient);
 
                 return _uploads;
+            }
+        }
+
+        private PresetManagement _presetManagement;
+        public PresetManagement PresetManagement
+        {
+            get
+            {
+                if (_presetManagement == null && Connected)
+                    _presetManagement = new PresetManagement($"{ASTServer.AbsoluteUri}api/presets", _httpClient);
+
+                return _presetManagement;
             }
         }
 
@@ -1293,15 +1306,22 @@ namespace Checkmarx.API.AST
             while (true)
             {
                 var response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, 10000).Result;
-                foreach (var result in response.Results)
+                if(response.Results != null)
                 {
-                    yield return result;
+                    foreach (var result in response.Results)
+                    {
+                        yield return result;
+                    }
+
+                    if (response.Results.Count() < 10000)
+                        yield break;
+
+                    startAt += 10000;
                 }
-
-                if (response.Results.Count() < 10000)
+                else
+                {
                     yield break;
-
-                startAt += 10000;
+                }
             }
         }
 
@@ -1529,6 +1549,10 @@ namespace Checkmarx.API.AST
             return null;
         }
 
+        #endregion
+
+        #region Queries and Presets
+
         public List<string> GetTenantPresets()
         {
             var config = GetTenantConfigurations().Where(x => x.Key == "scan.config.sast.presetName").FirstOrDefault();
@@ -1538,9 +1562,44 @@ namespace Checkmarx.API.AST
             return null;
         }
 
-        #endregion
+        public IEnumerable<PresetDetails> GetAllPresetsDetails()
+        {
+            var presets = GetAllPresets();
+            foreach(var preset in presets)
+            {
+                yield return PresetManagement.GetPresetById(preset.Id).Result;
+            }
+        }
 
-        #region Queries
+        public IEnumerable<PresetSummary> GetAllPresets()
+        {
+            checkConnection();
+
+            var getLimit = 20;
+
+            var listPresets = PresetManagement.GetPresetsAsync(getLimit).Result;
+            if (listPresets.TotalCount > getLimit)
+            {
+                var offset = getLimit;
+                bool cont = true;
+                do
+                {
+                    var next = PresetManagement.GetPresetsAsync(getLimit, offset).Result;
+                    if (next.Presets.Any())
+                    {
+                        next.Presets.ToList().ForEach(o => listPresets.Presets.Add(o));
+                        offset += getLimit;
+
+                        if (listPresets.Presets.Count == listPresets.TotalCount) cont = false;
+                    }
+                    else
+                        cont = false;
+
+                } while (cont);
+            }
+
+            return listPresets.Presets;
+        }
 
         public IEnumerable<Services.SASTQuery.Query> GetTenantQueries()
         {
@@ -1560,6 +1619,11 @@ namespace Checkmarx.API.AST
         public Services.SASTQuery.Query GetProjectQuery(Guid projectId, string queryPath, bool tenantLevel)
         {
             return SASTQuery.GetQueryForProject(projectId.ToString(), queryPath, tenantLevel);
+        }
+
+        public Services.SASTQuery.Query GetCxLevelQuery(string queryPath)
+        {
+            return SASTQuery.GetCxLevelQuery(queryPath);
         }
 
         public void SaveProjectQuery(Guid projectId, string queryName, string queryPath, string source)

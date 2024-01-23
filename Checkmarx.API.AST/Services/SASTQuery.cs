@@ -144,13 +144,12 @@ namespace Checkmarx.API.AST.Services
 
         }
 
-        public dynamic GetCxLevelQueryForProject(string queryPath)
+        public dynamic GetCxLevelQuery(string queryPath)
         {
             string serverRestEndpoint = $"{_baseUrl}api/cx-audit/queries/Cx/{System.Web.HttpUtility.UrlEncode(queryPath)}";
             WebRequest request = WebRequest.Create(serverRestEndpoint);
             request.Method = "GET";
             request.Headers.Add("Authorization", _token);
-
 
             try
             {
@@ -161,7 +160,7 @@ namespace Checkmarx.API.AST.Services
                         using (StreamReader reader = new StreamReader(dataStream))
                         {
                             string responseFromServer = reader.ReadToEnd();
-                            return JsonConvert.DeserializeObject<dynamic>(responseFromServer);
+                            return JsonConvert.DeserializeObject<Query>(responseFromServer);
                         }
                     }
                 }

@@ -56,10 +56,11 @@ namespace Checkmarx.API.AST.Tests
         public void GetScanDetailsTest()
         {
             var projects = astclient.GetAllProjectsDetails();
+            var project = projects.Projects.FirstOrDefault(x => x.Name == "plug-and-sell/JAVA/crosssell-core-pb");
 
-            var lastScan = astclient.GetLastScan(new Guid("b246660f-dfad-4e99-9384-6c5f5928b770"), scanType: Enums.ScanTypeEnum.sca);
+            var lastScan = astclient.GetLastScan(new Guid(project.Id));
 
-            var automatedScanDetails = astclient.GetScanDetails(new Guid("b246660f-dfad-4e99-9384-6c5f5928b770"), new Guid(lastScan.Id));
+            var automatedScanDetails = astclient.GetScanDetails(new Guid(project.Id), new Guid(lastScan.Id));
         }
 
         [TestMethod]
