@@ -16,7 +16,7 @@ using System.Net;
 namespace Checkmarx.API.AST.Tests
 {
     [TestClass]
-    public class ProjectTests
+    public class ScanTests
     {
 
         private static ASTClient astclient;
