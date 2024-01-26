@@ -16,6 +16,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http;
 using System.Xml.Xsl;
+using System.Dynamic;
 
 namespace Checkmarx.API.AST.Tests
 {
@@ -56,6 +57,37 @@ namespace Checkmarx.API.AST.Tests
         public void GetPresetsTest()
         {
             var presets = astclient.GetTenantPresets();
+        }
+
+        [TestMethod]
+        public void ProjectAndScanTest()
+        {
+            Guid projectId = new Guid("c6415c3c-6fdc-4a33-bbc5-7bac597099be");
+
+            var project = astclient.Projects.GetProjectAsync(projectId).Result;
+
+            var lastScan = astclient.GetLastScan(projectId, true, true);
+            if (lastScan == null)
+            {
+                return;
+            }
+
+            var scanDetails = astclient.GetScanDetails(projectId, new Guid(lastScan.Id));
+            var scanResults = astclient.GetSASTScanVulnerabilitiesDetails(new Guid(lastScan.Id));
+            if (scanResults.Any())
+            {
+                foreach (var resultByQuery in scanResults.GroupBy(x => x.QueryID))
+                {
+                    foreach (var result in resultByQuery)
+                    {
+                        var record = new ExpandoObject() as IDictionary<string, object>;
+
+                        record.Add("ProjectId", project.Id);
+                        record.Add("ProjectName", project.Name);
+                    }
+                }
+
+            }
         }
 
         [TestMethod]
@@ -110,6 +142,8 @@ namespace Checkmarx.API.AST.Tests
             Assert.IsNotNull(astclient.Projects);
 
             var projectsList = astclient.Projects.GetListOfProjectsAsync().Result;
+            var count = projectsList.TotalCount;
+
 
             foreach (var item in projectsList.Projects)
             {
