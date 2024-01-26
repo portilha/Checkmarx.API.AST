@@ -12,12 +12,12 @@ namespace Checkmarx.API.AST.Services
     public partial class SASTQuery
     {
         private string _baseUrl;
-        private string _token;
+        private System.Net.Http.HttpClient _httpClient;
 
-        public SASTQuery(string baseUrl, string token)
+        public SASTQuery(string baseUrl, System.Net.Http.HttpClient httpClient)
         {
             _baseUrl = baseUrl;
-            _token = token;
+            _httpClient = httpClient;
         }
 
         public IEnumerable<Query> GetQueries()
@@ -25,7 +25,7 @@ namespace Checkmarx.API.AST.Services
             string serverRestEndpoint = $"{_baseUrl}api/cx-audit/queries";
             WebRequest request = WebRequest.Create(serverRestEndpoint);
             request.Method = "GET";
-            request.Headers.Add("Authorization", _token);
+            request.Headers.Add("Authorization", _httpClient.DefaultRequestHeaders.Authorization.Parameter);
 
             try
             {
@@ -66,7 +66,7 @@ namespace Checkmarx.API.AST.Services
             string serverRestEndpoint = $"{_baseUrl}api/cx-audit/queries?projectId={projId}";
             WebRequest request = WebRequest.Create(serverRestEndpoint);
             request.Method = "GET";
-            request.Headers.Add("Authorization", _token);
+            request.Headers.Add("Authorization", _httpClient.DefaultRequestHeaders.Authorization.Parameter);
 
             try
             {
@@ -107,7 +107,7 @@ namespace Checkmarx.API.AST.Services
             string serverRestEndpoint = $"{_baseUrl}api/cx-audit/queries/{(tenantLevel ? "Corp" : projId)}/{System.Web.HttpUtility.UrlEncode(queryPath)}";
             WebRequest request = WebRequest.Create(serverRestEndpoint);
             request.Method = "GET";
-            request.Headers.Add("Authorization", _token);
+            request.Headers.Add("Authorization", _httpClient.DefaultRequestHeaders.Authorization.Parameter);
 
             try
             {
@@ -149,7 +149,7 @@ namespace Checkmarx.API.AST.Services
             string serverRestEndpoint = $"{_baseUrl}api/cx-audit/queries/Cx/{System.Web.HttpUtility.UrlEncode(queryPath)}";
             WebRequest request = WebRequest.Create(serverRestEndpoint);
             request.Method = "GET";
-            request.Headers.Add("Authorization", _token);
+            request.Headers.Add("Authorization", _httpClient.DefaultRequestHeaders.Authorization.Parameter);
 
             try
             {
@@ -191,7 +191,7 @@ namespace Checkmarx.API.AST.Services
             string serverRestEndpoint = $"{_baseUrl}api/cx-audit/queries/{projId}/{System.Web.HttpUtility.UrlEncode(queryPath)}";
             WebRequest request = WebRequest.Create(serverRestEndpoint);
             request.Method = "DELETE";
-            request.Headers.Add("Authorization", _token);
+            request.Headers.Add("Authorization", _httpClient.DefaultRequestHeaders.Authorization.Parameter);
 
 
             try
@@ -235,7 +235,7 @@ namespace Checkmarx.API.AST.Services
             string serverRestEndpoint = $"{_baseUrl}api/cx-audit/queries/corp/{System.Web.HttpUtility.UrlEncode(queryPath)}";
             WebRequest request = WebRequest.Create(serverRestEndpoint);
             request.Method = "DELETE";
-            request.Headers.Add("Authorization", _token);
+            request.Headers.Add("Authorization", _httpClient.DefaultRequestHeaders.Authorization.Parameter);
 
             try
             {
@@ -278,7 +278,7 @@ namespace Checkmarx.API.AST.Services
             string serverRestEndpoint = $"{_baseUrl}api/cx-audit/queries/{projId}";
             WebRequest request = WebRequest.Create(serverRestEndpoint);
             request.Method = "PUT";
-            request.Headers.Add("Authorization", _token);
+            request.Headers.Add("Authorization", _httpClient.DefaultRequestHeaders.Authorization.Parameter);
 
             try
             {
@@ -338,7 +338,7 @@ namespace Checkmarx.API.AST.Services
             string serverRestEndpoint = $"{_baseUrl}api/cx-audit/queries/corp";
             WebRequest request = WebRequest.Create(serverRestEndpoint);
             request.Method = "PUT";
-            request.Headers.Add("Authorization", _token);
+            request.Headers.Add("Authorization", _httpClient.DefaultRequestHeaders.Authorization.Parameter);
 
             try
             {

@@ -228,7 +228,7 @@ namespace Checkmarx.API.AST
             get
             {
                 if (_sastQuery == null && Connected)
-                    _sastQuery = new SASTQuery(ASTServer.AbsoluteUri, Autenticate());
+                    _sastQuery = new SASTQuery(ASTServer.AbsoluteUri, _httpClient);
 
                 return _sastQuery;
             }

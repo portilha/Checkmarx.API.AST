@@ -17,6 +17,7 @@ using System.Net.Http.Headers;
 using System.Net.Http;
 using System.Xml.Xsl;
 using System.Dynamic;
+using System.Collections.Immutable;
 
 namespace Checkmarx.API.AST.Tests
 {
@@ -62,7 +63,7 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void ProjectAndScanTest()
         {
-            Guid projectId = new Guid("c6415c3c-6fdc-4a33-bbc5-7bac597099be");
+            Guid projectId = new Guid("47709a33-d85a-4b90-b264-93388b71c388");
 
             var project = astclient.Projects.GetProjectAsync(projectId).Result;
 
@@ -141,14 +142,11 @@ namespace Checkmarx.API.AST.Tests
         {
             Assert.IsNotNull(astclient.Projects);
 
-            var projectsList = astclient.Projects.GetListOfProjectsAsync().Result;
+            var projectsList = astclient.GetAllProjectsDetails();
             var count = projectsList.TotalCount;
 
-
-            foreach (var item in projectsList.Projects)
-            {
-                Trace.WriteLine(item.Id + " " + item.Name + " " + item.RepoUrl);
-            }
+            var project = projectsList.Projects.Where(x => x.Name == "parts-partsordermana1/parts-om-dependencies");
+            Trace.WriteLine(project.FirstOrDefault()?.Id);
         }
 
         [TestMethod]
