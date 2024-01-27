@@ -15,6 +15,7 @@
 
 namespace Checkmarx.API.AST.Services.Configuration
 {
+    using Checkmarx.API.AST.Models;
     using System.Net.Http;
     using System = global::System;
 
@@ -1287,15 +1288,15 @@ namespace Checkmarx.API.AST.Services.Configuration
         /// <summary>
         /// The value of the parameter
         /// </summary>
-        [Newtonsoft.Json.JsonProperty("value", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("value", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Value { get; set; }
 
         /// <summary>
         /// Describes the type of object this parameter represents
         /// </summary>
-        [Newtonsoft.Json.JsonProperty("valueType", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
-        public ScanParameterValueType ValueType { get; set; }
+        [Newtonsoft.Json.JsonProperty("valueType", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonConverter(typeof(DefaultUnknownEnumConverter), 0)]
+        public ScanParameterValueType ValueType { get; set; } = ScanParameterValueType.String;
 
         /// <summary>
         /// Describes the possible list values of a list type parameter

@@ -258,7 +258,7 @@ namespace Checkmarx.API.AST
                     {
                         var token = Autenticate();
                         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                        _bearerValidTo = DateTime.UtcNow.AddSeconds(_bearerExpiresIn-300);
+                        _bearerValidTo = DateTime.UtcNow.AddSeconds(_bearerExpiresIn - 300);
                     }
                 }
                 catch (Exception ex)
@@ -506,6 +506,10 @@ namespace Checkmarx.API.AST
             while (true)
             {
                 var response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, 10000).Result;
+
+                if(response.Results == null || !response.Results.Any())
+                    yield break;
+
                 foreach (var result in response.Results)
                 {
                     yield return result;
@@ -748,78 +752,73 @@ namespace Checkmarx.API.AST
                 bool fetchedResultsSuccessfuly = true;
                 try
                 {
-                    try
+                    var resultsSummary = GetResultsSummaryById(scanDetails.Id).FirstOrDefault();
+
+                    // SAST
+                    var sastStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "sast").FirstOrDefault();
+                    if (sastStatusDetails != null)
                     {
-                        var resultsSummary = GetResultsSummaryById(scanDetails.Id).FirstOrDefault();
-
-                        // SAST
-                        var sastStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "sast").FirstOrDefault();
-                        if (sastStatusDetails != null)
+                        scanDetails.SASTResults = new ScanResultDetails
                         {
-                            scanDetails.SASTResults = new ScanResultDetails
-                            {
-                                Status = sastStatusDetails.Status,
-                                Successful = sastStatusDetails.Status.ToLower() == "completed"
-                            };
+                            Status = sastStatusDetails.Status,
+                            Successful = sastStatusDetails.Status.ToLower() == "completed"
+                        };
 
-                            if (scanDetails.SASTResults.Successful)
-                            {
-                                // Get sast metadata
-                                try
-                                {
-                                    ScanInfo metadata = SASTMetadata.GetMetadataAsync(scanDetails.Id).Result;
-                                    if (metadata != null)
-                                    {
-                                        scanDetails.Preset = metadata.QueryPreset;
-                                        scanDetails.LoC = metadata.Loc;
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    Console.WriteLine($"Error fetching project {projectId} Preset and LoC.");
-                                }
+                        if (scanDetails.SASTResults.Successful)
+                        {
+                            scanDetails.SASTResults = GetSASTScanResultDetails(scanDetails.SASTResults, resultsSummary);
 
-                                scanDetails.SASTResults = GetSASTScanResultDetails(scanDetails.SASTResults, resultsSummary);
+                            // Get sast metadata
+                            try
+                            {
+                                ScanInfo metadata = SASTMetadata.GetMetadataAsync(scanDetails.Id).Result;
+                                if (metadata != null)
+                                {
+                                    scanDetails.Preset = metadata.QueryPreset;
+                                    scanDetails.LoC = metadata.Loc;
+                                }
                             }
-                            else
+                            catch (Exception ex)
                             {
-                                scanDetails.SASTResults.Details = $"Current scan status is {sastStatusDetails.Status}";
+                                Trace.WriteLine($"Error fetching project {projectId} Preset and LoC. Reason {ex.Message.Replace("\n", " ")}");
                             }
 
+                            if (string.IsNullOrWhiteSpace(scanDetails.Preset))
+                                scanDetails.Preset = GetScanPresetFromConfigurations(projectId, scanDetails.Id);
 
                         }
-
-                        // KICS
-                        var kicsStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "kics").FirstOrDefault();
-                        if (kicsStatusDetails != null)
+                        else
                         {
-                            scanDetails.KicsResults = new ScanResultDetails();
-                            scanDetails.KicsResults.Status = kicsStatusDetails.Status;
-                            scanDetails.KicsResults.Successful = kicsStatusDetails.Status.ToLower() == "completed";
-
-                            if (scanDetails.KicsResults.Successful)
-                                scanDetails.KicsResults = GetKicsScanResultDetails(scanDetails.KicsResults, resultsSummary);
-                            else
-                                scanDetails.KicsResults.Details = $"Current scan status is {sastStatusDetails.Status}";
-                        }
-
-                        // SCA
-                        var scaStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "sca").FirstOrDefault();
-                        if (scaStatusDetails != null)
-                        {
-                            scanDetails.ScaResults = new ScanResultDetails();
-                            scanDetails.ScaResults.Status = scaStatusDetails.Status;
-                            scanDetails.ScaResults.Successful = scaStatusDetails.Status.ToLower() == "completed";
-
-                            if (scanDetails.ScaResults.Successful)
-                                scanDetails.ScaResults = GetScaScanResultDetails(scanDetails.ScaResults, resultsSummary);
-                            else
-                                scanDetails.ScaResults.Details = $"Current scan status is {scaStatusDetails.Status}";
+                            scanDetails.SASTResults.Details = $"Current scan status is {sastStatusDetails.Status}";
                         }
                     }
-                    finally
-                    {
 
+                    // KICS
+                    var kicsStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "kics").FirstOrDefault();
+                    if (kicsStatusDetails != null)
+                    {
+                        scanDetails.KicsResults = new ScanResultDetails();
+                        scanDetails.KicsResults.Status = kicsStatusDetails.Status;
+                        scanDetails.KicsResults.Successful = kicsStatusDetails.Status.ToLower() == "completed";
+
+                        if (scanDetails.KicsResults.Successful)
+                            scanDetails.KicsResults = GetKicsScanResultDetails(scanDetails.KicsResults, resultsSummary);
+                        else
+                            scanDetails.KicsResults.Details = $"Current scan status is {sastStatusDetails.Status}";
+                    }
+
+                    // SCA
+                    var scaStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "sca").FirstOrDefault();
+                    if (scaStatusDetails != null)
+                    {
+                        scanDetails.ScaResults = new ScanResultDetails();
+                        scanDetails.ScaResults.Status = scaStatusDetails.Status;
+                        scanDetails.ScaResults.Successful = scaStatusDetails.Status.ToLower() == "completed";
+
+                        if (scanDetails.ScaResults.Successful)
+                            scanDetails.ScaResults = GetScaScanResultDetails(scanDetails.ScaResults, resultsSummary);
+                        else
+                            scanDetails.ScaResults.Details = $"Current scan status is {scaStatusDetails.Status}";
                     }
                 }
                 catch
@@ -839,6 +838,8 @@ namespace Checkmarx.API.AST
 
                         if (scanDetails.SASTResults.Successful)
                         {
+                            scanDetails.SASTResults = GetSASTScanResultDetailsBydId(scanDetails.SASTResults, scanDetails.Id);
+
                             // Get sast metadata
                             try
                             {
@@ -853,7 +854,6 @@ namespace Checkmarx.API.AST
                             {
                                 Console.WriteLine($"Error fetching project {projectId} Preset and LoC.");
                             }
-                            scanDetails.SASTResults = GetSASTScanResultDetailsBydId(scanDetails.SASTResults, scanDetails.Id);
                         }
                         else
                         {
@@ -1539,6 +1539,16 @@ namespace Checkmarx.API.AST
             CheckConnection();
 
             return Configuration.ScanAsync(projectId.ToString(), scanId.ToString()).Result;
+        }
+
+        public string GetScanPresetFromConfigurations(Guid projectId, Guid scanId)
+        {
+            var config = GetScanConfigurations(projectId, scanId).Where(x => x.Key == "scan.config.sast.presetName").FirstOrDefault();
+
+            if (config != null && !string.IsNullOrWhiteSpace(config.Value))
+                return config.Value;
+
+            return null;
         }
 
         public IEnumerable<ScanParameter> GetTenantProjectConfigurations()

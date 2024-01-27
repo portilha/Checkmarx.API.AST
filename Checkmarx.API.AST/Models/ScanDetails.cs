@@ -11,7 +11,7 @@ namespace Checkmarx.API.AST.Models
         public string Status { get; set; }
         public bool Successful { get; set; }
         public string Preset { get; set; }
-        public long LoC { get; set; }
+        public long LoC { get; set; } = -1;
         public string Branch { get; set; }
         public string InitiatorName { get; set; }
         public string SourceType { get; set; }

@@ -18,6 +18,7 @@ using System.Net.Http;
 using System.Xml.Xsl;
 using System.Dynamic;
 using System.Collections.Immutable;
+using Checkmarx.API.AST.Services.Configuration;
 
 namespace Checkmarx.API.AST.Tests
 {
@@ -63,7 +64,7 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void ProjectAndScanTest()
         {
-            Guid projectId = new Guid("47709a33-d85a-4b90-b264-93388b71c388");
+            Guid projectId = new Guid("b0416e42-6ef9-403d-aa88-57ef4cab52e3");
 
             var project = astclient.Projects.GetProjectAsync(projectId).Result;
 
@@ -72,6 +73,8 @@ namespace Checkmarx.API.AST.Tests
             {
                 return;
             }
+
+            var scanPreset = astclient.GetScanPresetFromConfigurations(projectId, new Guid(lastScan.Id));
 
             var scanDetails = astclient.GetScanDetails(projectId, new Guid(lastScan.Id));
             var scanResults = astclient.GetSASTScanVulnerabilitiesDetails(new Guid(lastScan.Id));
@@ -140,13 +143,18 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void ListProjects()
         {
+            //JohnDeere-Tech/isg-bi-bda-web
             Assert.IsNotNull(astclient.Projects);
 
             var projectsList = astclient.GetAllProjectsDetails();
             var count = projectsList.TotalCount;
 
-            var project = projectsList.Projects.Where(x => x.Name == "parts-partsordermana1/parts-om-dependencies");
-            Trace.WriteLine(project.FirstOrDefault()?.Id);
+            var project = projectsList.Projects.SingleOrDefault(x => x.Name == "JohnDeere-JDF/jdf-r2-proc-databricks-client");
+            Trace.WriteLine(project.Id);
+
+            var scan = astclient.GetLastScan(new Guid(project.Id));
+
+            var scandetails = astclient.GetScanDetails(new Guid(project.Id), new Guid(scan.Id));
         }
 
         [TestMethod]
