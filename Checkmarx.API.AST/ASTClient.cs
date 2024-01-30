@@ -766,7 +766,7 @@ namespace Checkmarx.API.AST
 
                         if (scanDetails.SASTResults.Successful)
                         {
-                            scanDetails.SASTResults = GetSASTScanResultDetails(scanDetails.SASTResults, resultsSummary);
+                            scanDetails = GetSASTScanResultDetails(scanDetails, resultsSummary);
 
                             // Get sast metadata
                             try
@@ -838,7 +838,7 @@ namespace Checkmarx.API.AST
 
                         if (scanDetails.SASTResults.Successful)
                         {
-                            scanDetails.SASTResults = GetSASTScanResultDetailsBydId(scanDetails.SASTResults, scanDetails.Id);
+                            scanDetails = GetSASTScanResultDetailsBydId(scanDetails, scanDetails.Id);
 
                             // Get sast metadata
                             try
@@ -909,11 +909,15 @@ namespace Checkmarx.API.AST
             return scanDetails;
         }
 
-        private ScanResultDetails GetSASTScanResultDetailsBydId(ScanResultDetails model, Guid scanId)
+        private ScanDetails GetSASTScanResultDetailsBydId(ScanDetails scanDetails, Guid scanId)
         {
-            var sastResults = GetSASTScanResultsById(scanId);
+            var model = scanDetails.SASTResults;
+
+            var sastResults = GetSASTScanResultsById(scanId).ToList();
             if (sastResults != null)
             {
+                scanDetails.SASTVulnerabilities = sastResults;
+
                 var results = sastResults.Where(x => x.State != ResultsState.NOT_EXPLOITABLE);
 
                 model.Id = scanId;
@@ -958,13 +962,15 @@ namespace Checkmarx.API.AST
                 }
             }
 
-            return model;
+            return scanDetails;
         }
 
-        private ScanResultDetails GetSASTScanResultDetails(ScanResultDetails model, ResultsSummary resultsSummary)
+        private ScanDetails GetSASTScanResultDetails(ScanDetails scanDetails, ResultsSummary resultsSummary)
         {
             if (resultsSummary == null)
-                return model;
+                return scanDetails;
+
+            var model = scanDetails.SASTResults;
 
             var sastCounters = resultsSummary.SastCounters;
 
@@ -973,13 +979,8 @@ namespace Checkmarx.API.AST
             model.Medium = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.MEDIUM).Sum(x => x.Counter);
             model.Low = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.LOW).Sum(x => x.Counter);
             model.Info = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.INFO).Sum(x => x.Counter);
-
             // ToVerify -> we dont want to include the info vulns
             model.ToVerify = sastCounters.StateCounters.Where(x => x.State == ResultsSummaryState.TO_VERIFY).Sum(x => x.Counter) - model.Info;
-            //model.ToVerify = GetSASTScanVulnerabilitiesDetails(new Guid(resultsSummary.ScanId))
-            //                .Where(x => x.State == Services.SASTResults.ResultsState.TO_VERIFY && x.Severity != ResultsSeverity.INFO).Count();
-
-
 
             model.Total = sastCounters.TotalCounter;
 
@@ -991,6 +992,8 @@ namespace Checkmarx.API.AST
             {
                 // Scan query categories
                 var scanResults = GetSASTScanVulnerabilitiesDetails(model.Id).ToList();
+
+                scanDetails.SASTVulnerabilities = scanResults;
 
                 var scanResultsHigh = scanResults.Where(x => x.Severity == ResultsSeverity.HIGH);
                 var scanResultsMedium = scanResults.Where(x => x.Severity == ResultsSeverity.MEDIUM);
@@ -1021,7 +1024,7 @@ namespace Checkmarx.API.AST
                 model.QueriesLow = null;
             }
 
-            return model;
+            return scanDetails;
         }
 
         private ScanResultDetails GetKicsScanResultDetailsBydId(ScanResultDetails model, Guid scanId)
@@ -1341,7 +1344,31 @@ namespace Checkmarx.API.AST
 
             while (true)
             {
-                var response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, 10000).Result;
+                Services.SASTResults.Response response = null;
+                int numTries = 0;
+                bool retry = true;
+                // Sometimes the call is throwing a 502 Bad Gateway. That is the reason there is this while loop - retries 3 times
+                while (retry)
+                {
+                    try
+                    {
+                        response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, 10000).Result;
+                        retry = false;
+                    }
+                    catch
+                    {
+                        retry = numTries < 3;
+
+                        if (!retry)
+                            throw;
+
+                        numTries++;
+
+                        System.Threading.Thread.Sleep(500);
+                    }
+                }
+                
+                
                 if (response.Results != null)
                 {
                     foreach (var result in response.Results)

@@ -27,6 +27,8 @@ namespace Checkmarx.API.AST.Models
         public ScanResultDetails SASTResults { get; set; }
         public ScanResultDetails ScaResults { get; set; }
         public ScanResultDetails KicsResults { get; set; }
+
+        public List<Checkmarx.API.AST.Services.SASTResults.Results> SASTVulnerabilities { get; set; }
     }
 
     public class ScanResultDetails
