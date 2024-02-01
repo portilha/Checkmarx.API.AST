@@ -622,9 +622,9 @@ namespace Checkmarx.API.AST
             return GetScans(projectId, branch: branch);
         }
 
-        public Scan GetLastScan(Guid projectId, bool fullScanOnly = false, bool completed = true, string branch = null, ScanTypeEnum scanType = ScanTypeEnum.sast)
+        public Scan GetLastScan(Guid projectId, bool fullScanOnly = false, bool completed = true, string branch = null, ScanTypeEnum scanType = ScanTypeEnum.sast, DateTime? maxScanDate = null)
         {
-            var scans = GetScans(projectId, scanType.ToString(), completed, branch, ScanRetrieveKind.All);
+            var scans = GetScans(projectId, scanType.ToString(), completed, branch, ScanRetrieveKind.All, maxScanDate);
             if (fullScanOnly)
             {
                 var fullScans = scans.Where(x => x.Metadata.Configs.Any(x => x.Value != null && !x.Value.Incremental)).OrderByDescending(x => x.CreatedAt);
@@ -670,7 +670,7 @@ namespace Checkmarx.API.AST
         /// <param name="completed"></param>
         /// <param name="scanKind"></param>
         /// <returns></returns>
-        public IEnumerable<Scan> GetScans(Guid projectId, string engine = null, bool completed = true, string branch = null, ScanRetrieveKind scanKind = ScanRetrieveKind.All)
+        public IEnumerable<Scan> GetScans(Guid projectId, string engine = null, bool completed = true, string branch = null, ScanRetrieveKind scanKind = ScanRetrieveKind.All, DateTime? maxScanDate = null)
         {
             CheckConnection();
 
@@ -685,6 +685,9 @@ namespace Checkmarx.API.AST
 
                 if (!string.IsNullOrEmpty(branch))
                     scans = scans.Where(x => x.Branch.ToLower() == branch.ToLower());
+
+                if (maxScanDate != null)
+                    scans = scans.Where(x => x.CreatedAt <= maxScanDate);
 
                 switch (scanKind)
                 {
@@ -1341,6 +1344,7 @@ namespace Checkmarx.API.AST
             CheckConnection();
 
             int startAt = 0;
+            int limit = 200;
 
             while (true)
             {
@@ -1352,7 +1356,7 @@ namespace Checkmarx.API.AST
                 {
                     try
                     {
-                        response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, 10000).Result;
+                        response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, limit).Result;
                         retry = false;
                     }
                     catch
@@ -1376,10 +1380,10 @@ namespace Checkmarx.API.AST
                         yield return result;
                     }
 
-                    if (response.Results.Count() < 10000)
+                    if (response.Results.Count() < limit)
                         yield break;
 
-                    startAt += 10000;
+                    startAt += limit;
                 }
                 else
                 {

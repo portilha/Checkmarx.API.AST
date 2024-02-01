@@ -64,7 +64,7 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void ProjectAndScanTest()
         {
-            Guid projectId = new Guid("d6b66ca5-2eae-4691-a94e-29e653e50d2c");
+            Guid projectId = new Guid("b812f573-69ae-49e9-8c76-02e9c54811a8");
 
             var project = astclient.Projects.GetProjectAsync(projectId).Result;
 
@@ -76,8 +76,14 @@ namespace Checkmarx.API.AST.Tests
 
             //var scanPreset = astclient.GetScanPresetFromConfigurations(projectId, new Guid(lastScan.Id));
 
-            var scanDetails = astclient.GetScanDetails(projectId, new Guid(lastScan.Id));
+            //var scanDetails = astclient.GetScanDetails(projectId, new Guid(lastScan.Id));
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
             var scanResults = astclient.GetSASTScanVulnerabilitiesDetails(new Guid(lastScan.Id)).ToList();
+
+            Trace.WriteLine(stopwatch.Elapsed.TotalSeconds);
+
             if (scanResults.Any())
             {
                 foreach (var resultByQuery in scanResults.GroupBy(x => x.QueryID))
