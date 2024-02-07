@@ -425,7 +425,7 @@ namespace Checkmarx.API.AST
 
             //return Projects.GetListOfProjectsAsync(200).Result;
 
-            var getLimit = 10000;
+            var getLimit = 500;
 
             var listProjects = Projects.GetListOfProjectsAsync(getLimit).Result;
             if (listProjects.TotalCount > getLimit)
@@ -481,19 +481,20 @@ namespace Checkmarx.API.AST
             CheckConnection();
 
             int startAt = 0;
+            int limit = 500;
 
             while (true)
             {
-                var response = Projects.BranchesAsync(projectId, startAt, 10000).Result;
+                var response = Projects.BranchesAsync(projectId, startAt, limit).Result;
                 foreach (var result in response)
                 {
                     yield return result;
                 }
 
-                if (response.Count() < 10000)
+                if (response.Count() < limit)
                     yield break;
 
-                startAt += 10000;
+                startAt += limit;
             }
         }
 
@@ -502,10 +503,11 @@ namespace Checkmarx.API.AST
             CheckConnection();
 
             int startAt = 0;
+            int limit = 500;
 
             while (true)
             {
-                var response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, 10000).Result;
+                var response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, limit).Result;
 
                 if(response.Results == null || !response.Results.Any())
                     yield break;
@@ -515,10 +517,10 @@ namespace Checkmarx.API.AST
                     yield return result;
                 }
 
-                if (response.Results.Count() < 10000)
+                if (response.Results.Count() < limit)
                     yield break;
 
-                startAt += 10000;
+                startAt += limit;
             }
         }
 
@@ -527,19 +529,20 @@ namespace Checkmarx.API.AST
             CheckConnection();
 
             int startAt = 0;
+            int limit = 500;
 
             while (true)
             {
-                var response = KicsResults.GetKICSResultsByScanAsync(scanId, startAt, 10000).Result;
+                var response = KicsResults.GetKICSResultsByScanAsync(scanId, startAt, limit).Result;
                 foreach (var result in response.Results)
                 {
                     yield return result;
                 }
 
-                if (response.Results.Count() < 10000)
+                if (response.Results.Count() < limit)
                     yield break;
 
-                startAt += 10000;
+                startAt += limit;
             }
         }
 
@@ -548,19 +551,20 @@ namespace Checkmarx.API.AST
             CheckConnection();
 
             int startAt = 0;
+            int limit = 500;
 
             while (true)
             {
-                var response = ScannersResults.GetResultsByScanAsync(scanId, startAt, 10000).Result;
+                var response = ScannersResults.GetResultsByScanAsync(scanId, startAt, limit).Result;
                 foreach (var result in response.Results)
                 {
                     yield return result;
                 }
 
-                if (response.Results.Count() < 10000)
+                if (response.Results.Count() < limit)
                     yield break;
 
-                startAt += 10000;
+                startAt += limit;
             }
         }
 
@@ -1332,19 +1336,12 @@ namespace Checkmarx.API.AST
             return null;
         }
 
-        //public int GetScanVulnerabilitiesToVerifyNumber(Guid scanId)
-        //{
-        //    var scanResult = SASTResults.GetSASTResultsByScanAsync(scanId).Result;
-
-        //    return scanResult.Results.Where(x => x.State == Services.SASTResults.ResultsState.TO_VERIFY).Count();
-        //}
-
         public IEnumerable<Results> GetSASTScanVulnerabilitiesDetails(Guid scanId)
         {
             CheckConnection();
 
             int startAt = 0;
-            int limit = 200;
+            int limit = 500;
 
             while (true)
             {
