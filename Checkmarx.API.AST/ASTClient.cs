@@ -589,29 +589,6 @@ namespace Checkmarx.API.AST
             return Projects.CreateProjectAsync(input).Result;
         }
 
-        //public string CreateProject(string name, Dictionary<string, string> tags, string appId = null)
-        //{
-        //    string createdId = null;
-
-        //    var input = new ProjectInput()
-        //    {
-        //        Name = name
-        //    };
-
-        //    if (appId != null)
-        //        createdId = Projects.ApplicationAsync(appId, input).Result.Id;
-        //    else
-        //        createdId = Projects.CreateProjectAsync(input).Result.Id;
-
-        //    if (tags != null)
-        //    {
-        //        input.Tags = tags;
-        //        Projects.UpdateProjectAsync(new Guid(createdId), input).Wait();
-        //    }
-
-        //    return createdId;
-        //}
-
         #endregion
 
         #region Scans
