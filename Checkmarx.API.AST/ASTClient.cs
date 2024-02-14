@@ -412,7 +412,7 @@ namespace Checkmarx.API.AST
         {
             CheckConnection();
 
-            return Apps.Applications.Where(x => x.ProjectIds.Any(x => x == projectId.ToString()))?.FirstOrDefault();
+            return Apps.Applications?.Where(x => x.ProjectIds.Any(x => x == projectId.ToString()))?.FirstOrDefault();
         }
 
         #endregion
