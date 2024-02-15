@@ -261,7 +261,7 @@ namespace Checkmarx.API.AST
                         _bearerValidTo = DateTime.UtcNow.AddSeconds(_bearerExpiresIn - 300);
                     }
                 }
-                catch (Exception ex)
+                catch
                 {
                     return false;
                 }
@@ -276,6 +276,24 @@ namespace Checkmarx.API.AST
         }
 
         private string Autenticate()
+        {
+            var response = RequestAuthenticationToken();
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                JObject accessToken = JsonConvert.DeserializeObject<JObject>(response.Content.ReadAsStringAsync().Result);
+                string authToken = ((JProperty)accessToken.First).Value.ToString();
+                _bearerExpiresIn = (int)accessToken["expires_in"];
+                return authToken;
+            }
+            throw new Exception(response.Content.ReadAsStringAsync().Result);
+        }
+
+        public HttpStatusCode TestConnection()
+        {
+            return RequestAuthenticationToken().StatusCode;
+        }
+
+        private HttpResponseMessage RequestAuthenticationToken()
         {
             var identityURL = $"{AcessControlServer.AbsoluteUri}auth/realms/{Tenant}/protocol/openid-connect/token";
 
@@ -305,14 +323,8 @@ namespace Checkmarx.API.AST
 
             _httpClient.DefaultRequestHeaders.Add("Accept", "*/*");
             var response = _httpClient.SendAsync(req).Result;
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
-            {
-                JObject accessToken = JsonConvert.DeserializeObject<JObject>(response.Content.ReadAsStringAsync().Result);
-                string authToken = ((JProperty)accessToken.First).Value.ToString();
-                _bearerExpiresIn = (int)accessToken["expires_in"];
-                return authToken;
-            }
-            throw new Exception(response.Content.ReadAsStringAsync().Result);
+
+            return response;
         }
 
         #endregion

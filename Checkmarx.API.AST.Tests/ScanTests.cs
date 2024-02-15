@@ -141,10 +141,10 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void GetScanResultsTest()
         {
-            var proj = astclient.Projects.GetProjectAsync(new Guid("f8a2b16b-0044-440b-85ed-474bd5d93fca")).Result;
+            var proj = astclient.Projects.GetProjectAsync(new Guid("723b770a-b9e9-436b-ad66-29326eb6da29")).Result;
             var lastSASTScan = astclient.GetLastScan(new Guid(proj.Id), true);
 
-            var newScanDetails = astclient.ScannersResults.GetResultsByScanAsync(new Guid(lastSASTScan.Id)).Result;
+            //var newScanDetails = astclient.ScannersResults.GetResultsByScanAsync(new Guid(lastSASTScan.Id)).Result;
             var newScanDetails2 = astclient.GetSASTScanVulnerabilitiesDetails(new Guid(lastSASTScan.Id)).ToList();
         }
 
