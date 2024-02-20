@@ -288,9 +288,9 @@ namespace Checkmarx.API.AST
             throw new Exception(response.Content.ReadAsStringAsync().Result);
         }
 
-        public HttpStatusCode TestConnection()
+        public HttpResponseMessage TestConnection()
         {
-            return RequestAuthenticationToken().StatusCode;
+            return RequestAuthenticationToken();
         }
 
         private HttpResponseMessage RequestAuthenticationToken()
