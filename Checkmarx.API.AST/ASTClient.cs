@@ -463,6 +463,13 @@ namespace Checkmarx.API.AST
             return listProjects;
         }
 
+        public RichProject GetProject(Guid id)
+        {
+            CheckConnection();
+
+            return Projects.GetProjectAsync(id).Result;
+        }
+
         public void UpdateProjectTags(Guid projectId, IDictionary<string, string> tags)
         {
             CheckConnection();
