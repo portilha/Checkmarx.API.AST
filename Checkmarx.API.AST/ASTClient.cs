@@ -465,6 +465,9 @@ namespace Checkmarx.API.AST
 
         public RichProject GetProject(Guid id)
         {
+            if (id == Guid.Empty)
+                throw new ArgumentNullException(nameof(id));
+
             CheckConnection();
 
             return Projects.GetProjectAsync(id).Result;
