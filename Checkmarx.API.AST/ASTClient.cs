@@ -256,7 +256,7 @@ namespace Checkmarx.API.AST
                 {
                     if (_httpClient == null || (_bearerValidTo - DateTime.UtcNow).TotalMinutes < 5)
                     {
-                        var token = Autenticate();
+                        var token = autenticate();
                         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                         _bearerValidTo = DateTime.UtcNow.AddSeconds(_bearerExpiresIn - 300);
                     }
@@ -269,15 +269,15 @@ namespace Checkmarx.API.AST
             }
         }
 
-        private void CheckConnection()
+        private void checkConnection()
         {
             if (!Connected)
                 throw new NotSupportedException();
         }
 
-        private string Autenticate()
+        private string autenticate()
         {
-            var response = RequestAuthenticationToken();
+            var response = requestAuthenticationToken();
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 JObject accessToken = JsonConvert.DeserializeObject<JObject>(response.Content.ReadAsStringAsync().Result);
@@ -290,10 +290,10 @@ namespace Checkmarx.API.AST
 
         public HttpResponseMessage TestConnection()
         {
-            return RequestAuthenticationToken();
+            return requestAuthenticationToken();
         }
 
-        private HttpResponseMessage RequestAuthenticationToken()
+        private HttpResponseMessage requestAuthenticationToken()
         {
             var identityURL = $"{AcessControlServer.AbsoluteUri}auth/realms/{Tenant}/protocol/openid-connect/token";
 
@@ -392,7 +392,7 @@ namespace Checkmarx.API.AST
 
         public Services.Applications.ApplicationsCollection GetAllApplications()
         {
-            CheckConnection();
+            checkConnection();
 
             var getLimit = 20;
 
@@ -422,7 +422,7 @@ namespace Checkmarx.API.AST
 
         public Services.Applications.Application GetProjectApplication(Guid projectId)
         {
-            CheckConnection();
+            checkConnection();
 
             return Apps.Applications?.Where(x => x.ProjectIds.Any(x => x == projectId.ToString()))?.FirstOrDefault();
         }
@@ -433,7 +433,7 @@ namespace Checkmarx.API.AST
 
         public ProjectsCollection GetAllProjectsDetails()
         {
-            CheckConnection();
+            checkConnection();
 
             //return Projects.GetListOfProjectsAsync(200).Result;
 
@@ -468,14 +468,14 @@ namespace Checkmarx.API.AST
             if (id == Guid.Empty)
                 throw new ArgumentNullException(nameof(id));
 
-            CheckConnection();
+            checkConnection();
 
             return Projects.GetProjectAsync(id).Result;
         }
 
         public void UpdateProjectTags(Guid projectId, IDictionary<string, string> tags)
         {
-            CheckConnection();
+            checkConnection();
 
             if (tags == null)
                 throw new ArgumentNullException(nameof(tags));
@@ -500,7 +500,7 @@ namespace Checkmarx.API.AST
 
         public IEnumerable<string> GetProjectBranches(Guid projectId)
         {
-            CheckConnection();
+            checkConnection();
 
             int startAt = 0;
             int limit = 500;
@@ -522,7 +522,7 @@ namespace Checkmarx.API.AST
 
         private IEnumerable<Results> GetSASTScanResultsById(Guid scanId)
         {
-            CheckConnection();
+            checkConnection();
 
             int startAt = 0;
             int limit = 500;
@@ -548,7 +548,7 @@ namespace Checkmarx.API.AST
 
         private IEnumerable<KicsResult> GetKicsScanResultsById(Guid scanId)
         {
-            CheckConnection();
+            checkConnection();
 
             int startAt = 0;
             int limit = 500;
@@ -570,7 +570,7 @@ namespace Checkmarx.API.AST
 
         private IEnumerable<ScannerResult> GetScannersResultsById(Guid scanId)
         {
-            CheckConnection();
+            checkConnection();
 
             int startAt = 0;
             int limit = 500;
@@ -592,7 +592,7 @@ namespace Checkmarx.API.AST
 
         private IEnumerable<ResultsSummary> GetResultsSummaryById(Guid scanId)
         {
-            CheckConnection();
+            checkConnection();
 
             var response = ResultsSummary.SummaryByScansIdsAsync(new string[] { scanId.ToString() }).Result;
             return response.ScansSummaries;
@@ -600,7 +600,7 @@ namespace Checkmarx.API.AST
 
         public Checkmarx.API.AST.Services.Projects.Project CreateProject(string name, Dictionary<string, string> tags)
         {
-            CheckConnection();
+            checkConnection();
 
             var input = new ProjectInput()
             {
@@ -675,7 +675,7 @@ namespace Checkmarx.API.AST
         /// <returns></returns>
         public IEnumerable<Scan> GetScans(Guid projectId, string engine = null, bool completed = true, string branch = null, ScanRetrieveKind scanKind = ScanRetrieveKind.All, DateTime? maxScanDate = null)
         {
-            CheckConnection();
+            checkConnection();
 
             List<Scan> list = new List<Scan>();
 
@@ -729,24 +729,26 @@ namespace Checkmarx.API.AST
 
         public ScanDetails GetScanDetails(Guid projectId, Scan scan)
         {
-            CheckConnection();
+            checkConnection();
 
             if (scan == null)
                 throw new NullReferenceException($"No scan found.");
 
-            ScanDetails scanDetails = new ScanDetails();
-            scanDetails.Id = new Guid(scan.Id);
-            scanDetails.Status = scan.Status.ToString();
-            scanDetails.Successful = scan.Status == Status.Completed || scan.Status == Status.Partial;
-            scanDetails.InitiatorName = scan.Initiator;
-            scanDetails.Branch = scan.Branch;
-            scanDetails.SourceType = scan.SourceType;
-            scanDetails.SourceOrigin = scan.SourceOrigin;
-            scanDetails.FinishedOn = scan.UpdatedAt.DateTime;
-            scanDetails.Duration = scan.UpdatedAt.DateTime - scan.CreatedAt.DateTime;
-            scanDetails.Type = scan.Metadata?.Type;
-            scanDetails.RepoUrl = scan.Metadata?.Handler?.GitHandler?.RepoUrl;
-            scanDetails.UploadUrl = scan.Metadata?.Handler?.UploadHandler?.UploadUrl;
+            ScanDetails scanDetails = new()
+            {
+                Id = new Guid(scan.Id),
+                Status = scan.Status.ToString(),
+                Successful = scan.Status == Status.Completed || scan.Status == Status.Partial,
+                InitiatorName = scan.Initiator,
+                Branch = scan.Branch,
+                SourceType = scan.SourceType,
+                SourceOrigin = scan.SourceOrigin,
+                FinishedOn = scan.UpdatedAt.DateTime,
+                Duration = scan.UpdatedAt.DateTime - scan.CreatedAt.DateTime,
+                Type = scan.Metadata?.Type,
+                RepoUrl = scan.Metadata?.Handler?.GitHandler?.RepoUrl,
+                UploadUrl = scan.Metadata?.Handler?.UploadHandler?.UploadUrl
+            };
 
             if (scanDetails.Successful)
             {
@@ -755,7 +757,7 @@ namespace Checkmarx.API.AST
 
                 // Known issue where there is a successful scan, but ResultsSummary throws a 404
                 // In this case, we are going to try to fetch the sast results in another way
-                bool fetchedResultsSuccessfuly = true;
+                bool fetchedResultsSuccessfully = true;
                 try
                 {
                     var resultsSummary = GetResultsSummaryById(scanDetails.Id).FirstOrDefault();
@@ -829,10 +831,10 @@ namespace Checkmarx.API.AST
                 }
                 catch
                 {
-                    fetchedResultsSuccessfuly = false;
+                    fetchedResultsSuccessfully = false;
                 }
 
-                if (!fetchedResultsSuccessfuly)
+                if (!fetchedResultsSuccessfully)
                 {
                     // SAST
                     var sastStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == "sast").FirstOrDefault();
@@ -1227,7 +1229,7 @@ namespace Checkmarx.API.AST
 
         public Tuple<ReportResults, string> GetAstScanJsonReport(Guid projectId, Guid scanId)
         {
-            CheckConnection();
+            checkConnection();
 
             string message = string.Empty;
 
@@ -1337,7 +1339,7 @@ namespace Checkmarx.API.AST
 
         public IEnumerable<Results> GetSASTScanVulnerabilitiesDetails(Guid scanId)
         {
-            CheckConnection();
+            checkConnection();
 
             int startAt = 0;
             int limit = 500;
@@ -1390,7 +1392,7 @@ namespace Checkmarx.API.AST
 
         public Scan ReRunGitScan(Guid projectId, string repoUrl, string branch, string preset, string configuration = null)
         {
-            CheckConnection();
+            checkConnection();
 
             ScanInput scanInput = new ScanInput();
             scanInput.Project = new Services.Scans.Project() { Id = projectId.ToString() };
@@ -1421,7 +1423,7 @@ namespace Checkmarx.API.AST
 
         public Scan ReRunUploadScan(Guid projectId, Guid lastScanId, string branch, string preset, string configuration = null)
         {
-            CheckConnection();
+            checkConnection();
 
             byte[] source = Repostore.GetSourceCode(lastScanId).Result;
 
@@ -1457,25 +1459,40 @@ namespace Checkmarx.API.AST
 
         public Scan RunUploadScan(Guid projectId, byte[] source, List<ConfigType> scanTypes, string branch, string preset, string configuration = null)
         {
-            CheckConnection();
+            checkConnection();
 
             string uploadUrl = Uploads.GetPresignedURLForUploading().Result;
             Uploads.SendHTTPRequestByFullURL(uploadUrl, source).Wait();
 
-            ScanUploadInput scanInput = new ScanUploadInput();
-            scanInput.Project = new Services.Scans.Project() { Id = projectId.ToString() };
-            scanInput.Type = ScanInputType.Upload;
-            scanInput.Handler = new Upload() { Branch = branch, UploadUrl = uploadUrl };
+            ScanUploadInput scanInput = new() {
+                Project = new Services.Scans.Project() 
+                { 
+                    Id = projectId.ToString()
+                },
+                Type = ScanInputType.Upload,
+                Handler = new Upload() 
+                { 
+                    Branch = branch, 
+                    UploadUrl = uploadUrl 
+                }
+            };
 
             if (!string.IsNullOrWhiteSpace(configuration))
             {
                 var configs = new List<Config>();
                 foreach (var scanType in scanTypes)
+                {
                     configs.Add(new Config()
                     {
                         Type = scanType,
-                        Value = new Dictionary<string, string>() { ["incremental"] = "false", ["presetName"] = preset, ["defaultConfig"] = configuration }
+                        Value = new Dictionary<string, string>()
+                        {
+                            ["incremental"] = "false",
+                            ["presetName"] = preset,
+                            ["defaultConfig"] = configuration
+                        }
                     });
+                }
 
                 scanInput.Config = configs;
             }
@@ -1486,7 +1503,10 @@ namespace Checkmarx.API.AST
                     configs.Add(new Config()
                     {
                         Type = scanType,
-                        Value = new Dictionary<string, string>() { ["incremental"] = "false", ["presetName"] = preset }
+                        Value = new Dictionary<string, string>() { 
+                            ["incremental"] = "false", 
+                            ["presetName"] = preset 
+                        }
                     });
 
                 scanInput.Config = configs;
@@ -1497,7 +1517,7 @@ namespace Checkmarx.API.AST
 
         public void DeleteScan(Guid scanId)
         {
-            CheckConnection();
+            checkConnection();
 
             var scan = Scans.GetScanAsync(scanId).Result;
             if (scan != null)
@@ -1516,7 +1536,7 @@ namespace Checkmarx.API.AST
 
         public void CancelScan(Guid scanId)
         {
-            CheckConnection();
+            checkConnection();
 
             Scans.CancelScanAsync(scanId, new Body { Status = Status.Canceled.ToString() }).Wait();
         }
@@ -1527,7 +1547,7 @@ namespace Checkmarx.API.AST
 
         public void GetGroups()
         {
-            CheckConnection();
+            checkConnection();
             var groupAPI = new Services.GroupsResult.GroupsResults($"{ASTServer.AbsoluteUri}auth/realms/{Tenant}/pip/groups", _httpClient);
             var groups = groupAPI.GetGroupsAsync().Result;
         }
@@ -1549,21 +1569,21 @@ namespace Checkmarx.API.AST
 
         public IEnumerable<ScanParameter> GetProjectConfigurations(Guid projectId)
         {
-            CheckConnection();
+            checkConnection();
 
             return Configuration.ProjectAllAsync(projectId.ToString()).Result;
         }
 
         public IEnumerable<ScanParameter> GetTenantConfigurations()
         {
-            CheckConnection();
+            checkConnection();
 
             return Configuration.TenantAllAsync().Result;
         }
 
         public IEnumerable<ScanParameter> GetScanConfigurations(Guid projectId, Guid scanId)
         {
-            CheckConnection();
+            checkConnection();
 
             return Configuration.ScanAsync(projectId.ToString(), scanId.ToString()).Result;
         }
@@ -1615,7 +1635,7 @@ namespace Checkmarx.API.AST
 
         public void SetProjectExclusions(Guid projectId, string exclusions)
         {
-            CheckConnection();
+            checkConnection();
 
             List<ScanParameter> body = new List<ScanParameter>() {
                 new ScanParameter()
@@ -1662,7 +1682,7 @@ namespace Checkmarx.API.AST
 
         public IEnumerable<PresetSummary> GetAllPresets()
         {
-            CheckConnection();
+            checkConnection();
 
             var getLimit = 20;
 
@@ -1692,49 +1712,49 @@ namespace Checkmarx.API.AST
 
         public IEnumerable<Services.SASTQuery.Query> GetTenantQueries()
         {
-            CheckConnection();
+            checkConnection();
 
             return SASTQuery.GetQueries();
         }
 
         public IEnumerable<Services.SASTQuery.Query> GetProjectQueries(Guid projectId)
         {
-            CheckConnection();
+            checkConnection();
 
             return SASTQuery.GetQueriesForProject(projectId.ToString());
         }
 
         public IEnumerable<Services.SASTQuery.Query> GetTeamCorpLevelQueries(Guid projectId)
         {
-            CheckConnection();
+            checkConnection();
 
             return SASTQuery.GetQueriesForProject(projectId.ToString());
         }
 
         public Services.SASTQuery.Query GetProjectQuery(Guid projectId, string queryPath, bool tenantLevel)
         {
-            CheckConnection();
+            checkConnection();
 
             return SASTQuery.GetQueryForProject(projectId.ToString(), queryPath, tenantLevel);
         }
 
         public Services.SASTQuery.Query GetCxLevelQuery(string queryPath)
         {
-            CheckConnection();
+            checkConnection();
 
             return SASTQuery.GetCxLevelQuery(queryPath);
         }
 
         public void SaveProjectQuery(Guid projectId, string queryName, string queryPath, string source)
         {
-            CheckConnection();
+            checkConnection();
 
             SASTQuery.SaveProjectQuery(projectId.ToString(), queryName, queryPath, source);
         }
 
         public void DeleteProjectQuery(Guid projectId, string queryPath)
         {
-            CheckConnection();
+            checkConnection();
 
             SASTQuery.DeleteProjectQuery(projectId.ToString(), queryPath);
         }
@@ -1755,12 +1775,12 @@ namespace Checkmarx.API.AST
 
         private string GetScanLogs(string scanId, string engine)
         {
-            CheckConnection();
+            checkConnection();
 
             string serverRestEndpoint = $"{ASTServer.AbsoluteUri}api/logs/{scanId}/{engine}";
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(serverRestEndpoint);
             request.Method = "GET";
-            request.Headers.Add("Authorization", Autenticate());
+            request.Headers.Add("Authorization", autenticate());
             request.AllowAutoRedirect = false;
 
             string result = null;
@@ -1774,7 +1794,7 @@ namespace Checkmarx.API.AST
                         string serverRestEndpoint2 = response.Headers.Get("location");
                         HttpWebRequest request2 = (HttpWebRequest)WebRequest.Create(serverRestEndpoint2);
                         request2.Method = "GET";
-                        request2.Headers.Add("Authorization", Autenticate());
+                        request2.Headers.Add("Authorization", autenticate());
                         request2.AllowAutoRedirect = false;
                         using (HttpWebResponse response2 = (HttpWebResponse)request2.GetResponse())
                         {
