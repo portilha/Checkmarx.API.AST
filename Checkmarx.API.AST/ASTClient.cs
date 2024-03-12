@@ -1423,6 +1423,12 @@ namespace Checkmarx.API.AST
 
         public Scan ReRunUploadScan(Guid projectId, Guid lastScanId, string branch, string preset, string configuration = null)
         {
+            if (projectId == Guid.Empty)
+                throw new ArgumentNullException(nameof(projectId));
+
+            if (lastScanId == Guid.Empty)
+                throw new ArgumentNullException(nameof(lastScanId));
+
             checkConnection();
 
             byte[] source = Repostore.GetSourceCode(lastScanId).Result;
@@ -1457,8 +1463,14 @@ namespace Checkmarx.API.AST
             return Scans.CreateScanUploadAsync(scanInput).Result;
         }
 
-        public Scan RunUploadScan(Guid projectId, byte[] source, List<ConfigType> scanTypes, string branch, string preset, string configuration = null)
+        public Scan RunUploadScan(Guid projectId, byte[] source, IEnumerable<ConfigType> scanTypes, string branch, string preset, string configuration = null)
         {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+
+            if (scanTypes == null || !scanTypes.Any())
+                throw new ArgumentNullException(nameof(scanTypes));
+
             checkConnection();
 
             string uploadUrl = Uploads.GetPresignedURLForUploading().Result;
