@@ -2356,8 +2356,11 @@ namespace Checkmarx.API.AST.Services.Scans
         [System.Runtime.Serialization.EnumMember(Value = @"microengines")]
         Microengines = 3,
 
+        [System.Runtime.Serialization.EnumMember(Value = @"apisec")]
+        ApiSec = 4,
+
         [System.Runtime.Serialization.EnumMember(Value = @"system")]
-        System = 4,
+        System = 5,
 
     }
 
