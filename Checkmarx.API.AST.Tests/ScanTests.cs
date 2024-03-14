@@ -302,9 +302,10 @@ namespace Checkmarx.API.AST.Tests
             astclient.DeleteScan(new Guid(gitReScanResult.Id));
         }
 
+        [TestMethod]
         public void ReRunScanZipTest()
         {
-            var uploadProj = astclient.Projects.GetProjectAsync(new Guid("fd71de0b-b3db-40a8-a885-8c2d0eb481b6")).Result;
+            var uploadProj = astclient.Projects.GetProjectAsync(new Guid("3dc2bd80-3dd6-4208-b6cf-9ec5268c49c9")).Result;
             var uploadProjLastScan = astclient.GetLastScan(new Guid(uploadProj.Id), true);
             //var uploadProjLastScan = astclient.Scans.GetScanAsync(new Guid("8f252210-cd6f-4d68-b158-9d7cece265ca")).Result;
             var uploadProjScanDetails = astclient.GetScanDetails(new Guid(uploadProj.Id), new Guid(uploadProjLastScan.Id));

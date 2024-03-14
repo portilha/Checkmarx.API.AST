@@ -2353,8 +2353,11 @@ namespace Checkmarx.API.AST.Services.Scans
         [System.Runtime.Serialization.EnumMember(Value = @"kics")]
         Kics = 2,
 
+        [System.Runtime.Serialization.EnumMember(Value = @"microengines")]
+        Microengines = 3,
+
         [System.Runtime.Serialization.EnumMember(Value = @"system")]
-        System = 3,
+        System = 4,
 
     }
 
