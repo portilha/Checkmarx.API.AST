@@ -32,6 +32,7 @@ using System.Net;
 using System.Text;
 using Checkmarx.API.AST.Services.ResultsOverview;
 using Checkmarx.API.AST.Services.PresetManagement;
+using Checkmarx.API.AST.Services.SASTResultsPredicates;
 
 namespace Checkmarx.API.AST
 {
@@ -119,6 +120,19 @@ namespace Checkmarx.API.AST
                     _SASTResults = new SASTResults($"{ASTServer.AbsoluteUri}api/sast-results", _httpClient);
 
                 return _SASTResults;
+            }
+        }
+
+        // Engine SAST results Predicates
+        private SASTResultsPredicates _SASTResultsPredicates;
+        public SASTResultsPredicates SASTResultsPredicates
+        {
+            get
+            {
+                if (_SASTResultsPredicates == null && Connected)
+                    _SASTResultsPredicates = new SASTResultsPredicates($"{ASTServer.AbsoluteUri}api/sast-results-predicates", _httpClient);
+
+                return _SASTResultsPredicates;
             }
         }
 

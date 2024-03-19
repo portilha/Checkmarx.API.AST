@@ -305,7 +305,7 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void ReRunScanZipTest()
         {
-            var uploadProj = astclient.Projects.GetProjectAsync(new Guid("3dc2bd80-3dd6-4208-b6cf-9ec5268c49c9")).Result;
+            var uploadProj = astclient.Projects.GetProjectAsync(new Guid("604e406d-c186-43ff-8694-ab295c39ea78")).Result;
             var uploadProjLastScan = astclient.GetLastScan(new Guid(uploadProj.Id), true);
             //var uploadProjLastScan = astclient.Scans.GetScanAsync(new Guid("8f252210-cd6f-4d68-b158-9d7cece265ca")).Result;
             var uploadProjScanDetails = astclient.GetScanDetails(new Guid(uploadProj.Id), new Guid(uploadProjLastScan.Id));
