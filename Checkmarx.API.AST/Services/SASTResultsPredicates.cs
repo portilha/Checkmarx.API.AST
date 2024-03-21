@@ -18,6 +18,7 @@
 
 namespace Checkmarx.API.AST.Services.SASTResultsPredicates
 {
+    using Checkmarx.API.AST.Services.SASTResults;
     using Microsoft.Extensions.Primitives;
     using System = global::System;
 
@@ -71,7 +72,7 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
         /// <param name="include_comment_json">if true, will include the comment's JSON data in the response.</param>
         /// <returns>successful operation</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<Response> GetPredicatesBySimilarityIDAsync(string similarityID, System.Collections.Generic.IEnumerable<string> project_ids = null, string authorization = null, string accept = null, System.Guid? correlationId = null, bool? include_comment_json = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<Response> GetPredicatesBySimilarityIDAsync(long similarityID, System.Collections.Generic.IEnumerable<string> project_ids = null, string authorization = null, string accept = null, System.Guid? correlationId = null, bool? include_comment_json = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (similarityID == null)
                 throw new System.ArgumentNullException("similarityID");
@@ -194,7 +195,7 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
         /// <param name="project_ids">filter by project-ids. OR operator between the items. if not set will return all projects.</param>
         /// <returns>successful operation</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<Response2> GetLatestPredicatesBySimilarityIDAsync(string similarityID, System.Collections.Generic.IEnumerable<string> project_ids = null, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<Response2> GetLatestPredicatesBySimilarityIDAsync(long similarityID, System.Collections.Generic.IEnumerable<string> project_ids = null, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (similarityID == null)
                 throw new System.ArgumentNullException("similarityID");
@@ -762,53 +763,53 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
         }
     }
 
-    /// <summary>
-    /// state enum of a result.
-    /// </summary>
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.0.3.0 (NJsonSchema v11.0.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public enum StateEnum
-    {
+    ///// <summary>
+    ///// state enum of a result.
+    ///// </summary>
+    //[System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.0.3.0 (NJsonSchema v11.0.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    //public enum StateEnum
+    //{
 
-        [System.Runtime.Serialization.EnumMember(Value = @"TO_VERIFY")]
-        TO_VERIFY = 0,
+    //    [System.Runtime.Serialization.EnumMember(Value = @"TO_VERIFY")]
+    //    TO_VERIFY = 0,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"NOT_EXPLOITABLE")]
-        NOT_EXPLOITABLE = 1,
+    //    [System.Runtime.Serialization.EnumMember(Value = @"NOT_EXPLOITABLE")]
+    //    NOT_EXPLOITABLE = 1,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"PROPOSED_NOT_EXPLOITABLE")]
-        PROPOSED_NOT_EXPLOITABLE = 2,
+    //    [System.Runtime.Serialization.EnumMember(Value = @"PROPOSED_NOT_EXPLOITABLE")]
+    //    PROPOSED_NOT_EXPLOITABLE = 2,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"CONFIRMED")]
-        CONFIRMED = 3,
+    //    [System.Runtime.Serialization.EnumMember(Value = @"CONFIRMED")]
+    //    CONFIRMED = 3,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"URGENT")]
-        URGENT = 4,
+    //    [System.Runtime.Serialization.EnumMember(Value = @"URGENT")]
+    //    URGENT = 4,
 
-    }
+    //}
 
-    /// <summary>
-    /// The severity of the vulnerability
-    /// </summary>
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.0.3.0 (NJsonSchema v11.0.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public enum SeverityEnum
-    {
+    ///// <summary>
+    ///// The severity of the vulnerability
+    ///// </summary>
+    //[System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.0.3.0 (NJsonSchema v11.0.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    //public enum SeverityEnum
+    //{
 
-        [System.Runtime.Serialization.EnumMember(Value = @"CRITICAL")]
-        CRITICAL = 0,
+    //    [System.Runtime.Serialization.EnumMember(Value = @"CRITICAL")]
+    //    CRITICAL = 0,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"HIGH")]
-        HIGH = 1,
+    //    [System.Runtime.Serialization.EnumMember(Value = @"HIGH")]
+    //    HIGH = 1,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"MEDIUM")]
-        MEDIUM = 2,
+    //    [System.Runtime.Serialization.EnumMember(Value = @"MEDIUM")]
+    //    MEDIUM = 2,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"LOW")]
-        LOW = 3,
+    //    [System.Runtime.Serialization.EnumMember(Value = @"LOW")]
+    //    LOW = 3,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"INFO")]
-        INFO = 4,
+    //    [System.Runtime.Serialization.EnumMember(Value = @"INFO")]
+    //    INFO = 4,
 
-    }
+    //}
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.0.3.0 (NJsonSchema v11.0.0.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class PredicateHistory
@@ -865,11 +866,11 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
 
         [Newtonsoft.Json.JsonProperty("severity", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
-        public SeverityEnum Severity { get; set; }
+        public ResultsSeverity Severity { get; set; }
 
         [Newtonsoft.Json.JsonProperty("state", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
-        public StateEnum State { get; set; }
+        public ResultsState State { get; set; }
 
         /// <summary>
         /// comment that describes why the state has predicated. max length is 1024. can be empty.
@@ -936,11 +937,11 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
 
         [Newtonsoft.Json.JsonProperty("severity", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
-        public SeverityEnum Severity { get; set; }
+        public Checkmarx.API.AST.Services.SASTResults.ResultsSeverity Severity { get; set; }
 
         [Newtonsoft.Json.JsonProperty("state", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
-        public StateEnum State { get; set; }
+        public ResultsState State { get; set; }
 
         /// <summary>
         /// comment that describes why the state has predicated. max length is 1024. can be empty.
@@ -1010,11 +1011,11 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
 
         [Newtonsoft.Json.JsonProperty("severity", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
-        public SeverityEnum Severity { get; set; }
+        public ResultsSeverity Severity { get; set; }
 
         [Newtonsoft.Json.JsonProperty("state", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
-        public StateEnum State { get; set; }
+        public ResultsState State { get; set; }
 
         /// <summary>
         /// comment that describes why the state has predicated. max length is 1024. can be empty.
@@ -1145,11 +1146,11 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
 
         [Newtonsoft.Json.JsonProperty("severity", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
-        public SeverityEnum Severity { get; set; }
+        public Checkmarx.API.AST.Services.SASTResults.ResultsSeverity Severity { get; set; }
 
         [Newtonsoft.Json.JsonProperty("state", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
-        public StateEnum State { get; set; }
+        public ResultsState State { get; set; }
 
         /// <summary>
         /// comment that describe why the state has predicated

@@ -582,7 +582,7 @@ namespace Checkmarx.API.AST
             }
         }
 
-        private IEnumerable<ScannerResult> GetScannersResultsById(Guid scanId)
+        public IEnumerable<ScannerResult> GetScannersResultsById(Guid scanId, params string[] engines)
         {
             checkConnection();
 
@@ -594,7 +594,8 @@ namespace Checkmarx.API.AST
                 var response = ScannersResults.GetResultsByScanAsync(scanId, startAt, limit).Result;
                 foreach (var result in response.Results)
                 {
-                    yield return result;
+                    if(engines == null || (engines != null && engines.Contains(result.Type)))
+                        yield return result;
                 }
 
                 if (response.Results.Count() < limit)
@@ -1639,13 +1640,22 @@ namespace Checkmarx.API.AST
             return "Default";
         }
 
-        public Tuple<string, string> GetProjectExclusions(Guid projectId)
+        public string GetProjectExclusions(Guid projectId)
         {
             var config = GetProjectConfigurations(projectId).Where(x => x.Key == "scan.config.sast.filter").FirstOrDefault();
             if (config != null && !string.IsNullOrWhiteSpace(config.Value))
+                return config.Value;
+
+            return null;
+        }
+
+        public Tuple<string, string> GetProjectFilesAndFoldersExclusions(Guid projectId)
+        {
+            var config = GetProjectExclusions(projectId);
+            if (!string.IsNullOrWhiteSpace(config))
             {
                 char[] delimiters = new[] { ',', ';' };
-                var exclusions = config.Value.Split(delimiters, StringSplitOptions.RemoveEmptyEntries).ToList().Select(x => x.Trim());
+                var exclusions = config.Split(delimiters, StringSplitOptions.RemoveEmptyEntries).ToList().Select(x => x.Trim());
 
                 var filesList = exclusions.Where(x => x.StartsWith("."));
                 var foldersList = exclusions.Where(x => !x.StartsWith("."));

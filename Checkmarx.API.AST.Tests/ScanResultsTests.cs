@@ -7,6 +7,7 @@ using Checkmarx.API.AST.Services.Scans;
 using Flurl.Util;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -57,90 +58,74 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void GetScanResultsDetailsTest()
         {
+            bool updateState = true;
+            bool updateSeverity = true;
+            bool updateComment = true;
+
             var projects = astclient.GetAllProjectsDetails();
 
-            var baseProject = projects.Projects.FirstOrDefault(x => x.Name == "test1"); // 6bc29809-094e-4ed4-98e9-d8ef89ea61fe
-            var projectWithResultsMarked = projects.Projects.FirstOrDefault(x => x.Name == "test1clone"); // 604e406d-c186-43ff-8694-ab295c39ea78
+            var projectWithResultsMarked = projects.Projects.FirstOrDefault(x => x.Name == "copy");
+            var projectToMarkResults = projects.Projects.FirstOrDefault(x => x.Name == "sergioCopy");
 
-            var lastScanFromBaseProject = astclient.GetLastScan(new Guid(baseProject.Id));
             var lastScanFromProjectWithResultsMarked = astclient.GetLastScan(new Guid(projectWithResultsMarked.Id));
+            var lastScanFromProjectToMarkResults = astclient.GetLastScan(new Guid(projectToMarkResults.Id));
 
-            var scanResultsMatch = CheckIfTheScanResultsMatchBetween2Scans(astclient, new Guid(lastScanFromBaseProject.Id), astclient, new Guid(lastScanFromProjectWithResultsMarked.Id));
+            var resultsFromScan1 = astclient.GetSASTScanVulnerabilitiesDetails(new Guid(lastScanFromProjectWithResultsMarked.Id)).ToList();
+            var resultsFromScan2 = astclient.GetSASTScanVulnerabilitiesDetails(new Guid(lastScanFromProjectToMarkResults.Id)).ToList();
 
-            if(scanResultsMatch)
-                MarkScanResultsBasedOnAnotherScan(astclient, new Guid(projectWithResultsMarked.Id), new Guid(lastScanFromProjectWithResultsMarked.Id), astclient, new Guid(baseProject.Id), new Guid(lastScanFromBaseProject.Id));
-        }
-
-        private bool CheckIfTheScanResultsMatchBetween2Scans(ASTClient client1, Guid scan1, ASTClient client2, Guid scan2)
-        {
-            var resultsFromScan1 = client1.GetSASTScanVulnerabilitiesDetails(scan1).ToList();
-            var resultsFromScan2 = client2.GetSASTScanVulnerabilitiesDetails(scan2).ToList();
-
-            if (resultsFromScan1.Count() != resultsFromScan2.Count())
-                return false;
-
-            foreach (var result in resultsFromScan1)
+            foreach (var result in resultsFromScan2)
             {
-                if (!resultsFromScan2.Any(x => x.SimilarityID == result.SimilarityID))
-                    return false;
-            }
+                var baseResult = resultsFromScan1.Where(x => x.SimilarityID == result.SimilarityID && x.QueryID == result.QueryID).FirstOrDefault();
 
-            return true;
-        }
-
-        private void MarkScanResultsBasedOnAnotherScan(ASTClient baseASTclient, Guid baseProjectId, Guid baseScanId, ASTClient astclientToUpdate, Guid projectToUpdateId, Guid scanToUpdateResultsId)
-        {
-            var resultsFromScan1 = baseASTclient.GetSASTScanVulnerabilitiesDetails(baseScanId).ToList();
-            var resultsFromScan2 = astclientToUpdate.GetSASTScanVulnerabilitiesDetails(scanToUpdateResultsId).ToList();
-
-            List<PredicateBySimiliartyIdBody> body = new List<PredicateBySimiliartyIdBody>();
-            foreach (var result in resultsFromScan1)
-            {
-                var resultToUpdate = resultsFromScan2.Where(x => x.SimilarityID == result.SimilarityID).FirstOrDefault();
-                if (resultToUpdate == null)
-                {
-                    Console.WriteLine($"No result found for SimilarityID {result.SimilarityID}");
+                if (baseResult == null)
                     continue;
-                }
 
-                if (resultToUpdate.State == result.State)
+                try
                 {
-                    Console.WriteLine($"No state result changed for SimilarityID {result.SimilarityID}");
-                    continue;
-                }
-
-                PredicateWithCommentJSON latestPredicate = null;
-
-                var resultPedricate = baseASTclient.SASTResultsPredicates.GetPredicatesBySimilarityIDAsync(result.SimilarityID.ToString()).Result;
-                if (resultPedricate.PredicateHistoryPerProject.Any())
-                {
-                    var projPredicater = resultPedricate.PredicateHistoryPerProject.Where(x => x.ProjectId == baseProjectId.ToString()).FirstOrDefault();
-                    if(projPredicater != null)
+                    PredicateHistory predicateHistory = null;
+                    var resultPedricate = astclient.SASTResultsPredicates.GetPredicatesBySimilarityIDAsync(result.SimilarityID).Result;
+                    if (resultPedricate.PredicateHistoryPerProject.Any())
                     {
-                        latestPredicate = projPredicater.Predicates.Where(x => x.State.ToString() == result.State.ToString()).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+                        predicateHistory = resultPedricate.PredicateHistoryPerProject.Where(x => x.ProjectId == projectWithResultsMarked.Id.ToString()).FirstOrDefault();
+                        if (predicateHistory == null)
+                            continue;
+
+                        List<PredicateBySimiliartyIdBody> body = new List<PredicateBySimiliartyIdBody>();
+                        foreach (var predicate in predicateHistory.Predicates.Reverse())
+                        {
+                            PredicateBySimiliartyIdBody newBody = new PredicateBySimiliartyIdBody();
+                            newBody.SimilarityId = predicate.SimilarityId;
+                            newBody.ProjectId = projectToMarkResults.Id.ToString();
+                            newBody.Severity = updateSeverity ? predicate.Severity : result.Severity;
+                            newBody.State = updateState ? predicate.State : result.State;
+                            newBody.Comment = updateComment ? predicate.Comment : null;
+
+                            body.Add(newBody);
+                        }
+
+                        if (body.Any())
+                        {
+                            astclient.SASTResultsPredicates.PredicateBySimiliartyIdAndProjectIdAsync(body).Wait();
+                        }
                     }
                 }
-
-                if (latestPredicate == null)
+                catch (Exception ex)
                 {
-                    Console.WriteLine($"No results predicate found for SimilarityID {result.SimilarityID}.");
-                    continue;
+                    Trace.WriteLine($"Fail to update result with id {result.ID} because {ex.Message}");
                 }
-
-                PredicateBySimiliartyIdBody newBody = new PredicateBySimiliartyIdBody();
-                newBody.SimilarityId = latestPredicate.SimilarityId;
-                newBody.ProjectId = projectToUpdateId.ToString();
-                newBody.Severity = latestPredicate.Severity;
-                newBody.State = latestPredicate.State;
-                newBody.Comment = latestPredicate.Comment;
-
-                body.Add(newBody);
             }
+        }
 
-            if(body.Any())
-                astclientToUpdate.SASTResultsPredicates.PredicateBySimiliartyIdAndProjectIdAsync(body).Wait();
-            else
-                Console.WriteLine($"No result state changes detected between scans.");
+
+        [TestMethod]
+        public void ResultsMarkingTest()
+        {
+            PredicateBySimiliartyIdBody newBody = new PredicateBySimiliartyIdBody();
+            newBody.SimilarityId = "-25232135";
+            newBody.ProjectId = "4bceceba-3be8-4ef6-b822-c7fee658fbf8/sast";
+            newBody.Severity = Services.SASTResults.ResultsSeverity.HIGH;
+            newBody.State = Services.SASTResults.ResultsState.NOT_EXPLOITABLE;
+            newBody.Comment = "Test comment";
         }
     }
 }

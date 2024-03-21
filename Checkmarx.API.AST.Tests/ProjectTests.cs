@@ -223,7 +223,7 @@ namespace Checkmarx.API.AST.Tests
         {
             Guid projectId = new Guid("155b3c81-5b85-4bdc-9eb2-e69062f6fc7d");
 
-            var test = astclient.GetProjectExclusions(projectId);
+            var test = astclient.GetProjectFilesAndFoldersExclusions(projectId);
         }
 
         [TestMethod]
