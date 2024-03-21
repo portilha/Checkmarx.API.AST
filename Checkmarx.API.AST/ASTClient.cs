@@ -642,17 +642,31 @@ namespace Checkmarx.API.AST
 
         public Scan GetLastScan(Guid projectId, bool fullScanOnly = false, bool completed = true, string branch = null, ScanTypeEnum scanType = ScanTypeEnum.sast, DateTime? maxScanDate = null)
         {
-            var scans = GetScans(projectId, scanType.ToString(), completed, branch, ScanRetrieveKind.All, maxScanDate);
-            if (fullScanOnly)
+            if (!fullScanOnly && !maxScanDate.HasValue)
             {
-                var fullScans = scans.Where(x => x.Metadata.Configs.Any(x => x.Value != null && !x.Value.Incremental)).OrderByDescending(x => x.CreatedAt);
-                if (fullScans.Any())
-                    return fullScans.FirstOrDefault();
-                else
-                    return scans.OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+                var scanStatus = completed ? Checkmarx.API.AST.Services.Scans.Status.Completed.ToString() : null;
+
+                var scans = this.Projects.GetProjectLastScan(new List<Guid>() { projectId }, scan_status: scanStatus, branch: branch, engine: scanType.ToString()).Result;
+
+                if (scans.ContainsKey(projectId.ToString()))
+                    return this.Scans.GetScanAsync(new Guid(scans[projectId.ToString()].Id)).Result;
+
+                return null;
             }
             else
-                return scans.FirstOrDefault();
+            {
+                var scans = GetScans(projectId, scanType.ToString(), completed, branch, ScanRetrieveKind.All, maxScanDate);
+                if (fullScanOnly)
+                {
+                    var fullScans = scans.Where(x => x.Metadata.Configs.Any(x => x.Value != null && !x.Value.Incremental)).OrderByDescending(x => x.CreatedAt);
+                    if (fullScans.Any())
+                        return fullScans.FirstOrDefault();
+                    else
+                        return scans.OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+                }
+                else
+                    return scans.FirstOrDefault();
+            }
         }
 
         public Scan GetFirstSASTScan(Guid projectId, string branch = null)

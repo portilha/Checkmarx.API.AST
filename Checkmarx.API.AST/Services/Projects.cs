@@ -427,7 +427,7 @@ namespace Checkmarx.API.AST.Services.Projects
         /// <param name="engine">Engine type of the scan</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.IDictionary<string, SubsetScan>> GetMapProjectIdToSCanAsync(string authorization = null, string accept = null, System.Guid? correlationId = null, int? offset = null, int? limit = null, System.Collections.Generic.IEnumerable<string> project_ids = null, string application_id = null, string scan_status = null, string branch = null, string engine = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.IDictionary<string, SubsetScan>> GetProjectLastScan(System.Collections.Generic.IEnumerable<Guid> project_ids, int? offset = null, int? limit = null, string authorization = null, string accept = null, System.Guid? correlationId = null, string application_id = null, string scan_status = null, string branch = null, string engine = null, string sast_status = null, string kics_status = null, string sca_status = null, string apisec_status = null, string microengines_status = null, string containers_status = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/last-scan?");
@@ -458,6 +458,30 @@ namespace Checkmarx.API.AST.Services.Projects
             if (engine != null)
             {
                 urlBuilder_.Append(System.Uri.EscapeDataString("engine") + "=").Append(System.Uri.EscapeDataString(ConvertToString(engine, System.Globalization.CultureInfo.InvariantCulture))).Append("&");
+            }
+            if (sast_status != null)
+            {
+                urlBuilder_.Append(System.Uri.EscapeDataString("sast-status")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(sast_status, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+            }
+            if (kics_status != null)
+            {
+                urlBuilder_.Append(System.Uri.EscapeDataString("kics-status")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(kics_status, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+            }
+            if (sca_status != null)
+            {
+                urlBuilder_.Append(System.Uri.EscapeDataString("sca-status")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(sca_status, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+            }
+            if (apisec_status != null)
+            {
+                urlBuilder_.Append(System.Uri.EscapeDataString("apisec-status")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(apisec_status, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+            }
+            if (microengines_status != null)
+            {
+                urlBuilder_.Append(System.Uri.EscapeDataString("microengines-status")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(microengines_status, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+            }
+            if (containers_status != null)
+            {
+                urlBuilder_.Append(System.Uri.EscapeDataString("containers-status")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(containers_status, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
             }
             urlBuilder_.Length--;
 

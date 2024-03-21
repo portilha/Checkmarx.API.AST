@@ -64,15 +64,15 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void ProjectAndScanTest()
         {
-            Guid projectId = new Guid("b812f573-69ae-49e9-8c76-02e9c54811a8");
+            Guid projectId = new Guid("2c5f30fd-c02f-4fa9-9a3c-816ade9d0cb4");
 
-            var project = astclient.Projects.GetProjectAsync(projectId).Result;
-
-            var lastScan = astclient.GetLastScan(projectId, true, true);
+            var lastScan = astclient.GetLastScan(projectId, branch: "master");
             if (lastScan == null)
             {
                 return;
             }
+
+            var project = astclient.Projects.GetProjectAsync(projectId).Result;
 
             //var scanPreset = astclient.GetScanPresetFromConfigurations(projectId, new Guid(lastScan.Id));
 
