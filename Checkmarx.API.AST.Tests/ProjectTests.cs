@@ -219,6 +219,18 @@ namespace Checkmarx.API.AST.Tests
         }
 
         [TestMethod]
+        public void GetAndAPISecuritySwaggerFolderFileFilterTest()
+        {
+            Guid projectId = new Guid("4bceceba-3be8-4ef6-b822-c7fee658fbf8");
+
+            var setting = astclient.GetAPISecuritySwaggerFolderFileFilter(projectId);
+
+            astclient.SetAPISecuritySwaggerFolderFileFilter(projectId, "*");
+
+            var setting2 = astclient.GetAPISecuritySwaggerFolderFileFilter(projectId);
+        }
+
+        [TestMethod]
         public void GetExclusionsTest()
         {
             Guid projectId = new Guid("155b3c81-5b85-4bdc-9eb2-e69062f6fc7d");

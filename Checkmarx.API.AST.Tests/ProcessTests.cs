@@ -125,7 +125,7 @@ namespace Checkmarx.API.AST.Tests
             var preset = "ASA Premium";
             var configuration = "Default";
 
-            var newScan = astclient.ReRunUploadScan(new Guid(project.Id), new Guid(lastScan.Id), branch, preset, configuration);
+            var newScan = astclient.ReRunUploadScan(new Guid(project.Id), new Guid(lastScan.Id), new List<ConfigType>() { ConfigType.Sast }, branch, preset, configuration);
 
             bool scanIsRuning = true;
             while (scanIsRuning)

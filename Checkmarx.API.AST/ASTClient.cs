@@ -1419,7 +1419,7 @@ namespace Checkmarx.API.AST
             }
         }
 
-        public Scan ReRunGitScan(Guid projectId, string repoUrl, string branch, string preset, string configuration = null)
+        public Scan ReRunGitScan(Guid projectId, string repoUrl, IEnumerable<ConfigType> scanTypes, string branch, string preset, string configuration = null)
         {
             checkConnection();
 
@@ -1430,27 +1430,44 @@ namespace Checkmarx.API.AST
 
             if (!string.IsNullOrWhiteSpace(configuration))
             {
-                scanInput.Config = new List<Config>() {
-                    new Config(){
-                        Type = ConfigType.Sast,
-                        Value = new Dictionary<string, string>() { ["incremental"] = "false", ["presetName"] = preset, ["defaultConfig"] = configuration }
-                    }
-                };
+                var configs = new List<Config>();
+                foreach (var scanType in scanTypes)
+                {
+                    configs.Add(new Config()
+                    {
+                        Type = scanType,
+                        Value = new Dictionary<string, string>()
+                        {
+                            ["incremental"] = "false",
+                            ["presetName"] = preset,
+                            ["defaultConfig"] = configuration
+                        }
+                    });
+                }
+
+                scanInput.Config = configs;
             }
             else
             {
-                scanInput.Config = new List<Config>() {
-                    new Config(){
-                        Type = ConfigType.Sast,
-                        Value = new Dictionary<string, string>() { ["incremental"] = "false", ["presetName"] = preset }
-                    }
-                };
+                var configs = new List<Config>();
+                foreach (var scanType in scanTypes)
+                    configs.Add(new Config()
+                    {
+                        Type = scanType,
+                        Value = new Dictionary<string, string>()
+                        {
+                            ["incremental"] = "false",
+                            ["presetName"] = preset
+                        }
+                    });
+
+                scanInput.Config = configs;
             }
 
             return Scans.CreateScanAsync(scanInput).Result;
         }
 
-        public Scan ReRunUploadScan(Guid projectId, Guid lastScanId, string branch, string preset, string configuration = null)
+        public Scan ReRunUploadScan(Guid projectId, Guid lastScanId, IEnumerable<ConfigType> scanTypes, string branch, string preset, string configuration = null)
         {
             if (projectId == Guid.Empty)
                 throw new ArgumentNullException(nameof(projectId));
@@ -1462,34 +1479,7 @@ namespace Checkmarx.API.AST
 
             byte[] source = Repostore.GetSourceCode(lastScanId).Result;
 
-            string uploadUrl = Uploads.GetPresignedURLForUploading().Result;
-            Uploads.SendHTTPRequestByFullURL(uploadUrl, source).Wait();
-
-            ScanUploadInput scanInput = new ScanUploadInput();
-            scanInput.Project = new Services.Scans.Project() { Id = projectId.ToString() };
-            scanInput.Type = ScanInputType.Upload;
-            scanInput.Handler = new Upload() { Branch = branch, UploadUrl = uploadUrl };
-
-            if (!string.IsNullOrWhiteSpace(configuration))
-            {
-                scanInput.Config = new List<Config>() {
-                    new Config(){
-                        Type = ConfigType.Sast,
-                        Value = new Dictionary<string, string>() { ["incremental"] = "false", ["presetName"] = preset, ["defaultConfig"] = configuration }
-                    }
-                };
-            }
-            else
-            {
-                scanInput.Config = new List<Config>() {
-                    new Config(){
-                        Type = ConfigType.Sast,
-                        Value = new Dictionary<string, string>() { ["incremental"] = "false", ["presetName"] = preset }
-                    }
-                };
-            }
-
-            return Scans.CreateScanUploadAsync(scanInput).Result;
+            return RunUploadScan(projectId, source, scanTypes, branch, preset, configuration);
         }
 
         public Scan RunUploadScan(Guid projectId, byte[] source, IEnumerable<ConfigType> scanTypes, string branch, string preset, string configuration = null)
@@ -1698,7 +1688,6 @@ namespace Checkmarx.API.AST
             Configuration.UpdateProjectConfigurationAsync(projectId.ToString(), body).Wait();
         }
 
-
         public string GetProjectRepoUrl(Guid projectId)
         {
             var config = GetProjectConfigurations(projectId).Where(x => x.Key == "scan.handler.git.repository").FirstOrDefault();
@@ -1706,6 +1695,30 @@ namespace Checkmarx.API.AST
                 return config.Value;
 
             return null;
+        }
+
+        public string GetAPISecuritySwaggerFolderFileFilter(Guid projectId)
+        {
+            var config = GetProjectConfigurations(projectId).Where(x => x.Key == "scan.config.apisec.swaggerFilter").FirstOrDefault();
+            if (config != null)
+                return config.Value;
+
+            return null;
+        }
+
+        public void SetAPISecuritySwaggerFolderFileFilter(Guid projectId, string filter)
+        {
+            checkConnection();
+
+            List<ScanParameter> body = new List<ScanParameter>() {
+                new ScanParameter()
+                {
+                    Key = "scan.config.apisec.swaggerFilter",
+                    Value = filter
+                }
+            };
+
+            Configuration.UpdateProjectConfigurationAsync(projectId.ToString(), body).Wait();
         }
 
         #endregion

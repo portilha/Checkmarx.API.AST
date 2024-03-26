@@ -297,7 +297,7 @@ namespace Checkmarx.API.AST.Tests
             var gitProjScanDetails = astclient.GetScanDetails(new Guid(gitProj.Id), new Guid(gitProjLastScan.Id));
             string gitProjbranch = gitProjLastScan.Branch;
 
-            var gitReScanResult = astclient.ReRunGitScan(new Guid(gitProj.Id), gitProjScanDetails.RepoUrl, gitProjbranch, gitProjScanDetails.Preset);
+            var gitReScanResult = astclient.ReRunGitScan(new Guid(gitProj.Id), gitProjScanDetails.RepoUrl, new List<ConfigType>() { ConfigType.Sast }, gitProjbranch, gitProjScanDetails.Preset);
 
             astclient.DeleteScan(new Guid(gitReScanResult.Id));
         }
@@ -311,7 +311,7 @@ namespace Checkmarx.API.AST.Tests
             var uploadProjScanDetails = astclient.GetScanDetails(new Guid(uploadProj.Id), new Guid(uploadProjLastScan.Id));
             string uploadProjBranch = uploadProjLastScan.Branch;
 
-            var uploadReScanResult = astclient.ReRunUploadScan(new Guid(uploadProj.Id), new Guid(uploadProjLastScan.Id), uploadProjBranch, uploadProjScanDetails.Preset);
+            var uploadReScanResult = astclient.ReRunUploadScan(new Guid(uploadProj.Id), new Guid(uploadProjLastScan.Id), new List<ConfigType>() { ConfigType.Sast }, uploadProjBranch, uploadProjScanDetails.Preset);
 
             //astclient.DeleteScan(new Guid("fb20eb3c-29aa-461d-ac29-12d238d7e976"));
         }
