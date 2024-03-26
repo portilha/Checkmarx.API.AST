@@ -221,13 +221,22 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void GetAndAPISecuritySwaggerFolderFileFilterTest()
         {
-            Guid projectId = new Guid("4bceceba-3be8-4ef6-b822-c7fee658fbf8");
+            Guid projectId = new Guid("441b55e8-225b-47f0-83b5-5b1f82e9d343");
 
-            var setting = astclient.GetAPISecuritySwaggerFolderFileFilter(projectId);
+            //var tenantSetting = astclient.GetTenantAPISecuritySwaggerFolderFileFilter();
 
-            astclient.SetAPISecuritySwaggerFolderFileFilter(projectId, "*");
+            //astclient.Configuration.TenantDELETEParameterAsync("scan.config.apisec.swaggerFilter").Wait();
 
-            var setting2 = astclient.GetAPISecuritySwaggerFolderFileFilter(projectId);
+            //var tenantSetting2 = astclient.GetTenantAPISecuritySwaggerFolderFileFilter();
+
+
+            var projeSetting = astclient.GetProjectAPISecuritySwaggerFolderFileFilter(projectId);
+
+            //astclient.SetProjectAPISecuritySwaggerFolderFileFilter(projectId, "*");
+
+            astclient.DeleteProjectConfiguration(projectId, "scan.config.apisec.swaggerFilter");
+
+            var setting2 = astclient.GetProjectAPISecuritySwaggerFolderFileFilter(projectId);
         }
 
         [TestMethod]

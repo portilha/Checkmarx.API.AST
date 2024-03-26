@@ -50,6 +50,12 @@ namespace Checkmarx.API.AST
         public int _bearerExpiresIn;
         private DateTime _bearerValidTo;
 
+        public const string SettingsAPISecuritySwaggerFolderFileFilter = "scan.config.apisec.swaggerFilter";
+        public const string SettingsProjectRepoUrl = "scan.handler.git.repository";
+        public const string SettingsProjectExclusions = "scan.config.sast.filter";
+        public const string SettingsProjectConfiguration = "scan.config.sast.languageMode";
+        public const string SettingsProjectPreset = "scan.config.sast.presetName";
+
         private Projects _projects;
         public Projects Projects
         {
@@ -1598,63 +1604,145 @@ namespace Checkmarx.API.AST
 
         #region Configurations
 
-        public IEnumerable<ScanParameter> GetProjectConfigurations(Guid projectId)
+        public Dictionary<string, ScanParameter> GetTenantConfigurations()
         {
             checkConnection();
 
-            return Configuration.ProjectAllAsync(projectId.ToString()).Result;
+            return Configuration.TenantAllAsync().Result?.ToDictionary(x => x.Key, y => y);
         }
 
-        public IEnumerable<ScanParameter> GetTenantConfigurations()
+        public Dictionary<string, ScanParameter> GetProjectConfigurations(Guid projectId)
         {
+            if (projectId == Guid.Empty)
+                throw new ArgumentException(nameof(projectId));
+
             checkConnection();
 
-            return Configuration.TenantAllAsync().Result;
+            return Configuration.ProjectAllAsync(projectId.ToString()).Result?.ToDictionary(x => x.Key, y => y);
+        }
+        
+
+        public Dictionary<string, ScanParameter> GetScanConfigurations(Guid projectId, Guid scanId)
+        {
+            if (projectId == Guid.Empty)
+                throw new ArgumentException(nameof(projectId));
+
+            if (scanId == Guid.Empty)
+                throw new ArgumentException(nameof(scanId));
+
+            checkConnection();
+
+            return Configuration.ScanAsync(projectId.ToString(), scanId.ToString()).Result?.ToDictionary(x => x.Key, y => y);
         }
 
-        public IEnumerable<ScanParameter> GetScanConfigurations(Guid projectId, Guid scanId)
+        public void DeleteTenantConfiguration(string config_keys)
         {
+            if (string.IsNullOrWhiteSpace(config_keys))
+                throw new ArgumentException(nameof(config_keys));
+
             checkConnection();
 
-            return Configuration.ScanAsync(projectId.ToString(), scanId.ToString()).Result;
+            Configuration.TenantDELETEParameterAsync(config_keys).Wait();
+        }
+
+        public void DeleteProjectConfiguration(Guid projectId, string config_keys)
+        {
+            if (projectId == Guid.Empty)
+                throw new ArgumentException(nameof(projectId));
+
+            if (string.IsNullOrWhiteSpace(config_keys))
+                throw new ArgumentException(nameof(config_keys));
+
+            checkConnection();
+
+            Configuration.ProjectDELETEParameterAsync(projectId, config_keys).Wait();
         }
 
         public string GetScanPresetFromConfigurations(Guid projectId, Guid scanId)
         {
-            var config = GetScanConfigurations(projectId, scanId).Where(x => x.Key == "scan.config.sast.presetName").FirstOrDefault();
+            if (projectId == Guid.Empty)
+                throw new ArgumentException(nameof(projectId));
 
-            if (config != null && !string.IsNullOrWhiteSpace(config.Value))
-                return config.Value;
+            if (scanId == Guid.Empty)
+                throw new ArgumentException(nameof(scanId));
+
+            var configuration = GetScanConfigurations(projectId, scanId);
+            if (configuration.ContainsKey(SettingsProjectPreset))
+            {
+                var config = configuration[SettingsProjectPreset];
+
+                if (config != null && !string.IsNullOrWhiteSpace(config.Value))
+                    return config.Value;
+            }
 
             return null;
         }
 
         public IEnumerable<ScanParameter> GetTenantProjectConfigurations()
         {
-            return GetTenantConfigurations().Where(x => x.Key == "scan.config.sast.languageMode");
+            return GetTenantConfigurations().Where(x => x.Value.Key == SettingsProjectConfiguration).Select(x => x.Value);
         }
 
         public string GetProjectConfiguration(Guid projectId)
         {
-            //var config = GetProjectConfigurations(projectId).Where(x => x.Key == "scan.config.sast.defaultConfigId").FirstOrDefault();
-            var config = GetProjectConfigurations(projectId).Where(x => x.Key == "scan.config.sast.languageMode").FirstOrDefault();
-            if (config != null && !string.IsNullOrWhiteSpace(config.Value))
-                return config.Value;
+            if (projectId == Guid.Empty)
+                throw new ArgumentException(nameof(projectId));
+
+            var configuration = GetProjectConfigurations(projectId);
+            if (configuration.ContainsKey(SettingsProjectConfiguration))
+            {
+                var config = configuration[SettingsProjectConfiguration];
+
+                if (config != null && !string.IsNullOrWhiteSpace(config.Value))
+                    return config.Value;
+            }
 
             return "Default";
         }
 
         public string GetProjectExclusions(Guid projectId)
         {
-            var config = GetProjectConfigurations(projectId).Where(x => x.Key == "scan.config.sast.filter").FirstOrDefault();
-            if (config != null && !string.IsNullOrWhiteSpace(config.Value))
-                return config.Value;
+            if (projectId == Guid.Empty)
+                throw new ArgumentException(nameof(projectId));
+
+            var configuration = GetProjectConfigurations(projectId);
+            if (configuration.ContainsKey(SettingsProjectExclusions))
+            {
+                var config = configuration[SettingsProjectExclusions];
+
+                if (config != null && !string.IsNullOrWhiteSpace(config.Value))
+                    return config.Value;
+            }
 
             return null;
         }
 
+        public void SetProjectExclusions(Guid projectId, string exclusions)
+        {
+            if (projectId == Guid.Empty)
+                throw new ArgumentException(nameof(projectId));
+
+            if (string.IsNullOrWhiteSpace(exclusions))
+                throw new ArgumentException(nameof(exclusions));
+
+            checkConnection();
+
+            List<ScanParameter> body = new List<ScanParameter>() {
+                new ScanParameter()
+                {
+                    Key = SettingsProjectExclusions,
+                    Value = exclusions
+                }
+            };
+
+            Configuration.UpdateProjectConfigurationAsync(projectId.ToString(), body).Wait();
+        }
+
         public Tuple<string, string> GetProjectFilesAndFoldersExclusions(Guid projectId)
         {
+            if (projectId == Guid.Empty)
+                throw new ArgumentException(nameof(projectId));
+
             var config = GetProjectExclusions(projectId);
             if (!string.IsNullOrWhiteSpace(config))
             {
@@ -1673,48 +1761,97 @@ namespace Checkmarx.API.AST
             return new Tuple<string, string>(string.Empty, string.Empty);
         }
 
-        public void SetProjectExclusions(Guid projectId, string exclusions)
+        public string GetProjectRepoUrl(Guid projectId)
+        {
+            if (projectId == Guid.Empty)
+                throw new ArgumentException(nameof(projectId));
+
+            var configuration = GetProjectConfigurations(projectId);
+            if (configuration.ContainsKey(SettingsProjectRepoUrl))
+            {
+                var config = configuration[SettingsProjectRepoUrl];
+
+                if (config != null && !string.IsNullOrWhiteSpace(config.Value))
+                    return config.Value;
+            }
+
+            return null;
+        }
+
+        public string GetTenantAPISecuritySwaggerFolderFileFilter()
+        {
+            var configuration = GetTenantConfigurations();
+            if (configuration.ContainsKey(SettingsAPISecuritySwaggerFolderFileFilter))
+            {
+                var config = configuration[SettingsAPISecuritySwaggerFolderFileFilter];
+
+                if (config != null && !string.IsNullOrWhiteSpace(config.Value))
+                    return config.Value;
+            }
+
+            return null;
+        }
+
+        public void SetTenantAPISecuritySwaggerFolderFileFilter(string filter = null, bool allowOverride = false)
         {
             checkConnection();
+
+            if (filter == null)
+            {
+                // Delete current value
+                DeleteTenantConfiguration(SettingsAPISecuritySwaggerFolderFileFilter);
+                return;
+            }
 
             List<ScanParameter> body = new List<ScanParameter>() {
                 new ScanParameter()
                 {
-                    Key = "scan.config.sast.filter",
-                    Value = exclusions
+                    Key = SettingsAPISecuritySwaggerFolderFileFilter,
+                    Value = filter,
+                    AllowOverride = allowOverride
                 }
             };
 
-            Configuration.UpdateProjectConfigurationAsync(projectId.ToString(), body).Wait();
+            Configuration.UpdateTenantConfigurationAsync(body).Wait();
         }
 
-        public string GetProjectRepoUrl(Guid projectId)
+        public string GetProjectAPISecuritySwaggerFolderFileFilter(Guid projectId)
         {
-            var config = GetProjectConfigurations(projectId).Where(x => x.Key == "scan.handler.git.repository").FirstOrDefault();
-            if (config != null)
-                return config.Value;
+            if (projectId == Guid.Empty)
+                throw new ArgumentException(nameof(projectId));
+
+            var configuration = GetProjectConfigurations(projectId);
+            if (configuration.ContainsKey(SettingsAPISecuritySwaggerFolderFileFilter))
+            {
+                var config = configuration[SettingsAPISecuritySwaggerFolderFileFilter];
+
+                if (config != null && !string.IsNullOrWhiteSpace(config.Value))
+                    return config.Value;
+            }
 
             return null;
         }
 
-        public string GetAPISecuritySwaggerFolderFileFilter(Guid projectId)
-        {
-            var config = GetProjectConfigurations(projectId).Where(x => x.Key == "scan.config.apisec.swaggerFilter").FirstOrDefault();
-            if (config != null)
-                return config.Value;
-
-            return null;
-        }
-
-        public void SetAPISecuritySwaggerFolderFileFilter(Guid projectId, string filter)
+        public void SetProjectAPISecuritySwaggerFolderFileFilter(Guid projectId, string filter = null, bool allowOverride = false)
         {
             checkConnection();
+
+            if (projectId == Guid.Empty)
+                throw new ArgumentException(nameof(projectId));
+
+            if (filter == null)
+            {
+                // Delete current parameter
+                DeleteProjectConfiguration(projectId, SettingsAPISecuritySwaggerFolderFileFilter);
+                return;
+            }
 
             List<ScanParameter> body = new List<ScanParameter>() {
                 new ScanParameter()
                 {
-                    Key = "scan.config.apisec.swaggerFilter",
-                    Value = filter
+                    Key = SettingsAPISecuritySwaggerFolderFileFilter,
+                    Value = filter,
+                    AllowOverride = allowOverride
                 }
             };
 
@@ -1727,9 +1864,14 @@ namespace Checkmarx.API.AST
 
         public List<string> GetTenantPresets()
         {
-            var config = GetTenantConfigurations().Where(x => x.Key == "scan.config.sast.presetName").FirstOrDefault();
-            if (config != null && !string.IsNullOrWhiteSpace(config.ValueTypeParams))
-                return config.ValueTypeParams.Split(',').Select(x => x.Trim()).ToList();
+            var configuration = GetTenantConfigurations();
+            if (configuration.ContainsKey(SettingsProjectPreset))
+            {
+                var config = configuration[SettingsProjectPreset];
+
+                if (config != null && !string.IsNullOrWhiteSpace(config.ValueTypeParams))
+                    return config.ValueTypeParams.Split(',').Select(x => x.Trim()).ToList();
+            }
 
             return null;
         }
