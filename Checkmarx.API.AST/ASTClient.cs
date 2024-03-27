@@ -33,6 +33,7 @@ using System.Text;
 using Checkmarx.API.AST.Services.ResultsOverview;
 using Checkmarx.API.AST.Services.PresetManagement;
 using Checkmarx.API.AST.Services.SASTResultsPredicates;
+using System.Data;
 
 namespace Checkmarx.API.AST
 {
@@ -551,7 +552,7 @@ namespace Checkmarx.API.AST
             {
                 var response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, limit).Result;
 
-                if(response.Results == null || !response.Results.Any())
+                if (response.Results == null || !response.Results.Any())
                     yield break;
 
                 foreach (var result in response.Results)
@@ -600,7 +601,7 @@ namespace Checkmarx.API.AST
                 var response = ScannersResults.GetResultsByScanAsync(scanId, startAt, limit).Result;
                 foreach (var result in response.Results)
                 {
-                    if(engines == null || (engines != null && engines.Contains(result.Type)))
+                    if (engines == null || (engines != null && engines.Contains(result.Type)))
                         yield return result;
                 }
 
@@ -630,6 +631,17 @@ namespace Checkmarx.API.AST
             };
 
             return Projects.CreateProjectAsync(input).Result;
+        }
+
+        public static Uri GetProjectUri(Uri astServer, Guid projectId)
+        {
+            if (astServer == null)
+                throw new ArgumentNullException(nameof(astServer));
+
+            if (projectId == Guid.Empty)
+                throw new ArgumentException("Empty is not a valid project Id");
+
+            return new Uri(astServer, $"projects/{projectId.ToString("D")}/overview");
         }
 
         #endregion
@@ -1404,8 +1416,8 @@ namespace Checkmarx.API.AST
                         System.Threading.Thread.Sleep(500);
                     }
                 }
-                
-                
+
+
                 if (response.Results != null)
                 {
                     foreach (var result in response.Results)
@@ -1501,16 +1513,17 @@ namespace Checkmarx.API.AST
             string uploadUrl = Uploads.GetPresignedURLForUploading().Result;
             Uploads.SendHTTPRequestByFullURL(uploadUrl, source).Wait();
 
-            ScanUploadInput scanInput = new() {
-                Project = new Services.Scans.Project() 
-                { 
+            ScanUploadInput scanInput = new()
+            {
+                Project = new Services.Scans.Project()
+                {
                     Id = projectId.ToString()
                 },
                 Type = ScanInputType.Upload,
-                Handler = new Upload() 
-                { 
-                    Branch = branch, 
-                    UploadUrl = uploadUrl 
+                Handler = new Upload()
+                {
+                    Branch = branch,
+                    UploadUrl = uploadUrl
                 }
             };
 
@@ -1540,9 +1553,10 @@ namespace Checkmarx.API.AST
                     configs.Add(new Config()
                     {
                         Type = scanType,
-                        Value = new Dictionary<string, string>() { 
-                            ["incremental"] = "false", 
-                            ["presetName"] = preset 
+                        Value = new Dictionary<string, string>()
+                        {
+                            ["incremental"] = "false",
+                            ["presetName"] = preset
                         }
                     });
 
@@ -1580,6 +1594,59 @@ namespace Checkmarx.API.AST
 
         #endregion
 
+        #region Results
+
+        public bool MarkResultFromPredicateHistory(Guid projectId, API.AST.Services.SASTResults.Results result, PredicateHistory predicateHistory, bool updateSeverity = true, bool updateState = true, bool updateComment = true)
+        {
+            if (predicateHistory == null)
+                throw new NullReferenceException(nameof(predicateHistory));
+
+            checkConnection();
+
+            List<PredicateBySimiliartyIdBody> body = new List<PredicateBySimiliartyIdBody>();
+            foreach (var predicate in predicateHistory.Predicates.Reverse())
+            {
+                PredicateBySimiliartyIdBody newBody = new PredicateBySimiliartyIdBody();
+                newBody.SimilarityId = predicate.SimilarityId;
+                newBody.ProjectId = projectId.ToString();
+                newBody.Severity = updateSeverity ? predicate.Severity : result.Severity;
+                newBody.State = updateState ? predicate.State : result.State;
+                newBody.Comment = updateComment ? predicate.Comment : null;
+
+                body.Add(newBody);
+            }
+
+            if (body.Any())
+            {
+                SASTResultsPredicates.PredicateBySimiliartyIdAndProjectIdAsync(body).Wait();
+                return true;
+            }
+
+            return false;
+        }
+
+        public void MarkResult(Guid projectId, string similarityId, ResultsSeverity severity, ResultsState state, string comment = null)
+        {
+            checkConnection();
+
+            List<PredicateBySimiliartyIdBody> body = new List<PredicateBySimiliartyIdBody>();
+
+            PredicateBySimiliartyIdBody newBody = new PredicateBySimiliartyIdBody();
+            newBody.SimilarityId = similarityId;
+            newBody.ProjectId = projectId.ToString();
+            newBody.Severity = severity;
+            newBody.State = state;
+
+            if (!string.IsNullOrWhiteSpace(comment))
+                newBody.Comment = comment;
+
+            body.Add(newBody);
+
+            SASTResultsPredicates.PredicateBySimiliartyIdAndProjectIdAsync(body).Wait();
+        }
+
+        #endregion
+
         #region Groups
 
         public void GetGroups()
@@ -1590,17 +1657,6 @@ namespace Checkmarx.API.AST
         }
 
         #endregion
-
-        public static Uri GetProjectUri(Uri astServer, Guid projectId)
-        {
-            if (astServer == null)
-                throw new ArgumentNullException(nameof(astServer));
-
-            if (projectId == Guid.Empty)
-                throw new ArgumentException("Empty is not a valid project Id");
-
-            return new Uri(astServer, $"projects/{projectId.ToString("D")}/overview");
-        }
 
         #region Configurations
 
@@ -1620,7 +1676,7 @@ namespace Checkmarx.API.AST
 
             return Configuration.ProjectAllAsync(projectId.ToString()).Result?.ToDictionary(x => x.Key, y => y);
         }
-        
+
 
         public Dictionary<string, ScanParameter> GetScanConfigurations(Guid projectId, Guid scanId)
         {

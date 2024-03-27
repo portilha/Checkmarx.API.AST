@@ -120,12 +120,7 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void ResultsMarkingTest()
         {
-            PredicateBySimiliartyIdBody newBody = new PredicateBySimiliartyIdBody();
-            newBody.SimilarityId = "-25232135";
-            newBody.ProjectId = "4bceceba-3be8-4ef6-b822-c7fee658fbf8/sast";
-            newBody.Severity = Services.SASTResults.ResultsSeverity.HIGH;
-            newBody.State = Services.SASTResults.ResultsState.NOT_EXPLOITABLE;
-            newBody.Comment = "Test comment";
+            astclient.MarkResult(new Guid("4bceceba-3be8-4ef6-b822-c7fee658fbf8"), "-25232135", Services.SASTResults.ResultsSeverity.HIGH, Services.SASTResults.ResultsState.NOT_EXPLOITABLE, "Test comment");
         }
     }
 }
