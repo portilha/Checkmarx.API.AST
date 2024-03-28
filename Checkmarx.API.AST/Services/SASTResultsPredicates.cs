@@ -927,7 +927,7 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
         /// ID of the related similarity ID.
         /// </summary>
         [Newtonsoft.Json.JsonProperty("similarityId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string SimilarityId { get; set; }
+        public long SimilarityId { get; set; }
 
         /// <summary>
         /// ID of the related project ID.
@@ -1136,7 +1136,7 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
         /// ID of the related similarity ID.
         /// </summary>
         [Newtonsoft.Json.JsonProperty("similarityId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string SimilarityId { get; set; }
+        public long SimilarityId { get; set; }
 
         /// <summary>
         /// ID of the related project ID

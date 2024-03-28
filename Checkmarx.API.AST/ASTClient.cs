@@ -1596,22 +1596,29 @@ namespace Checkmarx.API.AST
 
         #region Results
 
-        public bool MarkResultFromPredicateHistory(Guid projectId, API.AST.Services.SASTResults.Results result, PredicateHistory predicateHistory, bool updateSeverity = true, bool updateState = true, bool updateComment = true)
+        public bool MarkSASTResult(Guid projectId, Results result, IEnumerable<PredicateWithCommentJSON> history, bool updateSeverity = true, bool updateState = true, bool updateComment = true)
         {
-            if (predicateHistory == null)
-                throw new NullReferenceException(nameof(predicateHistory));
+            if (projectId == Guid.Empty)
+                throw new ArgumentException(nameof(projectId));
 
-            checkConnection();
+            if (history == null)
+                throw new NullReferenceException(nameof(history));
 
-            List<PredicateBySimiliartyIdBody> body = new List<PredicateBySimiliartyIdBody>();
-            foreach (var predicate in predicateHistory.Predicates.Reverse())
+            if (result == null)
+                throw new ArgumentNullException(nameof(result));
+
+            List<PredicateBySimiliartyIdBody> body = [];
+
+            foreach (var predicate in history)
             {
-                PredicateBySimiliartyIdBody newBody = new PredicateBySimiliartyIdBody();
-                newBody.SimilarityId = predicate.SimilarityId;
-                newBody.ProjectId = projectId.ToString();
-                newBody.Severity = updateSeverity ? predicate.Severity : result.Severity;
-                newBody.State = updateState ? predicate.State : result.State;
-                newBody.Comment = updateComment ? predicate.Comment : null;
+                PredicateBySimiliartyIdBody newBody = new PredicateBySimiliartyIdBody
+                {
+                    SimilarityId = predicate.SimilarityId,
+                    ProjectId = projectId.ToString(),
+                    Severity = updateSeverity ? predicate.Severity : result.Severity,
+                    State = updateState ? predicate.State : result.State,
+                    Comment = updateComment ? predicate.Comment : null
+                };
 
                 body.Add(newBody);
             }
@@ -1625,24 +1632,23 @@ namespace Checkmarx.API.AST
             return false;
         }
 
-        public void MarkResult(Guid projectId, string similarityId, ResultsSeverity severity, ResultsState state, string comment = null)
+        public void MarkSASTResult(Guid projectId, long similarityId, ResultsSeverity severity, ResultsState state, string comment = null)
         {
-            checkConnection();
+            if (projectId == Guid.Empty)
+                throw new ArgumentException(nameof(projectId));
 
-            List<PredicateBySimiliartyIdBody> body = new List<PredicateBySimiliartyIdBody>();
-
-            PredicateBySimiliartyIdBody newBody = new PredicateBySimiliartyIdBody();
-            newBody.SimilarityId = similarityId;
-            newBody.ProjectId = projectId.ToString();
-            newBody.Severity = severity;
-            newBody.State = state;
+            PredicateBySimiliartyIdBody newBody = new PredicateBySimiliartyIdBody
+            {
+                SimilarityId = similarityId,
+                ProjectId = projectId.ToString(),
+                Severity = severity,
+                State = state
+            };
 
             if (!string.IsNullOrWhiteSpace(comment))
                 newBody.Comment = comment;
 
-            body.Add(newBody);
-
-            SASTResultsPredicates.PredicateBySimiliartyIdAndProjectIdAsync(body).Wait();
+            SASTResultsPredicates.PredicateBySimiliartyIdAndProjectIdAsync(new PredicateBySimiliartyIdBody[] { newBody }).Wait();
         }
 
         #endregion
@@ -1662,8 +1668,6 @@ namespace Checkmarx.API.AST
 
         public Dictionary<string, ScanParameter> GetTenantConfigurations()
         {
-            checkConnection();
-
             return Configuration.TenantAllAsync().Result?.ToDictionary(x => x.Key, y => y);
         }
 
@@ -1671,8 +1675,6 @@ namespace Checkmarx.API.AST
         {
             if (projectId == Guid.Empty)
                 throw new ArgumentException(nameof(projectId));
-
-            checkConnection();
 
             return Configuration.ProjectAllAsync(projectId.ToString()).Result?.ToDictionary(x => x.Key, y => y);
         }
@@ -1686,8 +1688,6 @@ namespace Checkmarx.API.AST
             if (scanId == Guid.Empty)
                 throw new ArgumentException(nameof(scanId));
 
-            checkConnection();
-
             return Configuration.ScanAsync(projectId.ToString(), scanId.ToString()).Result?.ToDictionary(x => x.Key, y => y);
         }
 
@@ -1695,8 +1695,6 @@ namespace Checkmarx.API.AST
         {
             if (string.IsNullOrWhiteSpace(config_keys))
                 throw new ArgumentException(nameof(config_keys));
-
-            checkConnection();
 
             Configuration.TenantDELETEParameterAsync(config_keys).Wait();
         }
@@ -1708,8 +1706,6 @@ namespace Checkmarx.API.AST
 
             if (string.IsNullOrWhiteSpace(config_keys))
                 throw new ArgumentException(nameof(config_keys));
-
-            checkConnection();
 
             Configuration.ProjectDELETEParameterAsync(projectId, config_keys).Wait();
         }
@@ -1781,8 +1777,6 @@ namespace Checkmarx.API.AST
             if (string.IsNullOrWhiteSpace(exclusions))
                 throw new ArgumentException(nameof(exclusions));
 
-            checkConnection();
-
             List<ScanParameter> body = new List<ScanParameter>() {
                 new ScanParameter()
                 {
@@ -1850,8 +1844,6 @@ namespace Checkmarx.API.AST
 
         public void SetTenantAPISecuritySwaggerFolderFileFilter(string filter = null, bool allowOverride = false)
         {
-            checkConnection();
-
             if (filter == null)
             {
                 // Delete current value
@@ -1890,8 +1882,6 @@ namespace Checkmarx.API.AST
 
         public void SetProjectAPISecuritySwaggerFolderFileFilter(Guid projectId, string filter = null, bool allowOverride = false)
         {
-            checkConnection();
-
             if (projectId == Guid.Empty)
                 throw new ArgumentException(nameof(projectId));
 
@@ -1943,8 +1933,6 @@ namespace Checkmarx.API.AST
 
         public IEnumerable<PresetSummary> GetAllPresets()
         {
-            checkConnection();
-
             var getLimit = 20;
 
             var listPresets = PresetManagement.GetPresetsAsync(getLimit).Result;
@@ -1973,50 +1961,37 @@ namespace Checkmarx.API.AST
 
         public IEnumerable<Services.SASTQuery.Query> GetTenantQueries()
         {
-            checkConnection();
-
             return SASTQuery.GetQueries();
         }
 
         public IEnumerable<Services.SASTQuery.Query> GetProjectQueries(Guid projectId)
         {
-            checkConnection();
-
             return SASTQuery.GetQueriesForProject(projectId.ToString());
         }
 
         public IEnumerable<Services.SASTQuery.Query> GetTeamCorpLevelQueries(Guid projectId)
         {
-            checkConnection();
-
             return SASTQuery.GetQueriesForProject(projectId.ToString());
         }
 
         public Services.SASTQuery.Query GetProjectQuery(Guid projectId, string queryPath, bool tenantLevel)
         {
-            checkConnection();
 
             return SASTQuery.GetQueryForProject(projectId.ToString(), queryPath, tenantLevel);
         }
 
         public Services.SASTQuery.Query GetCxLevelQuery(string queryPath)
         {
-            checkConnection();
-
             return SASTQuery.GetCxLevelQuery(queryPath);
         }
 
         public void SaveProjectQuery(Guid projectId, string queryName, string queryPath, string source)
         {
-            checkConnection();
-
             SASTQuery.SaveProjectQuery(projectId.ToString(), queryName, queryPath, source);
         }
 
         public void DeleteProjectQuery(Guid projectId, string queryPath)
         {
-            checkConnection();
-
             SASTQuery.DeleteProjectQuery(projectId.ToString(), queryPath);
         }
 
@@ -2031,6 +2006,9 @@ namespace Checkmarx.API.AST
 
         public string GetScanLog(Guid scanId, string engine)
         {
+            if (string.IsNullOrEmpty(engine))
+                throw new ArgumentNullException(nameof(engine));
+
             return GetScanLogs(scanId.ToString(), engine);
         }
 
@@ -2046,34 +2024,27 @@ namespace Checkmarx.API.AST
 
             string result = null;
 
-            try
+            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
             {
-                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                if (response.StatusCode == HttpStatusCode.TemporaryRedirect || response.StatusCode == HttpStatusCode.Redirect)
                 {
-                    if (response.StatusCode == HttpStatusCode.TemporaryRedirect || response.StatusCode == HttpStatusCode.Redirect)
+                    string serverRestEndpoint2 = response.Headers.Get("location");
+                    HttpWebRequest request2 = (HttpWebRequest)WebRequest.Create(serverRestEndpoint2);
+                    request2.Method = "GET";
+                    request2.Headers.Add("Authorization", autenticate());
+                    request2.AllowAutoRedirect = false;
+                    using (HttpWebResponse response2 = (HttpWebResponse)request2.GetResponse())
                     {
-                        string serverRestEndpoint2 = response.Headers.Get("location");
-                        HttpWebRequest request2 = (HttpWebRequest)WebRequest.Create(serverRestEndpoint2);
-                        request2.Method = "GET";
-                        request2.Headers.Add("Authorization", autenticate());
-                        request2.AllowAutoRedirect = false;
-                        using (HttpWebResponse response2 = (HttpWebResponse)request2.GetResponse())
+                        using (Stream dataStream2 = response2.GetResponseStream())
                         {
-                            using (Stream dataStream2 = response2.GetResponseStream())
+                            using (StreamReader reader = new StreamReader(dataStream2))
                             {
-                                using (StreamReader reader = new StreamReader(dataStream2))
-                                {
-                                    string responseFromServer = reader.ReadToEnd();
-                                    result = responseFromServer;
-                                }
+                                string responseFromServer = reader.ReadToEnd();
+                                result = responseFromServer;
                             }
                         }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                throw;
             }
 
             return result;
