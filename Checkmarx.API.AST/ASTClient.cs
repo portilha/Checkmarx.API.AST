@@ -1568,6 +1568,16 @@ namespace Checkmarx.API.AST
             SASTResultsPredicates.PredicateBySimiliartyIdAndProjectIdAsync(new PredicateBySimiliartyIdBody[] { newBody }).Wait();
         }
 
+        public bool MarkKICSResult(Guid projectId)
+        {
+            throw new NotSupportedException();
+        }
+
+        public bool MarkSCAResult(Guid projectId)
+        {
+            throw new NotSupportedException();
+        }
+
         #endregion
 
         #region Groups

@@ -116,11 +116,37 @@ namespace Checkmarx.API.AST.Tests
             }
         }
 
+        Guid projectId = new Guid("4bceceba-3be8-4ef6-b822-c7fee658fbf8");
+
 
         [TestMethod]
-        public void ResultsMarkingTest()
+        public void SASTResultsMarkingTest()
         {
-            astclient.MarkResult(new Guid("4bceceba-3be8-4ef6-b822-c7fee658fbf8"), "-25232135", Services.SASTResults.ResultsSeverity.HIGH, Services.SASTResults.ResultsState.NOT_EXPLOITABLE, "Test comment");
+            
+
+            astclient.MarkSASTResult(projectId, -25232135, Services.SASTResults.ResultsSeverity.HIGH, Services.SASTResults.ResultsState.NOT_EXPLOITABLE, "Test comment");
+        
+            // get result status
+
+            Assert.AreEqual(Services.SASTResults.ResultsState.NOT_EXPLOITABLE, astclient.SASTResults)
+
+
         }
+
+
+        [TestMethod]
+        public void IaCResultsMarkingTest()
+        {
+            Assert.IsTrue(astclient.MarkKICSResult(projectId));
+        }
+
+
+        [TestMethod]
+        public void SCAResultsMarkingTest()
+        {
+            Assert.IsTrue(astclient.MarkSCAResult(projectId));
+        }
+
+
     }
 }
