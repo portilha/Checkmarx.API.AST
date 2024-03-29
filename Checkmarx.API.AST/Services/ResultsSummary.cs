@@ -15,6 +15,7 @@
 
 namespace Checkmarx.API.AST.Services.ResultsSummary
 {
+    using System;
     using System.Net.Http;
     using System = global::System;
 
@@ -69,7 +70,7 @@ namespace Checkmarx.API.AST.Services.ResultsSummary
         /// <param name="language">Filter results for a specific source code language</param>
         /// <returns>Successful operation</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<Response> SummaryByScansIdsAsync(System.Collections.Generic.IEnumerable<string> scan_ids, string authorization = null, System.Guid? correlationId = null, string accept = null,  bool? include_severity_status = null, bool? include_status_counters = null, bool? include_queries = null, bool? include_files = null, bool? apply_predicates = null, string language = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<Response> SummaryByScansIdsAsync(System.Collections.Generic.IEnumerable<Guid> scan_ids, string authorization = null, System.Guid? correlationId = null, string accept = null,  bool? include_severity_status = null, bool? include_status_counters = null, bool? include_queries = null, bool? include_files = null, bool? apply_predicates = null, string language = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (scan_ids == null)
                 throw new System.ArgumentNullException("scan_ids");

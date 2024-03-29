@@ -57,7 +57,7 @@ namespace Checkmarx.API.AST.Services.KicsResults
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
-        /// get KICS results by Scan ID
+        /// get KICS results by Scan ID, this is paginated API, use the ASTClient.GetKicsScanResultsById to get all of them.
         /// </summary>
         /// <param name="authorization">REQUIRED: JWT authorization token</param>
         /// <param name="accept">API version should be appended to this header</param>

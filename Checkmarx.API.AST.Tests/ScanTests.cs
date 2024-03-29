@@ -1,6 +1,7 @@
 using Checkmarx.API.AST.Models;
 using Checkmarx.API.AST.Models.Report;
 using Checkmarx.API.AST.Services.GroupsResult;
+using Checkmarx.API.AST.Services.KicsResults;
 using Checkmarx.API.AST.Services.Reports;
 using Checkmarx.API.AST.Services.SASTMetadata;
 using Checkmarx.API.AST.Services.Scans;
@@ -75,11 +76,11 @@ namespace Checkmarx.API.AST.Tests
             foreach (var project in projsScanned)
             {
                 var lastScan = astclient.GetLastScan(new Guid(project.Id), scanType: Enums.ScanTypeEnum.sca);
-                if(lastScan != null)
+                if (lastScan != null)
                 {
                     var scanDetails = astclient.GetScanDetails(lastScan.Id);
                     var scaResults = scanDetails.ScaResults;
-                    if(scaResults != null)
+                    if (scaResults != null)
                     {
                         Trace.WriteLine($"Prtoject {project.Name}: Scan Status - {scaResults.Status} | Scan Results - {scaResults.High ?? 0} Highs, {scaResults.Medium ?? 0} Mediums, {scaResults.Low ?? 0} Lows");
                     }
@@ -150,7 +151,7 @@ namespace Checkmarx.API.AST.Tests
             var newScanDetails2 = astclient.GetSASTScanVulnerabilitiesDetails(lastSASTScan.Id).ToList();
         }
 
-        Guid _projectId = new Guid("d50e7a10-88f9-4798-900c-f93711cc4be2");
+        Guid _projectId = new Guid("6f6579f4-f441-4e8e-8241-f0b4174391d1");
 
         [TestMethod]
         public void ListScansTest()
@@ -173,6 +174,18 @@ namespace Checkmarx.API.AST.Tests
             Trace.WriteLine($"Total: {newScanDetails.SASTResults.Total} | High: {newScanDetails.SASTResults.High} | Medium: {newScanDetails.SASTResults.Medium} | Low: {newScanDetails.SASTResults.Low} | Info: {newScanDetails.SASTResults.Info} | ToVerify: {newScanDetails.SASTResults.ToVerify}");
         }
 
+
+        [TestMethod]
+        public void GetLastScanForKicsTest()
+        {
+            var proj = astclient.Projects.GetProjectAsync(_projectId).Result;
+
+            Scan lastKicsScan = astclient.GetLastScan(new Guid(proj.Id), true, scanType: Enums.ScanTypeEnum.kics);
+
+            Assert.AreEqual(lastKicsScan.Id, new Guid("96f11e3b-dd7f-4dcc-8d54-e547e0cd8603"));
+        }
+
+
         [TestMethod]
         public void ListKicsScanResultsTest()
         {
@@ -180,21 +193,27 @@ namespace Checkmarx.API.AST.Tests
 
             Scan lastKicsScan = astclient.GetLastScan(new Guid(proj.Id), true, scanType: Enums.ScanTypeEnum.kics);
 
-            Assert.IsNotNull(lastKicsScan);
+            Trace.WriteLine(lastKicsScan.Id);
+
+            Assert.AreEqual(lastKicsScan.Id, new Guid("96f11e3b-dd7f-4dcc-8d54-e547e0cd8603"));
 
             var properties = typeof(Services.KicsResults.KicsResult).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
 
             // Fields
             Trace.WriteLine(string.Join(";", properties.Select(p => "\"" + p.Name +"\"")));
 
-            foreach (Services.KicsResults.KicsResult kicsResult in astclient.KicsResults.GetKICSResultsByScanAsync(lastKicsScan.Id).Result.Results)
-            {
-                foreach (var property in properties)
-                {
-                    Trace.WriteLine($"{property.Name} = {property.GetValue(kicsResult)?.ToString()}");
-                }
-                Trace.WriteLine("---");
-            }
+            var listOfIaCResults =  astclient.GetKicsScanResultsById(lastKicsScan.Id);
+
+            Trace.WriteLine(listOfIaCResults.Count());
+
+            //foreach (Services.KicsResults.KicsResult kicsResult in listOfIaCResults)
+            //{
+            //    foreach (var property in properties)
+            //    {
+            //        Trace.WriteLine($"{property.Name} = {property.GetValue(kicsResult)?.ToString()}");
+            //    }
+            //    Trace.WriteLine("---");
+            //}
         }
 
         [TestMethod]
@@ -222,7 +241,7 @@ namespace Checkmarx.API.AST.Tests
 
             //foreach (var type in types) { Trace.WriteLine(type);}
         }
-        
+
         [TestMethod]
         public void ListSASTScanTest()
         {
@@ -242,14 +261,14 @@ namespace Checkmarx.API.AST.Tests
             Assert.IsNotNull(astclient.Scans);
 
             //var oldScanDetails = astclient.GetScanDetails(new Guid("f8a2b16b-0044-440b-85ed-474bd5d93fca"), new Guid("5963b856-d815-4b8d-990c-1f1eda9e01fe"), DateTime.Now);
-            var newScanDetails = astclient.GetScanDetails( new Guid("5963b856-d815-4b8d-990c-1f1eda9e01fe"));
+            var newScanDetails = astclient.GetScanDetails(new Guid("5963b856-d815-4b8d-990c-1f1eda9e01fe"));
 
         }
 
         [TestMethod]
         public void ScanInfoTest()
         {
-            var teste = astclient.GetScanDetails( new Guid("154fe347-d237-49e4-80af-77dfd37fdc9c"));
+            var teste = astclient.GetScanDetails(new Guid("154fe347-d237-49e4-80af-77dfd37fdc9c"));
         }
 
         [TestMethod]
