@@ -150,6 +150,8 @@ namespace Checkmarx.API.AST.Tests
             var newScanDetails2 = astclient.GetSASTScanVulnerabilitiesDetails(lastSASTScan.Id).ToList();
         }
 
+        Guid _projectId = new Guid("d50e7a10-88f9-4798-900c-f93711cc4be2");
+
         [TestMethod]
         public void ListScansTest()
         {
@@ -171,9 +173,6 @@ namespace Checkmarx.API.AST.Tests
             Trace.WriteLine($"Total: {newScanDetails.SASTResults.Total} | High: {newScanDetails.SASTResults.High} | Medium: {newScanDetails.SASTResults.Medium} | Low: {newScanDetails.SASTResults.Low} | Info: {newScanDetails.SASTResults.Info} | ToVerify: {newScanDetails.SASTResults.ToVerify}");
         }
 
-
-        Guid _projectId = new Guid("d50e7a10-88f9-4798-900c-f93711cc4be2");
-
         [TestMethod]
         public void ListKicsScanResultsTest()
         {
@@ -185,6 +184,9 @@ namespace Checkmarx.API.AST.Tests
 
             var properties = typeof(Services.KicsResults.KicsResult).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
 
+            // Fields
+            Trace.WriteLine(string.Join(";", properties.Select(p => "\"" + p.Name +"\"")));
+
             foreach (Services.KicsResults.KicsResult kicsResult in astclient.KicsResults.GetKICSResultsByScanAsync(lastKicsScan.Id).Result.Results)
             {
                 foreach (var property in properties)
@@ -194,7 +196,6 @@ namespace Checkmarx.API.AST.Tests
                 Trace.WriteLine("---");
             }
         }
-
 
         [TestMethod]
         public void ListSCAScanResultsTest()
@@ -214,17 +215,24 @@ namespace Checkmarx.API.AST.Tests
                     Trace.WriteLine($"{property.Name} = {property.GetValue(result)?.ToString()}");
                 }
                 Trace.WriteLine("---");
+
+                //if(!types.Contains(result.Type))
+                //    types.Add(result.Type);
             }
+
+            //foreach (var type in types) { Trace.WriteLine(type);}
         }
-
-
-
+        
         [TestMethod]
         public void ListSASTScanTest()
         {
-            Assert.IsNotNull(astclient.Scans);
+            Assert.IsNotNull(astclient);
+
             var proj = astclient.Projects.GetProjectAsync(new Guid("049b1439-34b1-498b-bae1-c767652fcbc0")).Result;
-            var lastSASTScan = astclient.GetLastScan(new Guid(proj.Id), true);
+
+            var lastSASTScan = astclient.GetLastScan(new Guid(proj.Id), true, scanType: Enums.ScanTypeEnum.sast);
+
+            Assert.IsNotNull(lastSASTScan);
         }
 
 

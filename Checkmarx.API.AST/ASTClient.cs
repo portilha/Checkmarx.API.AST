@@ -62,6 +62,7 @@ namespace Checkmarx.API.AST
         public const string SCA_Engine = "sca";
         public const string KICS_Engine = "kics";
         public const string API_Security_Engine = "apisec";
+        public const string SCA_Container_Engine = "sca-container";
 
 
         private Projects _projects;
