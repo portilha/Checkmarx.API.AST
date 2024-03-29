@@ -313,7 +313,7 @@ namespace Checkmarx.API.AST.Services.KicsResults
         /// ID of the first scan id by resultHash
         /// </summary>
         [Newtonsoft.Json.JsonProperty("firstScanID", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string FirstScanID { get; set; }
+        public Guid FirstScanID { get; set; }
 
         /// <summary>
         /// date of the first found by resultHash

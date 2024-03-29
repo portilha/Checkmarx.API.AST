@@ -125,14 +125,14 @@ namespace Checkmarx.API.AST.Tests
             var preset = "ASA Premium";
             var configuration = "Default";
 
-            var newScan = astclient.ReRunUploadScan(new Guid(project.Id), new Guid(lastScan.Id), new List<ConfigType>() { ConfigType.Sast }, branch, preset, configuration);
+            var newScan = astclient.ReRunUploadScan(new Guid(project.Id), lastScan.Id, new List<ConfigType>() { ConfigType.Sast }, branch, preset, configuration);
 
             bool scanIsRuning = true;
             while (scanIsRuning)
             {
                 System.Threading.Thread.Sleep(10 * 1000);
 
-                var createdScan = astclient.Scans.GetScanAsync(new Guid(newScan.Id)).Result;
+                var createdScan = astclient.Scans.GetScanAsync(newScan.Id).Result;
                 if(createdScan.Status == Status.Completed)
                 {
                     scanIsRuning = false;

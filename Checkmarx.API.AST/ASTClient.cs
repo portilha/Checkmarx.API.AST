@@ -61,6 +61,7 @@ namespace Checkmarx.API.AST
         public const string SAST_Engine = "sast";
         public const string SCA_Engine = "sca";
         public const string KICS_Engine = "kics";
+        public const string API_Security_Engine = "apisec";
 
 
         private Projects _projects;
@@ -164,17 +165,17 @@ namespace Checkmarx.API.AST
         }
 
         // Engine Kics results
-        private KicsResults _KicsResults;
+        private KicsResults _kicsResults;
         public KicsResults KicsResults
         {
             get
             {
-                if (_KicsResults == null )
-                    _KicsResults = new KicsResults($"{ASTServer.AbsoluteUri}api/kics-results", _httpClient);
+                if (_kicsResults == null )
+                    _kicsResults = new KicsResults($"{ASTServer.AbsoluteUri}api/kics-results", _httpClient);
 
                 checkConnection();
 
-                return _KicsResults;
+                return _kicsResults;
             }
         }
 
@@ -783,20 +784,33 @@ namespace Checkmarx.API.AST
             return list;
         }
 
-        public ScanDetails GetScanDetails(Guid projectId, Guid scanId)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <param name="scanId"></param>
+        /// <returns></returns>
+        public ScanDetails GetScanDetails(Guid scanId)
         {
-            var scan = Scans.GetScanAsync(scanId).Result;
-            return GetScanDetails(projectId, scan);
+            return GetScanDetails(Scans.GetScanAsync(scanId).Result);
         }
 
-        public ScanDetails GetScanDetails(Guid projectId, Scan scan)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <param name="scan"></param>
+        /// <returns></returns>
+        /// <exception cref="NullReferenceException"></exception>
+        /// <exception cref="Exception"></exception>
+        public ScanDetails GetScanDetails(Scan scan)
         {
             if (scan == null)
                 throw new NullReferenceException($"No scan found.");
 
             ScanDetails scanDetails = new()
             {
-                Id = new Guid(scan.Id),
+                Id = scan.Id,
                 Status = scan.Status.ToString(),
                 Successful = scan.Status == Status.Completed || scan.Status == Status.Partial,
                 InitiatorName = scan.Initiator,
@@ -823,7 +837,7 @@ namespace Checkmarx.API.AST
                     var resultsSummary = GetResultsSummaryById(scanDetails.Id).FirstOrDefault();
 
                     // SAST
-                    var sastStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == SAST_Engine).FirstOrDefault();
+                    var sastStatusDetails = scan.StatusDetails.SingleOrDefault(x => x.Name.ToLower() == SAST_Engine);
                     if (sastStatusDetails != null)
                     {
                         scanDetails.SASTResults = new ScanResultDetails
@@ -840,7 +854,6 @@ namespace Checkmarx.API.AST
                             try
                             {
                                 // TODO: Refactor this to avoid throwing exceptions all the time regarding a know situation.
-
                                 ScanInfo metadata = SASTMetadata.GetMetadataAsync(scanDetails.Id).Result;
                                 if (metadata != null)
                                 {
@@ -850,11 +863,11 @@ namespace Checkmarx.API.AST
                             }
                             catch (Exception ex)
                             {
-                                Trace.WriteLine($"Error fetching project {projectId} Preset and LoC. Reason {ex.Message.Replace("\n", " ")}");
+                                Trace.WriteLine($"Error fetching project {scan.ProjectId} Preset and LoC. Reason {ex.Message.Replace("\n", " ")}");
                             }
 
                             if (string.IsNullOrWhiteSpace(scanDetails.Preset))
-                                scanDetails.Preset = GetScanPresetFromConfigurations(projectId, scanDetails.Id);
+                                scanDetails.Preset = GetScanPresetFromConfigurations(scan.ProjectId, scanDetails.Id);
 
                         }
                         else
@@ -864,7 +877,7 @@ namespace Checkmarx.API.AST
                     }
 
                     // KICS
-                    var kicsStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == KICS_Engine).FirstOrDefault();
+                    var kicsStatusDetails = scan.StatusDetails.SingleOrDefault(x => x.Name.ToLower() == KICS_Engine);
                     if (kicsStatusDetails != null)
                     {
                         scanDetails.KicsResults = new ScanResultDetails();
@@ -878,7 +891,7 @@ namespace Checkmarx.API.AST
                     }
 
                     // SCA
-                    var scaStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == SCA_Engine).FirstOrDefault();
+                    var scaStatusDetails = scan.StatusDetails.SingleOrDefault(x => x.Name.ToLower() == SCA_Engine);
                     if (scaStatusDetails != null)
                     {
                         scanDetails.ScaResults = new ScanResultDetails();
@@ -922,7 +935,7 @@ namespace Checkmarx.API.AST
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"Error fetching project {projectId} Preset and LoC.");
+                                Console.WriteLine($"Error fetching project {scan.ProjectId} Preset and LoC.");
                             }
                         }
                         else
@@ -961,7 +974,7 @@ namespace Checkmarx.API.AST
 
                         if (scanDetails.ScaResults.Successful)
                         {
-                            scanDetails.ScaResults = getSCAScanResultDetailsBydId(scanDetails.ScaResults, projectId, scanDetails.Id);
+                            scanDetails.ScaResults = getSCAScanResultDetailsBydId(scanDetails.ScaResults, scan.ProjectId, scanDetails.Id);
                         }
                         else
                         {
@@ -1568,6 +1581,14 @@ namespace Checkmarx.API.AST
             SASTResultsPredicates.PredicateBySimiliartyIdAndProjectIdAsync(new PredicateBySimiliartyIdBody[] { newBody }).Wait();
         }
 
+
+        /// <summary>
+        /// api/kics-results-predicates
+        /// </summary>
+        /// <remarks>the same as SAST </remarks>
+        /// <param name="projectId"></param>
+        /// <returns></returns>
+        /// <exception cref="NotSupportedException"></exception>
         public bool MarkKICSResult(Guid projectId)
         {
             throw new NotSupportedException();

@@ -80,7 +80,7 @@ namespace Checkmarx.API.AST.Tests
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            var scanResults = astclient.GetSASTScanVulnerabilitiesDetails(new Guid(lastScan.Id)).ToList();
+            var scanResults = astclient.GetSASTScanVulnerabilitiesDetails(lastScan.Id).ToList();
 
             Trace.WriteLine(stopwatch.Elapsed.TotalSeconds);
 
@@ -160,7 +160,7 @@ namespace Checkmarx.API.AST.Tests
 
             var scan = astclient.GetLastScan(new Guid(project.Id));
 
-            var scandetails = astclient.GetScanDetails(new Guid(project.Id), new Guid(scan.Id));
+            var scandetails = astclient.GetScanDetails(scan.Id);
         }
 
         [TestMethod]
@@ -223,16 +223,7 @@ namespace Checkmarx.API.AST.Tests
         {
             Guid projectId = new Guid("441b55e8-225b-47f0-83b5-5b1f82e9d343");
 
-            //var tenantSetting = astclient.GetTenantAPISecuritySwaggerFolderFileFilter();
-
-            //astclient.Configuration.TenantDELETEParameterAsync("scan.config.apisec.swaggerFilter").Wait();
-
-            //var tenantSetting2 = astclient.GetTenantAPISecuritySwaggerFolderFileFilter();
-
-
             var projeSetting = astclient.GetProjectAPISecuritySwaggerFolderFileFilter(projectId);
-
-            //astclient.SetProjectAPISecuritySwaggerFolderFileFilter(projectId, "*");
 
             astclient.DeleteProjectConfiguration(projectId, "scan.config.apisec.swaggerFilter");
 

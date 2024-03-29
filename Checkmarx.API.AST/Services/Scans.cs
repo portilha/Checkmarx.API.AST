@@ -17,6 +17,7 @@ namespace Checkmarx.API.AST.Services.Scans
 {
     using Checkmarx.API.AST.Models;
     using Newtonsoft.Json;
+    using System;
     using System.Collections.Generic;
     using System.Net.Http.Headers;
     using System = global::System;
@@ -1522,7 +1523,7 @@ namespace Checkmarx.API.AST.Services.Scans
         /// The unique identifier of the scan.
         /// </summary>
         [Newtonsoft.Json.JsonProperty("id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string Id { get; set; }
+        public Guid Id { get; set; }
 
         [Newtonsoft.Json.JsonProperty("status", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
@@ -1544,7 +1545,7 @@ namespace Checkmarx.API.AST.Services.Scans
         /// The associated project id
         /// </summary>
         [Newtonsoft.Json.JsonProperty("projectId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string ProjectId { get; set; }
+        public Guid ProjectId { get; set; }
 
         /// <summary>
         /// The git branch

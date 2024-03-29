@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 
 namespace Checkmarx.API.AST.Tests
 {
@@ -60,7 +61,7 @@ namespace Checkmarx.API.AST.Tests
 
             var lastScan = astclient.GetLastScan(new Guid(project.Id));
 
-            var automatedScanDetails = astclient.GetScanDetails(new Guid(project.Id), new Guid(lastScan.Id));
+            var automatedScanDetails = astclient.GetScanDetails(lastScan.Id);
         }
 
         [TestMethod]
@@ -75,7 +76,7 @@ namespace Checkmarx.API.AST.Tests
                 var lastScan = astclient.GetLastScan(new Guid(project.Id), scanType: Enums.ScanTypeEnum.sca);
                 if(lastScan != null)
                 {
-                    var scanDetails = astclient.GetScanDetails(new Guid(project.Id), new Guid(lastScan.Id));
+                    var scanDetails = astclient.GetScanDetails(lastScan.Id);
                     var scaResults = scanDetails.ScaResults;
                     if(scaResults != null)
                     {
@@ -112,7 +113,7 @@ namespace Checkmarx.API.AST.Tests
 
             //var scanners = astclient.GetScanDetailsOLD(new Guid(proj.Id), new Guid(lastSASTScan.Id), DateTime.Now);
 
-            var newScanDetails = astclient.GetScanDetails(new Guid(proj.Id), new Guid(lastSASTScan.Id));
+            var newScanDetails = astclient.GetScanDetails(lastSASTScan.Id);
         }
 
         [TestMethod]
@@ -129,7 +130,7 @@ namespace Checkmarx.API.AST.Tests
                 if (lastSASTScan == null)
                     continue;
 
-                var newScanDetails = astclient.GetScanDetails(new Guid(proj.Id), new Guid(lastSASTScan.Id));
+                var newScanDetails = astclient.GetScanDetails(lastSASTScan.Id);
 
                 if (newScanDetails.SASTResults == null)
                     continue;
@@ -145,7 +146,7 @@ namespace Checkmarx.API.AST.Tests
             var lastSASTScan = astclient.GetLastScan(new Guid(proj.Id), true);
 
             //var newScanDetails = astclient.ScannersResults.GetResultsByScanAsync(new Guid(lastSASTScan.Id)).Result;
-            var newScanDetails2 = astclient.GetSASTScanVulnerabilitiesDetails(new Guid(lastSASTScan.Id)).ToList();
+            var newScanDetails2 = astclient.GetSASTScanVulnerabilitiesDetails(lastSASTScan.Id).ToList();
         }
 
         [TestMethod]
@@ -165,22 +166,43 @@ namespace Checkmarx.API.AST.Tests
             //Trace.WriteLine($"Total: {oldScanDetails.SASTResults.Total} | High: {oldScanDetails.SASTResults.High} | Medium: {oldScanDetails.SASTResults.Medium} | Low: {oldScanDetails.SASTResults.Low} | Info: {oldScanDetails.SASTResults.Info} | ToVerify: {oldScanDetails.SASTResults.ToVerify}");
 
 
-            var newScanDetails = astclient.GetScanDetails(new Guid(proj.Id), new Guid(lastSASTScan.Id));
+            var newScanDetails = astclient.GetScanDetails(lastSASTScan.Id);
             Trace.WriteLine($"Total: {newScanDetails.SASTResults.Total} | High: {newScanDetails.SASTResults.High} | Medium: {newScanDetails.SASTResults.Medium} | Low: {newScanDetails.SASTResults.Low} | Info: {newScanDetails.SASTResults.Info} | ToVerify: {newScanDetails.SASTResults.ToVerify}");
         }
 
+
+        Guid _projectId = new Guid("d50e7a10-88f9-4798-900c-f93711cc4be2");
+
         [TestMethod]
-        public void ListKicksScansTest()
+        public void ListKicsScanResultsTest()
+        {
+            var proj = astclient.Projects.GetProjectAsync(_projectId).Result;
+
+            Scan lastKicsScan = astclient.GetLastScan(new Guid(proj.Id), true, scanType: Enums.ScanTypeEnum.kics);
+
+            Assert.IsNotNull(lastKicsScan);
+
+            var properties = typeof(Services.KicsResults.KicsResult).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
+
+            foreach (Services.KicsResults.KicsResult kicsResult in astclient.KicsResults.GetKICSResultsByScanAsync(lastKicsScan.Id).Result.Results)
+            {
+                foreach (var property in properties)
+                {
+                    Trace.WriteLine($"{property.Name} = {property.GetValue(kicsResult)?.ToString()}");
+                }
+                Trace.WriteLine("---");
+            }
+        }
+
+
+        [TestMethod]
+        public void ListSASTScanTest()
         {
             Assert.IsNotNull(astclient.Scans);
-
             var proj = astclient.Projects.GetProjectAsync(new Guid("049b1439-34b1-498b-bae1-c767652fcbc0")).Result;
-            //var scansList = astclient.Scans.GetListOfScansAsync(proj.Id).Result;
             var lastSASTScan = astclient.GetLastScan(new Guid(proj.Id), true);
-            //var lastKicksScan = astclient.GetLastKicsScan(new Guid(proj.Id), true);
-
-            var scanDetails = astclient.GetScanDetails(new Guid(proj.Id), new Guid(lastSASTScan.Id));
         }
+
 
         [TestMethod]
         public void ListScansRefactoringTest()
@@ -188,14 +210,14 @@ namespace Checkmarx.API.AST.Tests
             Assert.IsNotNull(astclient.Scans);
 
             //var oldScanDetails = astclient.GetScanDetails(new Guid("f8a2b16b-0044-440b-85ed-474bd5d93fca"), new Guid("5963b856-d815-4b8d-990c-1f1eda9e01fe"), DateTime.Now);
-            var newScanDetails = astclient.GetScanDetails(new Guid("f8a2b16b-0044-440b-85ed-474bd5d93fca"), new Guid("5963b856-d815-4b8d-990c-1f1eda9e01fe"));
+            var newScanDetails = astclient.GetScanDetails( new Guid("5963b856-d815-4b8d-990c-1f1eda9e01fe"));
 
         }
 
         [TestMethod]
         public void ScanInfoTest()
         {
-            var teste = astclient.GetScanDetails(new Guid("f8a2b16b-0044-440b-85ed-474bd5d93fca"), new Guid("154fe347-d237-49e4-80af-77dfd37fdc9c"));
+            var teste = astclient.GetScanDetails( new Guid("154fe347-d237-49e4-80af-77dfd37fdc9c"));
         }
 
         [TestMethod]
@@ -227,7 +249,7 @@ namespace Checkmarx.API.AST.Tests
 
                 try
                 {
-                    var scanMetadata = astclient.SASTMetadata.GetMetadataAsync(new Guid(scan.Id)).Result;
+                    var scanMetadata = astclient.SASTMetadata.GetMetadataAsync(scan.Id).Result;
                 }
                 //catch (ApiException apiEx)
                 //{
@@ -235,7 +257,7 @@ namespace Checkmarx.API.AST.Tests
                 //}
                 catch (Exception ex)
                 {
-                    result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), new Guid(scan.Id), project.Name, 0, ex.Message));
+                    result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), scan.Id, project.Name, 0, ex.Message));
                 }
             }
 
@@ -262,9 +284,9 @@ namespace Checkmarx.API.AST.Tests
 
                 try
                 {
-                    var scanDetails = astclient.GetScanDetails(new Guid(project.Id), new Guid(scan.Id));
+                    var scanDetails = astclient.GetScanDetails(scan.Id);
                     if (!string.IsNullOrEmpty(scanDetails.ErrorMessage))
-                        result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), new Guid(scan.Id), project.Name, 0, scanDetails.ErrorMessage));
+                        result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), scan.Id, project.Name, 0, scanDetails.ErrorMessage));
                 }
                 //catch (ApiException apiEx)
                 //{
@@ -272,7 +294,7 @@ namespace Checkmarx.API.AST.Tests
                 //}
                 catch (Exception ex)
                 {
-                    result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), new Guid(scan.Id), project.Name, 0, ex.Message));
+                    result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), scan.Id, project.Name, 0, ex.Message));
                 }
             }
 
@@ -294,12 +316,12 @@ namespace Checkmarx.API.AST.Tests
         {
             var gitProj = astclient.Projects.GetProjectAsync(new Guid("fd71de0b-b3db-40a8-a885-8c2d0eb481b6")).Result;
             var gitProjLastScan = astclient.GetLastScan(new Guid(gitProj.Id), true);
-            var gitProjScanDetails = astclient.GetScanDetails(new Guid(gitProj.Id), new Guid(gitProjLastScan.Id));
+            var gitProjScanDetails = astclient.GetScanDetails(gitProjLastScan.Id);
             string gitProjbranch = gitProjLastScan.Branch;
 
             var gitReScanResult = astclient.ReRunGitScan(new Guid(gitProj.Id), gitProjScanDetails.RepoUrl, new List<ConfigType>() { ConfigType.Sast }, gitProjbranch, gitProjScanDetails.Preset);
 
-            astclient.DeleteScan(new Guid(gitReScanResult.Id));
+            astclient.DeleteScan(gitReScanResult.Id);
         }
 
         [TestMethod]
@@ -308,10 +330,10 @@ namespace Checkmarx.API.AST.Tests
             var uploadProj = astclient.Projects.GetProjectAsync(new Guid("604e406d-c186-43ff-8694-ab295c39ea78")).Result;
             var uploadProjLastScan = astclient.GetLastScan(new Guid(uploadProj.Id), true);
             //var uploadProjLastScan = astclient.Scans.GetScanAsync(new Guid("8f252210-cd6f-4d68-b158-9d7cece265ca")).Result;
-            var uploadProjScanDetails = astclient.GetScanDetails(new Guid(uploadProj.Id), new Guid(uploadProjLastScan.Id));
+            var uploadProjScanDetails = astclient.GetScanDetails(uploadProjLastScan.Id);
             string uploadProjBranch = uploadProjLastScan.Branch;
 
-            var uploadReScanResult = astclient.ReRunUploadScan(new Guid(uploadProj.Id), new Guid(uploadProjLastScan.Id), new List<ConfigType>() { ConfigType.Sast }, uploadProjBranch, uploadProjScanDetails.Preset);
+            var uploadReScanResult = astclient.ReRunUploadScan(new Guid(uploadProj.Id), uploadProjLastScan.Id, new List<ConfigType>() { ConfigType.Sast }, uploadProjBranch, uploadProjScanDetails.Preset);
 
             //astclient.DeleteScan(new Guid("fb20eb3c-29aa-461d-ac29-12d238d7e976"));
         }
@@ -320,10 +342,10 @@ namespace Checkmarx.API.AST.Tests
         {
             var uploadProj = astclient.Projects.GetProjectAsync(new Guid("f8a2b16b-0044-440b-85ed-474bd5d93fca")).Result;
             var uploadProjLastScan = astclient.GetLastScan(new Guid(uploadProj.Id), true);
-            var uploadProjScanDetails = astclient.GetScanDetails(new Guid(uploadProj.Id), new Guid(uploadProjLastScan.Id));
+            var uploadProjScanDetails = astclient.GetScanDetails(uploadProjLastScan.Id);
             string uploadProjBranch = uploadProjLastScan.Branch;
 
-            byte[] source = astclient.Repostore.GetSourceCode(new Guid(uploadProjLastScan.Id)).Result;
+            byte[] source = astclient.Repostore.GetSourceCode(uploadProjLastScan.Id).Result;
 
             string uploadUrl = astclient.Uploads.GetPresignedURLForUploading().Result;
             astclient.Uploads.SendHTTPRequestByFullURL(uploadUrl, source).Wait();
@@ -343,7 +365,7 @@ namespace Checkmarx.API.AST.Tests
                 //foreach(var scan in scans.Scans.Where(x => x.SourceOrigin == "ASAProgramTracker"))
                 foreach (var scan in scans.Scans.Where(x => x.SourceOrigin == "Amazon CloudFront"))
                 {
-                    ids.Add(new Guid(scan.Id));
+                    ids.Add(scan.Id);
                 }
             }
 
