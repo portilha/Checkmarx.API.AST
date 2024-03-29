@@ -71,7 +71,7 @@ namespace Checkmarx.API.AST
             get
             {
                 if (_projects == null)
-                    _projects = new Projects($"{ASTServer.AbsoluteUri}api/projects", _httpClient);                
+                    _projects = new Projects($"{ASTServer.AbsoluteUri}api/projects", _httpClient);
 
                 checkConnection();
 
@@ -171,7 +171,7 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_kicsResults == null )
+                if (_kicsResults == null)
                     _kicsResults = new KicsResults($"{ASTServer.AbsoluteUri}api/kics-results", _httpClient);
 
                 checkConnection();
@@ -492,10 +492,8 @@ namespace Checkmarx.API.AST
 
         #region Projects
 
-        public ProjectsCollection GetAllProjectsDetails()
-        {         
-            var getLimit = 500;
-
+        public ProjectsCollection GetAllProjectsDetails(int getLimit = 500)
+        {
             var listProjects = Projects.GetListOfProjectsAsync(getLimit).Result;
             if (listProjects.TotalCount > getLimit)
             {
@@ -551,11 +549,8 @@ namespace Checkmarx.API.AST
             Projects.UpdateProjectAsync(projectId, input).Wait();
         }
 
-        public IEnumerable<string> GetProjectBranches(Guid projectId)
+        public IEnumerable<string> GetProjectBranches(Guid projectId, int startAt = 0, int limit = 500)
         {
-            int startAt = 0;
-            int limit = 500;
-
             while (true)
             {
                 var response = Projects.BranchesAsync(projectId, startAt, limit).Result;
@@ -571,13 +566,8 @@ namespace Checkmarx.API.AST
             }
         }
 
-        private IEnumerable<Results> GetSASTScanResultsById(Guid scanId)
+        public IEnumerable<Results> GetSASTScanResultsById(Guid scanId, int startAt = 0, int limit = 500)
         {
-            checkConnection();
-
-            int startAt = 0;
-            int limit = 500;
-
             while (true)
             {
                 var response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, limit).Result;
@@ -597,11 +587,8 @@ namespace Checkmarx.API.AST
             }
         }
 
-        private IEnumerable<KicsResult> getKicsScanResultsById(Guid scanId)
+        public IEnumerable<KicsResult> GetKicsScanResultsById(Guid scanId, int startAt = 0, int limit = 500)
         {
-            int startAt = 0;
-            int limit = 500;
-
             while (true)
             {
                 var response = KicsResults.GetKICSResultsByScanAsync(scanId, startAt, limit).Result;
@@ -649,7 +636,7 @@ namespace Checkmarx.API.AST
 
         private IEnumerable<ResultsSummary> GetResultsSummaryById(Guid scanId)
         {
-            return ResultsSummary.SummaryByScansIdsAsync(new string[] { scanId.ToString() }).Result.ScansSummaries;
+            return ResultsSummary.SummaryByScansIdsAsync(new Guid[] { scanId }).Result.ScansSummaries;
         }
 
         public Checkmarx.API.AST.Services.Projects.Project CreateProject(string name, Dictionary<string, string> tags)
@@ -781,7 +768,7 @@ namespace Checkmarx.API.AST
                 {
                     if (!string.IsNullOrEmpty(engine))
                     {
-                        if (scan.Engines != null && scan.Engines.Any(x => x.ToLower() == engine.ToLower()))
+                        if (scan.Engines != null && scan.Engines.Any(x => x== engine && (scan.StatusDetails.Single(x => x.Name == engine).Status == "Completed")))
                             list.Add(scan);
                     }
                     else
@@ -1124,7 +1111,7 @@ namespace Checkmarx.API.AST
 
         private ScanResultDetails getKicsScanResultDetailsBydId(ScanResultDetails model, Guid scanId)
         {
-            var kicsResults = getKicsScanResultsById(scanId);
+            var kicsResults = GetKicsScanResultsById(scanId);
             if (kicsResults != null)
             {
                 var results = kicsResults.Where(x => x.State != KicsResultState.NOT_EXPLOITABLE);
@@ -1217,7 +1204,7 @@ namespace Checkmarx.API.AST
             return model;
         }
 
-     
+
         public Tuple<ReportResults, string> GetAstScanJsonReport(Guid projectId, Guid scanId)
         {
             checkConnection();
