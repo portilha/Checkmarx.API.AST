@@ -616,8 +616,17 @@ namespace Checkmarx.API.AST
             }
         }
 
+        /// <summary>
+        /// For SCA it just returns the vulnerabilities.
+        /// </summary>
+        /// <param name="scanId">Id of the scan</param>
+        /// <param name="engines"></param>
+        /// <returns></returns>
         public IEnumerable<ScannerResult> GetScannersResultsById(Guid scanId, params string[] engines)
         {
+            if (scanId == Guid.Empty)
+                throw new ArgumentNullException(nameof(scanId));
+
             int startAt = 0;
             int limit = 500;
 
@@ -626,7 +635,7 @@ namespace Checkmarx.API.AST
                 var response = ScannersResults.GetResultsByScanAsync(scanId, startAt, limit).Result;
                 foreach (var result in response.Results)
                 {
-                    if (engines == null || (engines != null && engines.Contains(result.Type)))
+                    if (!engines.Any() || (engines.Any() && engines.Contains(result.Type, StringComparer.InvariantCultureIgnoreCase)))
                         yield return result;
                 }
 

@@ -1,5 +1,6 @@
 using Checkmarx.API.AST.Models;
 using Checkmarx.API.AST.Models.Report;
+using Checkmarx.API.AST.Services.GroupsResult;
 using Checkmarx.API.AST.Services.Reports;
 using Checkmarx.API.AST.Services.SASTMetadata;
 using Checkmarx.API.AST.Services.Scans;
@@ -193,6 +194,29 @@ namespace Checkmarx.API.AST.Tests
                 Trace.WriteLine("---");
             }
         }
+
+
+        [TestMethod]
+        public void ListSCAScanResultsTest()
+        {
+            var proj = astclient.Projects.GetProjectAsync(_projectId).Result;
+
+            Scan lastSCAScan = astclient.GetLastScan(new Guid(proj.Id), true, scanType: Enums.ScanTypeEnum.sca);
+
+            Assert.IsNotNull(lastSCAScan);
+
+            var properties = typeof(Services.ScannersResults.ScannerResult).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
+
+            foreach (Services.ScannersResults.ScannerResult result in astclient.GetScannersResultsById(lastSCAScan.Id, ASTClient.SCA_Engine))
+            {
+                foreach (var property in properties)
+                {
+                    Trace.WriteLine($"{property.Name} = {property.GetValue(result)?.ToString()}");
+                }
+                Trace.WriteLine("---");
+            }
+        }
+
 
 
         [TestMethod]
