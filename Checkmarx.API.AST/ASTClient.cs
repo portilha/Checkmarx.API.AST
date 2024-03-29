@@ -64,6 +64,7 @@ namespace Checkmarx.API.AST
         public const string API_Security_Engine = "apisec";
         public const string SCA_Container_Engine = "sca-container";
 
+        private readonly static string CompletedStage = Checkmarx.API.AST.Services.Scans.Status.Completed.ToString();
 
         private Projects _projects;
         public Projects Projects
@@ -455,10 +456,8 @@ namespace Checkmarx.API.AST
             }
         }
 
-        private Services.Applications.ApplicationsCollection getAllApplications()
+        private Services.Applications.ApplicationsCollection getAllApplications(int getLimit = 20)
         {
-            var getLimit = 20;
-
             var listApplications = Applications.GetListOfApplicationsAsync(getLimit).Result;
             if (listApplications.TotalCount > getLimit)
             {
@@ -677,7 +676,7 @@ namespace Checkmarx.API.AST
         {
             if (!fullScanOnly && !maxScanDate.HasValue)
             {
-                var scanStatus = completed ? Checkmarx.API.AST.Services.Scans.Status.Completed.ToString() : null;
+                var scanStatus = completed ? CompletedStage : null;
 
                 var scans = this.Projects.GetProjectLastScan(new List<Guid>() { projectId }, scan_status: scanStatus, branch: branch, engine: scanType.ToString()).Result;
 
@@ -768,7 +767,7 @@ namespace Checkmarx.API.AST
                 {
                     if (!string.IsNullOrEmpty(engine))
                     {
-                        if (scan.Engines != null && scan.Engines.Any(x => x== engine && (scan.StatusDetails.Single(x => x.Name == engine).Status == "Completed")))
+                        if (scan.Engines != null && scan.Engines.Any(x => x== engine && (scan.StatusDetails.Single(x => x.Name == engine).Status == CompletedStage)))
                             list.Add(scan);
                     }
                     else
@@ -826,26 +825,29 @@ namespace Checkmarx.API.AST
                 if (scan.StatusDetails == null)
                     throw new Exception($"There is no information about scan engine status.");
 
-                // Known issue where there is a successful scan, but ResultsSummary throws a 404
-                // In this case, we are going to try to fetch the sast results in another way
+
                 bool fetchedResultsSuccessfully = true;
                 try
                 {
                     var resultsSummary = GetResultsSummaryById(scanDetails.Id).FirstOrDefault();
 
-                    // SAST
-                    var sastStatusDetails = scan.StatusDetails.SingleOrDefault(x => x.Name.ToLower() == SAST_Engine);
+                    // Known issue where there is a successful scan, but ResultsSummary throws a 404
+                    // In this case, we are going to try to fetch the sast results in another way
+
+                    #region SAST
+
+                    var sastStatusDetails = scan.StatusDetails.SingleOrDefault(x => x.Name == SAST_Engine);
                     if (sastStatusDetails != null)
                     {
                         scanDetails.SASTResults = new ScanResultDetails
                         {
                             Status = sastStatusDetails.Status,
-                            Successful = sastStatusDetails.Status.ToLower() == "completed"
+                            Successful = sastStatusDetails.Status == CompletedStage
                         };
 
                         if (scanDetails.SASTResults.Successful)
                         {
-                            scanDetails = GetSASTScanResultDetails(scanDetails, resultsSummary);
+                            scanDetails = getSASTScanResultDetails(scanDetails, resultsSummary);
 
                             // Get sast metadata
                             try
@@ -871,35 +873,39 @@ namespace Checkmarx.API.AST
                         {
                             scanDetails.SASTResults.Details = $"Current scan status is {sastStatusDetails.Status}";
                         }
-                    }
+                    } 
+                    #endregion
 
-                    // KICS
-                    var kicsStatusDetails = scan.StatusDetails.SingleOrDefault(x => x.Name.ToLower() == KICS_Engine);
+                    #region KICS
+
+                    var kicsStatusDetails = scan.StatusDetails.SingleOrDefault(x => x.Name == KICS_Engine);
                     if (kicsStatusDetails != null)
                     {
                         scanDetails.KicsResults = new ScanResultDetails();
                         scanDetails.KicsResults.Status = kicsStatusDetails.Status;
-                        scanDetails.KicsResults.Successful = kicsStatusDetails.Status.ToLower() == "completed";
+                        scanDetails.KicsResults.Successful = kicsStatusDetails.Status == CompletedStage;
 
                         if (scanDetails.KicsResults.Successful)
-                            scanDetails.KicsResults = GetKicsScanResultDetails(scanDetails.KicsResults, resultsSummary);
+                            scanDetails.KicsResults = getKicsScanResultDetails(scanDetails.KicsResults, resultsSummary);
                         else
                             scanDetails.KicsResults.Details = $"Current scan status is {sastStatusDetails.Status}";
-                    }
+                    } 
+                    #endregion
 
-                    // SCA
-                    var scaStatusDetails = scan.StatusDetails.SingleOrDefault(x => x.Name.ToLower() == SCA_Engine);
+                    #region SCA
+                    var scaStatusDetails = scan.StatusDetails.SingleOrDefault(x => x.Name == SCA_Engine);
                     if (scaStatusDetails != null)
                     {
                         scanDetails.ScaResults = new ScanResultDetails();
                         scanDetails.ScaResults.Status = scaStatusDetails.Status;
-                        scanDetails.ScaResults.Successful = scaStatusDetails.Status.ToLower() == "completed";
+                        scanDetails.ScaResults.Successful = scaStatusDetails.Status == CompletedStage;
 
                         if (scanDetails.ScaResults.Successful)
                             scanDetails.ScaResults = getScaScanResultDetails(scanDetails.ScaResults, resultsSummary);
                         else
                             scanDetails.ScaResults.Details = $"Current scan status is {scaStatusDetails.Status}";
-                    }
+                    } 
+                    #endregion
                 }
                 catch
                 {
@@ -908,17 +914,18 @@ namespace Checkmarx.API.AST
 
                 if (!fetchedResultsSuccessfully)
                 {
-                    // SAST
-                    var sastStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == SAST_Engine).FirstOrDefault();
+                    #region SAST
+
+                    var sastStatusDetails = scan.StatusDetails.Where(x => x.Name == SAST_Engine).FirstOrDefault();
                     if (sastStatusDetails != null)
                     {
                         scanDetails.SASTResults = new ScanResultDetails();
                         scanDetails.SASTResults.Status = sastStatusDetails.Status;
-                        scanDetails.SASTResults.Successful = sastStatusDetails.Status.ToLower() == "completed";
+                        scanDetails.SASTResults.Successful = sastStatusDetails.Status == CompletedStage;
 
                         if (scanDetails.SASTResults.Successful)
                         {
-                            scanDetails = GetSASTScanResultDetailsBydId(scanDetails, scanDetails.Id);
+                            scanDetails = getSASTScanResultDetailsBydId(scanDetails, scanDetails.Id);
 
                             // Get sast metadata
                             try
@@ -932,23 +939,26 @@ namespace Checkmarx.API.AST
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"Error fetching project {scan.ProjectId} Preset and LoC.");
+                                Console.WriteLine($"Error fetching project {scan.ProjectId} Preset and LoC because {ex.Message}.");
                             }
                         }
                         else
                         {
                             scanDetails.SASTResults.Details = $"Current scan status is {sastStatusDetails.Status}";
                         }
-                    }
+                    } 
 
-                    // Kicks
-                    var kicsStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == KICS_Engine).FirstOrDefault();
+                    #endregion
+
+                    #region  Kicks
+
+                    var kicsStatusDetails = scan.StatusDetails.SingleOrDefault(x => x.Name == KICS_Engine);
                     if (kicsStatusDetails != null)
                     {
                         scanDetails.KicsResults = new ScanResultDetails
                         {
                             Status = kicsStatusDetails.Status,
-                            Successful = kicsStatusDetails.Status.ToLower() == "completed"
+                            Successful = kicsStatusDetails.Status == CompletedStage
                         };
 
                         if (scanDetails.KicsResults.Successful)
@@ -961,13 +971,16 @@ namespace Checkmarx.API.AST
                         }
                     }
 
-                    // SCA
-                    var scaStatusDetails = scan.StatusDetails.Where(x => x.Name.ToLower() == SCA_Engine).FirstOrDefault();
+                    #endregion
+
+                    #region SCA
+
+                    var scaStatusDetails = scan.StatusDetails.Where(x => x.Name == SCA_Engine).FirstOrDefault();
                     if (scaStatusDetails != null)
                     {
                         scanDetails.ScaResults = new ScanResultDetails();
                         scanDetails.ScaResults.Status = scaStatusDetails.Status;
-                        scanDetails.ScaResults.Successful = scaStatusDetails.Status.ToLower() == "completed";
+                        scanDetails.ScaResults.Successful = scaStatusDetails.Status == CompletedStage;
 
                         if (scanDetails.ScaResults.Successful)
                         {
@@ -977,7 +990,9 @@ namespace Checkmarx.API.AST
                         {
                             scanDetails.ScaResults.Details = $"Current scan status is {sastStatusDetails.Status}";
                         }
-                    }
+                    } 
+
+                    #endregion
                 }
             }
 
@@ -991,7 +1006,13 @@ namespace Checkmarx.API.AST
             return scanDetails;
         }
 
-        private ScanDetails GetSASTScanResultDetailsBydId(ScanDetails scanDetails, Guid scanId)
+        /// <summary>
+        /// Very performance intensive.
+        /// </summary>
+        /// <param name="scanDetails"></param>
+        /// <param name="scanId"></param>
+        /// <returns></returns>
+        private ScanDetails getSASTScanResultDetailsBydId(ScanDetails scanDetails, Guid scanId)
         {
             var model = scanDetails.SASTResults;
 
@@ -1047,7 +1068,13 @@ namespace Checkmarx.API.AST
             return scanDetails;
         }
 
-        private ScanDetails GetSASTScanResultDetails(ScanDetails scanDetails, ResultsSummary resultsSummary)
+        /// <summary>
+        /// Very performance intensive.
+        /// </summary>
+        /// <param name="scanDetails"></param>
+        /// <param name="resultsSummary"></param>
+        /// <returns></returns>
+        private ScanDetails getSASTScanResultDetails(ScanDetails scanDetails, ResultsSummary resultsSummary)
         {
             if (resultsSummary == null)
                 return scanDetails;
@@ -1122,14 +1149,13 @@ namespace Checkmarx.API.AST
                 model.Medium = results.Where(x => x.Severity == Services.KicsResults.SeverityEnum.MEDIUM).Count();
                 model.Low = results.Where(x => x.Severity == Services.KicsResults.SeverityEnum.LOW).Count();
                 model.Info = results.Where(x => x.Severity == Services.KicsResults.SeverityEnum.INFO).Count();
-
-                //model.ToVerify = kicsResults.Where(x => x.State == KicsResultState.TO_VERIFY).Count();
+                model.ToVerify = kicsResults.Where(x => x.State == KicsResultState.TO_VERIFY).Count();
             }
 
             return model;
         }
 
-        private ScanResultDetails GetKicsScanResultDetails(ScanResultDetails model, ResultsSummary resultsSummary)
+        private ScanResultDetails getKicsScanResultDetails(ScanResultDetails model, ResultsSummary resultsSummary)
         {
             if (resultsSummary != null)
             {
