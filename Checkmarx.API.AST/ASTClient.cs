@@ -667,7 +667,7 @@ namespace Checkmarx.API.AST
         /// </summary>
         /// <param name="projectId"></param>
         /// <returns></returns>
-        public IEnumerable<Scan> GetAllASTScans(Guid projectId, string branch = null)
+        public IEnumerable<Scan> GetAllScans(Guid projectId, string branch = null)
         {
             return GetScans(projectId, branch: branch);
         }
@@ -1905,8 +1905,7 @@ namespace Checkmarx.API.AST
 
         public IEnumerable<PresetDetails> GetAllPresetsDetails()
         {
-            var presets = GetAllPresets();
-            foreach (var preset in presets)
+            foreach (var preset in GetAllPresets())
             {
                 yield return PresetManagement.GetPresetById(preset.Id).Result;
             }
@@ -1982,7 +1981,7 @@ namespace Checkmarx.API.AST
 
         public string GetSASTScanLog(Guid scanId)
         {
-            return GetScanLogs(scanId.ToString(), "sast");
+            return GetScanLogs(scanId, SAST_Engine);
         }
 
         public string GetScanLog(Guid scanId, string engine)
@@ -1990,10 +1989,10 @@ namespace Checkmarx.API.AST
             if (string.IsNullOrEmpty(engine))
                 throw new ArgumentNullException(nameof(engine));
 
-            return GetScanLogs(scanId.ToString(), engine);
+            return GetScanLogs(scanId, engine);
         }
 
-        private string GetScanLogs(string scanId, string engine)
+        private string GetScanLogs(Guid scanId, string engine)
         {
             checkConnection();
 
