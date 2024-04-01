@@ -767,8 +767,11 @@ namespace Checkmarx.API.AST
                 {
                     if (!string.IsNullOrEmpty(engine))
                     {
-                        if (scan.Engines != null && scan.Engines.Any(x => x== engine && (scan.StatusDetails.Single(x => x.Name == engine).Status == CompletedStage)))
+                        if (scan.Engines != null && scan.Engines.Any(x => x== engine &&
+                                (scan.StatusDetails.Single(x => x.Name == engine).Status == CompletedStage)))
+                        {
                             list.Add(scan);
+                        }
                     }
                     else
                     {
@@ -851,7 +854,7 @@ namespace Checkmarx.API.AST
 
                             // Get sast metadata
                             try
-                            {
+                            {                                
                                 // TODO: Refactor this to avoid throwing exceptions all the time regarding a know situation.
                                 ScanInfo metadata = SASTMetadata.GetMetadataAsync(scanDetails.Id).Result;
                                 if (metadata != null)
@@ -916,7 +919,7 @@ namespace Checkmarx.API.AST
                 {
                     #region SAST
 
-                    var sastStatusDetails = scan.StatusDetails.Where(x => x.Name == SAST_Engine).FirstOrDefault();
+                    var sastStatusDetails = scan.StatusDetails.SingleOrDefault(x => x.Name == SAST_Engine);
                     if (sastStatusDetails != null)
                     {
                         scanDetails.SASTResults = new ScanResultDetails();
@@ -1084,10 +1087,15 @@ namespace Checkmarx.API.AST
             var sastCounters = resultsSummary.SastCounters;
 
             model.Id = new Guid(resultsSummary.ScanId);
-            model.High = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.HIGH).Sum(x => x.Counter);
-            model.Medium = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.MEDIUM).Sum(x => x.Counter);
-            model.Low = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.LOW).Sum(x => x.Counter);
-            model.Info = sastCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.INFO).Sum(x => x.Counter);
+            model.High = sastCounters.SeverityCounters
+                .Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.HIGH).Sum(x => x.Counter);
+            model.Medium = sastCounters.SeverityCounters
+                .Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.MEDIUM).Sum(x => x.Counter);
+            model.Low = sastCounters.SeverityCounters
+                .Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.LOW).Sum(x => x.Counter);
+            model.Info = sastCounters.SeverityCounters
+                .Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.INFO).Sum(x => x.Counter);
+            
             // ToVerify -> we dont want to include the info vulns
             model.ToVerify = sastCounters.StateCounters.Where(x => x.State == ResultsSummaryState.TO_VERIFY).Sum(x => x.Counter) - model.Info;
 
@@ -1341,12 +1349,14 @@ namespace Checkmarx.API.AST
             return null;
         }
 
-        public IEnumerable<Results> GetSASTScanVulnerabilitiesDetails(Guid scanId)
+        public IEnumerable<Results> GetSASTScanVulnerabilitiesDetails(Guid scanId, int startAt = 0, int limit = 500)
         {
-            checkConnection();
+            if (startAt < 0)
+                throw new ArgumentOutOfRangeException(nameof(startAt));
 
-            int startAt = 0;
-            int limit = 500;
+            if (limit <= 0)
+                throw new ArgumentOutOfRangeException(nameof(limit));
+
 
             while (true)
             {
@@ -1935,9 +1945,9 @@ namespace Checkmarx.API.AST
             return SASTQuery.GetQueries();
         }
 
-        public IEnumerable<Services.SASTQuery.Query> GetProjectQueries(Guid projectId)
+        public Dictionary<string, Services.SASTQuery.Query> GetProjectQueries(Guid projectId)
         {
-            return SASTQuery.GetQueriesForProject(projectId.ToString());
+            return SASTQuery.GetQueriesForProject(projectId.ToString()).ToDictionary(x => x.Id, StringComparer.InvariantCultureIgnoreCase);
         }
 
         public IEnumerable<Services.SASTQuery.Query> GetTeamCorpLevelQueries(Guid projectId)
