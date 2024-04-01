@@ -1,5 +1,6 @@
 using Checkmarx.API.AST.Models;
 using Checkmarx.API.AST.Models.Report;
+using Checkmarx.API.AST.Services;
 using Checkmarx.API.AST.Services.Applications;
 using Checkmarx.API.AST.Services.Reports;
 using Checkmarx.API.AST.Services.SASTMetadata;
@@ -9,10 +10,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Xml.Xsl;
 using static System.Net.Mime.MediaTypeNames;
@@ -41,53 +44,48 @@ namespace Checkmarx.API.AST.Tests
 
             astclient = new ASTClient(
                 new System.Uri(astServer),
-                new System.Uri(accessControl), 
-                Configuration["Tenant"], 
+                new System.Uri(accessControl),
+                Configuration["Tenant"],
                 Configuration["API_KEY"]);
         }
 
-      
-        private Tuple<double, List<string>> GetScanAccuracyAndLanguagesFromScanLog(Guid scanId)
+
+        [TestMethod]
+        public void GetQueriesTest()
         {
-            var log = astclient.GetSASTScanLog(scanId);
 
-            // Read Log
-            double scanAccuracy = 0;
-            List<string> scanLanguages = new List<string>();
-
-            Regex regex = new Regex("^Scan\\scoverage:\\s+(?<pc>[\\d\\.]+)\\%", RegexOptions.Multiline);
-            MatchCollection mc = regex.Matches(log);
-            foreach (Match m in mc)
+            foreach (var proj in astclient.GetAllProjectsDetails().Projects)
             {
-                GroupCollection groups = m.Groups;
-                double.TryParse(groups["pc"].Value.Replace(".", ","), out scanAccuracy);
+                Trace.WriteLine($"{proj.Id} - {proj.Name}");
             }
 
-            //Languages that will be scanned: Java=3, CPP=1, JavaScript=1, Groovy=6, Kotlin=361
-            Regex regexLang = new Regex("^Languages\\sthat\\swill\\sbe\\sscanned:\\s+(?:(\\w+)\\=\\d+\\,?\\s?)+", RegexOptions.Multiline);
-            MatchCollection mcLang = regexLang.Matches(log);
-            var langsTmp = new List<string>();
-            foreach (Match m in mcLang)
-            {
-                System.Text.RegularExpressions.GroupCollection groups = m.Groups;
-                foreach (System.Text.RegularExpressions.Group g in groups)
-                {
-                    foreach (Capture c in g.Captures)
-                    {
-                        if (c.Value != "" && !c.Value.StartsWith("Languages that will be scanned:"))
-                        {
-                            langsTmp.Add(c.Value);
-                        }
-                    }
-                }
-            }
 
-            if (langsTmp.Count > 0)
-            {
-                scanLanguages = langsTmp;
-            }
 
-            return new Tuple<double, List<string>>(scanAccuracy, scanLanguages);
         }
+
+
+        [TestMethod]
+        public void QueriesForProjectTest()
+        {
+
+            var listOfQueries = astclient.SASTQuery.GetQueriesForProject(new Guid("ee6c74fb-1b4c-4e70-a29a-531029ed109f")).Where(x => x.IsExecutable).ToDictionary(x => x.Id);
+
+            var ids = "9177140066760164971";
+
+            var properties = typeof(SASTQuery.Query).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
+
+            foreach (var item in listOfQueries.Values)
+            {
+                foreach (var property in properties)
+                {
+                    Trace.WriteLine($"{property.Name} = {property.GetValue(item)?.ToString()}");
+                }
+                Trace.WriteLine("---");
+            }
+
+        }
+
+
+
     }
 }

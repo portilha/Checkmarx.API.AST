@@ -1946,12 +1946,12 @@ namespace Checkmarx.API.AST
 
         public Dictionary<string, Services.SASTQuery.Query> GetProjectQueries(Guid projectId)
         {
-            return SASTQuery.GetQueriesForProject(projectId.ToString()).ToDictionary(x => x.Id, StringComparer.InvariantCultureIgnoreCase);
+            return SASTQuery.GetQueriesForProject(projectId).Where(x => x.IsExecutable).ToDictionary(x => x.Id, StringComparer.InvariantCultureIgnoreCase);
         }
 
         public IEnumerable<Services.SASTQuery.Query> GetTeamCorpLevelQueries(Guid projectId)
         {
-            return SASTQuery.GetQueriesForProject(projectId.ToString());
+            return SASTQuery.GetQueriesForProject(projectId).Where(x => x.IsExecutable);
         }
 
         public Services.SASTQuery.Query GetProjectQuery(Guid projectId, string queryPath, bool tenantLevel)

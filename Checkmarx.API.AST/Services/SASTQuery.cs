@@ -61,7 +61,7 @@ namespace Checkmarx.API.AST.Services
 
         }
 
-        public IEnumerable<Query> GetQueriesForProject(string projId)
+        public IEnumerable<Query> GetQueriesForProject(Guid projId)
         {
             string serverRestEndpoint = $"{_baseUrl}api/cx-audit/queries?projectId={projId}";
             WebRequest request = WebRequest.Create(serverRestEndpoint);
@@ -415,7 +415,7 @@ namespace Checkmarx.API.AST.Services
             public string? Path { get; set; } = default!;
 
             [Newtonsoft.Json.JsonProperty("isExecutable", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-            public bool? IsExecutable { get; set; } = default!;
+            public bool IsExecutable { get; set; } = default!;
 
             [Newtonsoft.Json.JsonProperty("source", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
             public string? Source { get; set; } = default!;
