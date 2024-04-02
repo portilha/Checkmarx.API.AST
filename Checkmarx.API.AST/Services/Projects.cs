@@ -18,6 +18,7 @@ namespace Checkmarx.API.AST.Services.Projects
     using Checkmarx.API.AST.Errors;
     using Checkmarx.API.AST.Exceptions;
     using System;
+    using System.Threading.Tasks;
     using System = global::System;
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "13.15.10.0 (NJsonSchema v10.6.10.0 (Newtonsoft.Json v12.0.0.0))")]
@@ -183,7 +184,7 @@ namespace Checkmarx.API.AST.Services.Projects
         /// <param name="repo_url">Project repository url, filtered by the repo url given</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<ProjectsCollection> GetListOfProjectsAsync(int ? limit = null, int? offset = null, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Collections.Generic.IEnumerable<string> ids = null, System.Collections.Generic.IEnumerable<string> names = null, string name = null, string name_regex = null, System.Collections.Generic.IEnumerable<string> groups = null, System.Collections.Generic.IEnumerable<string> tags_keys = null, System.Collections.Generic.IEnumerable<string> tags_values = null, string repo_url = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<ProjectsCollection> GetListOfProjectsAsync(int? limit = null, int? offset = null, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Collections.Generic.IEnumerable<string> ids = null, System.Collections.Generic.IEnumerable<string> names = null, string name = null, string name_regex = null, System.Collections.Generic.IEnumerable<string> groups = null, System.Collections.Generic.IEnumerable<string> tags_keys = null, System.Collections.Generic.IEnumerable<string> tags_values = null, string repo_url = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/?");
@@ -652,7 +653,7 @@ namespace Checkmarx.API.AST.Services.Projects
                             var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<string>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
-                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                                return new System.Collections.Generic.List<string>() { };
                             }
                             return objectResponse_.Object;
                         }
@@ -1018,7 +1019,7 @@ namespace Checkmarx.API.AST.Services.Projects
         /// <param name="app_id">Application Id</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<RichProject> ApplicationAsync(string app_id, ProjectInput body, string authorization = null, string accept = null, System.Guid? correlationId = null,  System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<RichProject> ApplicationAsync(string app_id, ProjectInput body, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (app_id == null)
                 throw new System.ArgumentNullException("app_id");

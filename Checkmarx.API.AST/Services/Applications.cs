@@ -20,6 +20,7 @@ namespace Checkmarx.API.AST.Services.Applications
     using Checkmarx.API.AST.Enums;
     using System = global::System;
     using System.Collections.Generic;
+    using System;
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "13.15.10.0 (NJsonSchema v10.6.10.0 (Newtonsoft.Json v12.0.0.0))")]
     public partial class Applications
@@ -1661,7 +1662,7 @@ namespace Checkmarx.API.AST.Services.Applications
         /// Project ids
         /// </summary>
         [Newtonsoft.Json.JsonProperty("projectIds", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public System.Collections.Generic.ICollection<string> ProjectIds { get; set; }
+        public System.Collections.Generic.ICollection<Guid> ProjectIds { get; set; }
 
         [Newtonsoft.Json.JsonProperty("createdAt", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.DateTimeOffset CreatedAt { get; set; }

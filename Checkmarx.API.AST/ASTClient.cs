@@ -484,7 +484,7 @@ namespace Checkmarx.API.AST
 
         public Services.Applications.Application GetProjectApplication(Guid projectId)
         {
-            return Apps.Applications?.Where(x => x.ProjectIds.Any(x => x == projectId.ToString()))?.FirstOrDefault();
+            return Apps.Applications?.Where(x => x.ProjectIds.Contains(projectId))?.FirstOrDefault();
         }
 
         #endregion
