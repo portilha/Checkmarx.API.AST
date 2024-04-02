@@ -550,6 +550,12 @@ namespace Checkmarx.API.AST
 
         public IEnumerable<string> GetProjectBranches(Guid projectId, int startAt = 0, int limit = 500)
         {
+            if (startAt < 0)
+                throw new ArgumentOutOfRangeException(nameof(startAt));
+
+            if (limit <= 0)
+                throw new ArgumentOutOfRangeException(nameof(limit));
+
             while (true)
             {
                 var response = Projects.BranchesAsync(projectId, startAt, limit).Result;
@@ -567,6 +573,12 @@ namespace Checkmarx.API.AST
 
         public IEnumerable<Results> GetSASTScanResultsById(Guid scanId, int startAt = 0, int limit = 500)
         {
+            if (startAt < 0)
+                throw new ArgumentOutOfRangeException(nameof(startAt));
+
+            if (limit <= 0)
+                throw new ArgumentOutOfRangeException(nameof(limit));
+
             while (true)
             {
                 var response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, limit).Result;
@@ -588,6 +600,12 @@ namespace Checkmarx.API.AST
 
         public IEnumerable<KicsResult> GetKicsScanResultsById(Guid scanId, int startAt = 0, int limit = 500)
         {
+            if (startAt < 0)
+                throw new ArgumentOutOfRangeException(nameof(startAt));
+
+            if (limit <= 0)
+                throw new ArgumentOutOfRangeException(nameof(limit));
+
             while (true)
             {
                 var response = KicsResults.GetKICSResultsByScanAsync(scanId, startAt, limit).Result;
@@ -1238,7 +1256,6 @@ namespace Checkmarx.API.AST
             return model;
         }
 
-
         public Tuple<ReportResults, string> GetAstScanJsonReport(Guid projectId, Guid scanId)
         {
             checkConnection();
@@ -1660,7 +1677,6 @@ namespace Checkmarx.API.AST
             return Configuration.ProjectAllAsync(projectId).Result?.ToDictionary(x => x.Key, y => y);
         }
 
-
         public Dictionary<string, ScanParameter> GetScanConfigurations(Guid projectId, Guid scanId)
         {
             if (projectId == Guid.Empty)
@@ -1911,22 +1927,20 @@ namespace Checkmarx.API.AST
             }
         }
 
-        public IEnumerable<PresetSummary> GetAllPresets()
+        public IEnumerable<PresetSummary> GetAllPresets(int limit = 20)
         {
-            var getLimit = 20;
-
-            var listPresets = PresetManagement.GetPresetsAsync(getLimit).Result;
-            if (listPresets.TotalCount > getLimit)
+            var listPresets = PresetManagement.GetPresetsAsync(limit).Result;
+            if (listPresets.TotalCount > limit)
             {
-                var offset = getLimit;
+                var offset = limit;
                 bool cont = true;
                 do
                 {
-                    var next = PresetManagement.GetPresetsAsync(getLimit, offset).Result;
+                    var next = PresetManagement.GetPresetsAsync(limit, offset).Result;
                     if (next.Presets.Any())
                     {
                         next.Presets.ToList().ForEach(o => listPresets.Presets.Add(o));
-                        offset += getLimit;
+                        offset += limit;
 
                         if (listPresets.Presets.Count == listPresets.TotalCount) cont = false;
                     }
@@ -1956,8 +1970,7 @@ namespace Checkmarx.API.AST
 
         public Services.SASTQuery.Query GetProjectQuery(Guid projectId, string queryPath, bool tenantLevel)
         {
-
-            return SASTQuery.GetQueryForProject(projectId.ToString(), queryPath, tenantLevel);
+            return SASTQuery.GetQueryForProject(projectId, queryPath, tenantLevel);
         }
 
         public Services.SASTQuery.Query GetCxLevelQuery(string queryPath)
@@ -1972,7 +1985,7 @@ namespace Checkmarx.API.AST
 
         public void DeleteProjectQuery(Guid projectId, string queryPath)
         {
-            SASTQuery.DeleteProjectQuery(projectId.ToString(), queryPath);
+            SASTQuery.DeleteProjectQuery(projectId, queryPath);
         }
 
         #endregion

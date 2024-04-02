@@ -102,7 +102,7 @@ namespace Checkmarx.API.AST.Services
 
         }
 
-        public Query GetQueryForProject(string projId, string queryPath, bool tenantLevel)
+        public Query GetQueryForProject(Guid projId, string queryPath, bool tenantLevel)
         {
             string serverRestEndpoint = $"{_baseUrl}api/cx-audit/queries/{(tenantLevel ? "Corp" : projId)}/{System.Web.HttpUtility.UrlEncode(queryPath)}";
             WebRequest request = WebRequest.Create(serverRestEndpoint);
@@ -186,7 +186,7 @@ namespace Checkmarx.API.AST.Services
 
         }
 
-        public void DeleteProjectQuery(string projId, string queryPath)
+        public void DeleteProjectQuery(Guid projId, string queryPath)
         {
             string serverRestEndpoint = $"{_baseUrl}api/cx-audit/queries/{projId}/{System.Web.HttpUtility.UrlEncode(queryPath)}";
             WebRequest request = WebRequest.Create(serverRestEndpoint);
