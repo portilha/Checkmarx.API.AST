@@ -95,7 +95,7 @@ namespace Checkmarx.API.AST.Services.Logs
                         request_.Headers.TryAddWithoutValidation("Accept", ConvertToString(accept, System.Globalization.CultureInfo.InvariantCulture));
 
                     request_.Method = new System.Net.Http.HttpMethod("GET");
-                    request_.Headers.Add("Accept-Encoding", "gzip, deflate, br");
+                    // request_.Headers.Add("Accept-Encoding", "gzip, deflate, br");
 
                     PrepareRequest(client_, request_, urlBuilder_);
 

@@ -303,7 +303,7 @@ namespace Checkmarx.API.AST
             get
             {
                 if (_sastQueriesAudit == null)
-                    _sastQueriesAudit = new SASTQueriesAudit($"{ASTServer.AbsoluteUri}/api/cx-audit", _httpClient);
+                    _sastQueriesAudit = new SASTQueriesAudit($"{ASTServer.AbsoluteUri}api/cx-audit", _httpClient);
 
                 checkConnection();
 
@@ -335,7 +335,7 @@ namespace Checkmarx.API.AST
                 {
                     if (_httpClient == null || (_bearerValidTo - DateTime.UtcNow).TotalMinutes < 5)
                     {
-                        var token = autenticate();
+                        var token = authenticate();
                         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                         _bearerValidTo = DateTime.UtcNow.AddSeconds(_bearerExpiresIn - 300);
                     }
@@ -354,7 +354,7 @@ namespace Checkmarx.API.AST
                 throw new NotSupportedException();
         }
 
-        private string autenticate()
+        private string authenticate()
         {
             var response = requestAuthenticationToken();
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
@@ -425,29 +425,29 @@ namespace Checkmarx.API.AST
         /// <param name="tenant"></param>
         /// <param name="apiKey"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public ASTClient(Uri astServer, Uri acessControlServer, string tenant, string apiKey)
+        public ASTClient(Uri astServer, Uri accessControlServer, string tenant, string apiKey)
         {
             if (astServer == null) throw new ArgumentNullException(nameof(astServer));
-            if (acessControlServer == null) throw new ArgumentNullException(nameof(acessControlServer));
+            if (accessControlServer == null) throw new ArgumentNullException(nameof(accessControlServer));
             if (string.IsNullOrWhiteSpace(tenant)) throw new ArgumentNullException(nameof(tenant));
             if (string.IsNullOrWhiteSpace(apiKey)) throw new ArgumentNullException(nameof(apiKey));
 
             ASTServer = astServer;
-            AcessControlServer = acessControlServer;
+            AcessControlServer = accessControlServer;
             Tenant = tenant;
             KeyApi = apiKey;
         }
 
-        public ASTClient(Uri astServer, Uri acessControlServer, string tenant, string clientId, string clientSecret)
+        public ASTClient(Uri astServer, Uri accessControlServer, string tenant, string clientId, string clientSecret)
         {
             if (astServer == null) throw new ArgumentNullException(nameof(astServer));
-            if (acessControlServer == null) throw new ArgumentNullException(nameof(acessControlServer));
+            if (accessControlServer == null) throw new ArgumentNullException(nameof(accessControlServer));
             if (string.IsNullOrWhiteSpace(tenant)) throw new ArgumentNullException(nameof(tenant));
             if (string.IsNullOrWhiteSpace(clientId)) throw new ArgumentNullException(nameof(clientId));
             if (string.IsNullOrWhiteSpace(clientSecret)) throw new ArgumentNullException(nameof(clientSecret));
 
             ASTServer = astServer;
-            AcessControlServer = acessControlServer;
+            AcessControlServer = accessControlServer;
             Tenant = tenant;
             ClientId = clientId;
             ClientSecret = clientSecret;
@@ -2026,10 +2026,12 @@ namespace Checkmarx.API.AST
             if (string.IsNullOrEmpty(engine))
                 throw new ArgumentNullException(nameof(engine));
 
+            // return Logs.GetEngineLogsAsync(scanId, engine).Result;
+
             string serverRestEndpoint = $"{ASTServer.AbsoluteUri}api/logs/{scanId}/{engine}";
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(serverRestEndpoint);
             request.Method = "GET";
-            request.Headers.Add("Authorization", autenticate());
+            request.Headers.Add("Authorization", authenticate());
             request.AllowAutoRedirect = false;
 
             using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
@@ -2039,7 +2041,7 @@ namespace Checkmarx.API.AST
                     string serverRestEndpoint2 = response.Headers.Get("location");
                     HttpWebRequest request2 = (HttpWebRequest)WebRequest.Create(serverRestEndpoint2);
                     request2.Method = "GET";
-                    request2.Headers.Add("Authorization", autenticate());
+                    request2.Headers.Add("Authorization", authenticate());
                     request2.AllowAutoRedirect = false;
                     using (HttpWebResponse response2 = (HttpWebResponse)request2.GetResponse())
                     {

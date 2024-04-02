@@ -108,5 +108,14 @@ namespace Checkmarx.API.AST.Tests
 
 
 
+        [TestMethod]
+        public void LogEngineTest()
+        {
+            Trace.WriteLine(astclient.GetSASTScanLog(astclient.GetLastScan(astclient.Projects.GetListOfProjectsAsync().Result.Projects.Last().Id).Id));
+
+
+        }
+
+
     }
 }
