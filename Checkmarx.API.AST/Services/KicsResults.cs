@@ -443,7 +443,7 @@ namespace Checkmarx.API.AST.Services.KicsResults
         /// </summary>
         [Newtonsoft.Json.JsonProperty("state", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
-        public KicsResultState State { get; set; }
+        public KicsStateEnum State { get; set; }
 
         /// <summary>
         /// Resource type
@@ -463,7 +463,7 @@ namespace Checkmarx.API.AST.Services.KicsResults
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.15.10.0 (NJsonSchema v10.6.10.0 (Newtonsoft.Json v11.0.0.0))")]
-    public enum KicsResultState
+    public enum KicsStateEnum
     {
 
         [System.Runtime.Serialization.EnumMember(Value = @"TO_VERIFY")]

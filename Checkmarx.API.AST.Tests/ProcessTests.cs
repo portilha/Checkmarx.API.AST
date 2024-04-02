@@ -27,11 +27,9 @@ namespace Checkmarx.API.AST.Tests
     [TestClass]
     public class ProcessTests
     {
-
         private static ASTClient astclient;
 
         public static IConfigurationRoot Configuration { get; private set; }
-
 
         [ClassInitialize]
         public static void InitializeTest(TestContext testContext)
@@ -51,7 +49,6 @@ namespace Checkmarx.API.AST.Tests
                 Configuration["API_KEY"]);
         }
 
-
         [TestMethod]
         public void GetPresetDetailsTest()
         {
@@ -67,9 +64,8 @@ namespace Checkmarx.API.AST.Tests
             }
         }
 
-
         [TestMethod]
-        public void GetTenantQueries()
+        public void GetQueriesTest()
         {
             var properties = typeof(Queries).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
 
@@ -80,42 +76,83 @@ namespace Checkmarx.API.AST.Tests
                     Trace.WriteLine($"{property.Name} = {property.GetValue(item)?.ToString()}");
                 }
 
-                
+
                 Trace.WriteLine("---");
             }
         }
-
 
         [TestMethod]
         public void QueriesForProjectTest()
         {
             var listOfQueries = astclient.SASTQuery.GetQueriesForProject(astclient.Projects.GetListOfProjectsAsync().Result.Projects.First().Id);
 
-            var ids = "9098308495980928364";
+            Dictionary<string, SASTQuery.Query> keys = new Dictionary<string, SASTQuery.Query>();
 
             var properties = typeof(SASTQuery.Query).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
 
-            foreach (var item in listOfQueries.Where(x => x.Id == ids))
+            foreach (var query in listOfQueries)
             {
-                foreach (var property in properties)
+                if (!keys.ContainsKey(query.Id))
+                    keys.Add(query.Id, query);
+                else
                 {
-                    Trace.WriteLine($"{property.Name} = {property.GetValue(item)?.ToString()}");
+                    foreach (var property in properties)
+                    {
+                        Trace.WriteLine($"{property.Name} = {property.GetValue(keys[query.Id])?.ToString()}");
+                    }
+                    Trace.WriteLine("---");
+
+                    foreach (var property in properties)
+                    {
+                        Trace.WriteLine($"{property.Name} = {property.GetValue(query)?.ToString()}");
+                    }
+                    Trace.WriteLine("---");
+                    Trace.WriteLine("========================");
                 }
-                Trace.WriteLine("---");
             }
-
         }
-
-
 
         [TestMethod]
         public void LogEngineTest()
         {
             Trace.WriteLine(astclient.GetSASTScanLog(astclient.GetLastScan(astclient.Projects.GetListOfProjectsAsync().Result.Projects.Last().Id).Id));
-
-
         }
 
 
+        [TestMethod]
+        public void KicsGetHistoryTest()
+        {
+            var properties = typeof(Predicate).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
+
+            foreach (PredicateHistory item in astclient.KicsResultsPredicates.IndexGetAsync("ed440168d16f631592d46e6511d6db66ea1927402a550aa04c48a3709bf4023d", new[] { new Guid("1c724868-72fa-4bfe-aca5-6c9096b48408") }).Result.PredicateHistoryPerProject)
+            {
+                foreach (Predicate predicate in item.Predicates.Reverse())
+                {
+                    foreach (var property in properties)
+                    {
+                        Trace.WriteLine($"{property.Name} = {property.GetValue(predicate)?.ToString()}");
+                    }
+                    Trace.WriteLine("---");
+                }
+            }
+        }
+
+        [TestMethod]
+        public void KicsPostHistoryTest()
+        {
+            PredicateHistory item = astclient.KicsResultsPredicates.IndexGetAsync("ed440168d16f631592d46e6511d6db66ea1927402a550aa04c48a3709bf4023d", new[] { new Guid("1c724868-72fa-4bfe-aca5-6c9096b48408") }).Result.PredicateHistoryPerProject.SingleOrDefault();
+
+            var newHistory = item.Predicates.Reverse();
+            foreach (var property in newHistory)
+            { 
+                property.SimilarityId = "4816e8d3444a0b6e75ca263b7e6e2f7e867393a03848608efc028a86bd2cde13";
+
+                if (!string.IsNullOrWhiteSpace(property.Comment))
+                    property.Comment = $"{property.CreatedBy} added new comment: \"{property.Comment}\"";
+            }
+
+            astclient.KicsResultsPredicates.IndexPostAsync(newHistory).Wait();
+
+        }
     }
 }

@@ -166,7 +166,7 @@ namespace Checkmarx.API.AST
             }
         }
 
-        // Engine Kics results
+        // KICS results
         private KicsResults _kicsResults;
         public KicsResults KicsResults
         {
@@ -178,6 +178,21 @@ namespace Checkmarx.API.AST
                 checkConnection();
 
                 return _kicsResults;
+            }
+        }
+
+        // KICS results
+        private KICSResultsPredicates _kicsResultsPredicates;
+        public KICSResultsPredicates KicsResultsPredicates
+        {
+            get
+            {
+                if (_kicsResultsPredicates == null)
+                    _kicsResultsPredicates = new KICSResultsPredicates(ASTServer, _httpClient);
+
+                checkConnection();
+
+                return _kicsResultsPredicates;
             }
         }
 
@@ -887,7 +902,7 @@ namespace Checkmarx.API.AST
 
                             // Get sast metadata
                             try
-                            {                                
+                            {
                                 // TODO: Refactor this to avoid throwing exceptions all the time regarding a know situation.
                                 ScanInfo metadata = SASTMetadata.GetMetadataAsync(scanDetails.Id).Result;
                                 if (metadata != null)
@@ -909,7 +924,7 @@ namespace Checkmarx.API.AST
                         {
                             scanDetails.SASTResults.Details = $"Current scan status is {sastStatusDetails.Status}";
                         }
-                    } 
+                    }
                     #endregion
 
                     #region KICS
@@ -925,7 +940,7 @@ namespace Checkmarx.API.AST
                             scanDetails.KicsResults = getKicsScanResultDetails(scanDetails.KicsResults, resultsSummary);
                         else
                             scanDetails.KicsResults.Details = $"Current scan status is {sastStatusDetails.Status}";
-                    } 
+                    }
                     #endregion
 
                     #region SCA
@@ -940,7 +955,7 @@ namespace Checkmarx.API.AST
                             scanDetails.ScaResults = getScaScanResultDetails(scanDetails.ScaResults, resultsSummary);
                         else
                             scanDetails.ScaResults.Details = $"Current scan status is {scaStatusDetails.Status}";
-                    } 
+                    }
                     #endregion
                 }
                 catch
@@ -982,7 +997,7 @@ namespace Checkmarx.API.AST
                         {
                             scanDetails.SASTResults.Details = $"Current scan status is {sastStatusDetails.Status}";
                         }
-                    } 
+                    }
 
                     #endregion
 
@@ -1026,7 +1041,7 @@ namespace Checkmarx.API.AST
                         {
                             scanDetails.ScaResults.Details = $"Current scan status is {sastStatusDetails.Status}";
                         }
-                    } 
+                    }
 
                     #endregion
                 }
@@ -1128,7 +1143,7 @@ namespace Checkmarx.API.AST
                 .Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.LOW).Sum(x => x.Counter);
             model.Info = sastCounters.SeverityCounters
                 .Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.INFO).Sum(x => x.Counter);
-            
+
             // ToVerify -> we dont want to include the info vulns
             model.ToVerify = sastCounters.StateCounters.Where(x => x.State == ResultsSummaryState.TO_VERIFY).Sum(x => x.Counter) - model.Info;
 
@@ -1182,7 +1197,7 @@ namespace Checkmarx.API.AST
             var kicsResults = GetKicsScanResultsById(scanId);
             if (kicsResults != null)
             {
-                var results = kicsResults.Where(x => x.State != KicsResultState.NOT_EXPLOITABLE);
+                var results = kicsResults.Where(x => x.State != KicsStateEnum.NOT_EXPLOITABLE);
 
                 model.Id = scanId;
                 model.Total = results.Count();
@@ -1190,7 +1205,7 @@ namespace Checkmarx.API.AST
                 model.Medium = results.Where(x => x.Severity == Services.KicsResults.SeverityEnum.MEDIUM).Count();
                 model.Low = results.Where(x => x.Severity == Services.KicsResults.SeverityEnum.LOW).Count();
                 model.Info = results.Where(x => x.Severity == Services.KicsResults.SeverityEnum.INFO).Count();
-                model.ToVerify = kicsResults.Where(x => x.State == KicsResultState.TO_VERIFY).Count();
+                model.ToVerify = kicsResults.Where(x => x.State == KicsStateEnum.TO_VERIFY).Count();
             }
 
             return model;
@@ -1646,17 +1661,32 @@ namespace Checkmarx.API.AST
             SASTResultsPredicates.PredicateBySimiliartyIdAndProjectIdAsync(new PredicateBySimiliartyIdBody[] { newBody }).Wait();
         }
 
-
         /// <summary>
-        /// api/kics-results-predicates
+        /// Mark kics results.
         /// </summary>
         /// <remarks>the same as SAST </remarks>
         /// <param name="projectId"></param>
         /// <returns></returns>
         /// <exception cref="NotSupportedException"></exception>
-        public bool MarkKICSResult(Guid projectId)
+        public bool MarkKICSResult(string similarityId, Guid projectId, Services.KicsResults.SeverityEnum severity, KicsStateEnum state, string comment = null)
         {
-            throw new NotSupportedException();
+            if (string.IsNullOrWhiteSpace(similarityId))
+                throw new ArgumentNullException(nameof(similarityId));
+
+            if (projectId == Guid.Empty)
+                throw new ArgumentException(nameof(projectId));
+
+            KicsResultsPredicates.IndexPostAsync(
+                new[] { new POSTPredicate (){
+                    SimilarityId = similarityId,
+                    ProjectId = projectId,
+                    Severity = severity,
+                    State = state,
+                    Comment = comment
+                } 
+            }).Wait();
+
+            return true;
         }
 
         public bool MarkSCAResult(Guid projectId)
@@ -2017,7 +2047,7 @@ namespace Checkmarx.API.AST
         }
 
         public string GetScanLog(Guid scanId, string engine)
-        {  
+        {
             return GetScanLogs(scanId, engine);
         }
 
