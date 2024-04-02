@@ -1657,7 +1657,7 @@ namespace Checkmarx.API.AST
             if (projectId == Guid.Empty)
                 throw new ArgumentException(nameof(projectId));
 
-            return Configuration.ProjectAllAsync(projectId.ToString()).Result?.ToDictionary(x => x.Key, y => y);
+            return Configuration.ProjectAllAsync(projectId).Result?.ToDictionary(x => x.Key, y => y);
         }
 
 
@@ -1669,7 +1669,7 @@ namespace Checkmarx.API.AST
             if (scanId == Guid.Empty)
                 throw new ArgumentException(nameof(scanId));
 
-            return Configuration.ScanAsync(projectId.ToString(), scanId.ToString()).Result?.ToDictionary(x => x.Key, y => y);
+            return Configuration.ScanAsync(projectId, scanId).Result?.ToDictionary(x => x.Key, y => y);
         }
 
         public void DeleteTenantConfiguration(string config_keys)
@@ -1985,24 +1985,20 @@ namespace Checkmarx.API.AST
         }
 
         public string GetScanLog(Guid scanId, string engine)
-        {
-            if (string.IsNullOrEmpty(engine))
-                throw new ArgumentNullException(nameof(engine));
-
+        {  
             return GetScanLogs(scanId, engine);
         }
 
         private string GetScanLogs(Guid scanId, string engine)
         {
-            checkConnection();
+            if (string.IsNullOrEmpty(engine))
+                throw new ArgumentNullException(nameof(engine));
 
             string serverRestEndpoint = $"{ASTServer.AbsoluteUri}api/logs/{scanId}/{engine}";
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(serverRestEndpoint);
             request.Method = "GET";
             request.Headers.Add("Authorization", autenticate());
             request.AllowAutoRedirect = false;
-
-            string result = null;
 
             using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
             {
@@ -2017,17 +2013,16 @@ namespace Checkmarx.API.AST
                     {
                         using (Stream dataStream2 = response2.GetResponseStream())
                         {
-                            using (StreamReader reader = new StreamReader(dataStream2))
+                            using (StreamReader reader = new(dataStream2))
                             {
-                                string responseFromServer = reader.ReadToEnd();
-                                result = responseFromServer;
+                                return reader.ReadToEnd();
                             }
                         }
                     }
                 }
             }
 
-            return result;
+            return null;
         }
 
         #endregion

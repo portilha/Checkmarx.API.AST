@@ -275,7 +275,7 @@ namespace Checkmarx.API.AST.Services.Configuration
         /// <param name="correlationId">correlation id to keep track of a flow if many APIs are involved</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ScanParameter>> ProjectAllAsync(string project_id, string authorization = null, string accept = null, System.Guid? correlationId = null,  System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ScanParameter>> ProjectAllAsync(Guid project_id, string authorization = null, string accept = null, System.Guid? correlationId = null,  System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (project_id == null)
                 throw new System.ArgumentNullException("project_id");
@@ -493,7 +493,7 @@ namespace Checkmarx.API.AST.Services.Configuration
         /// <param name="correlationId">correlation id to keep track of a flow if many APIs are involved</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ScanParameter>> ScanAsync(string project_id, string scan_id, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ScanParameter>> ScanAsync(Guid project_id, Guid scan_id, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (project_id == null)
                 throw new System.ArgumentNullException("project_id");
