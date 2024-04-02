@@ -61,7 +61,7 @@ namespace Checkmarx.API.AST.Tests
             var projects = astclient.GetAllProjectsDetails();
             var project = projects.Projects.FirstOrDefault(x => x.Name == "plug-and-sell/JAVA/crosssell-core-pb");
 
-            var lastScan = astclient.GetLastScan(new Guid(project.Id));
+            var lastScan = astclient.GetLastScan(project.Id);
 
             var automatedScanDetails = astclient.GetScanDetails(lastScan.Id);
         }
@@ -75,7 +75,7 @@ namespace Checkmarx.API.AST.Tests
 
             foreach (var project in projsScanned)
             {
-                var lastScan = astclient.GetLastScan(new Guid(project.Id), scanType: Enums.ScanTypeEnum.sca);
+                var lastScan = astclient.GetLastScan(project.Id, scanType: Enums.ScanTypeEnum.sca);
                 if (lastScan != null)
                 {
                     var scanDetails = astclient.GetScanDetails(lastScan.Id);
@@ -109,9 +109,9 @@ namespace Checkmarx.API.AST.Tests
 
             var proj = projects.Where(x => x.Name == "cs_lac_tyt_ws5bfel_util_prod").FirstOrDefault();
 
-            var resultsOverview = astclient.ResultsOverview.ProjectsAsync(new List<string>() { proj.Id }).Result;
+            var resultsOverview = astclient.ResultsOverview.ProjectsAsync(new List<Guid>() { proj.Id }).Result;
 
-            var lastSASTScan = astclient.GetLastScan(new Guid(proj.Id), true, true, scanType: Enums.ScanTypeEnum.sca);
+            var lastSASTScan = astclient.GetLastScan(proj.Id, true, true, scanType: Enums.ScanTypeEnum.sca);
 
             //var scanners = astclient.GetScanDetailsOLD(new Guid(proj.Id), new Guid(lastSASTScan.Id), DateTime.Now);
 
@@ -128,7 +128,7 @@ namespace Checkmarx.API.AST.Tests
             {
                 //var proj = astclient.Projects.GetProjectAsync(new Guid("fd71de0b-b3db-40a8-a885-8c2d0eb481b6")).Result;
                 //var scansList = astclient.GetScans(new Guid(proj.Id)).ToList();
-                var lastSASTScan = astclient.GetLastScan(new Guid(proj.Id), true);
+                var lastSASTScan = astclient.GetLastScan(proj.Id, true);
                 if (lastSASTScan == null)
                     continue;
 
@@ -162,9 +162,9 @@ namespace Checkmarx.API.AST.Tests
             var proj = projects.Where(x => x.Name == "EM-AMD/bcait-bcaresearch").FirstOrDefault();
 
             //var proj = astclient.Projects.GetProjectAsync(new Guid("9d0f8153-6da7-45ae-b471-e9fc335c9ed7")).Result;
-            var scansList = astclient.GetScans(new Guid(proj.Id)).ToList();
+            var scansList = astclient.GetScans(proj.Id).ToList();
             //var scansList = astclient.Scans.GetListOfScansAsync(proj.Id).Result;
-            var lastSASTScan = astclient.GetLastScan(new Guid(proj.Id), true);
+            var lastSASTScan = astclient.GetLastScan(proj.Id, true);
 
             //var oldScanDetails = astclient.GetScanDetails(new Guid(proj.Id), new Guid(lastSASTScan.Id), DateTime.Now);
             //Trace.WriteLine($"Total: {oldScanDetails.SASTResults.Total} | High: {oldScanDetails.SASTResults.High} | Medium: {oldScanDetails.SASTResults.Medium} | Low: {oldScanDetails.SASTResults.Low} | Info: {oldScanDetails.SASTResults.Info} | ToVerify: {oldScanDetails.SASTResults.ToVerify}");
@@ -291,10 +291,10 @@ namespace Checkmarx.API.AST.Tests
             var projectList = astclient.Projects.GetListOfProjectsAsync().Result;
             foreach (var project in projectList.Projects)
             {
-                var scan = astclient.GetLastScan(new Guid(project.Id));
+                var scan = astclient.GetLastScan(project.Id);
                 if (scan == null)
                 {
-                    result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), Guid.Empty, project.Name, 0, "No completed scans found"));
+                    result.Add(new Tuple<Guid, Guid, string, int?, string>(project.Id, Guid.Empty, project.Name, 0, "No completed scans found"));
                     continue;
                 }
 
@@ -308,7 +308,7 @@ namespace Checkmarx.API.AST.Tests
                 //}
                 catch (Exception ex)
                 {
-                    result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), scan.Id, project.Name, 0, ex.Message));
+                    result.Add(new Tuple<Guid, Guid, string, int?, string>(project.Id, scan.Id, project.Name, 0, ex.Message));
                 }
             }
 
@@ -326,10 +326,10 @@ namespace Checkmarx.API.AST.Tests
             var projectList = astclient.Projects.GetListOfProjectsAsync().Result;
             foreach (var project in projectList.Projects)
             {
-                var scan = astclient.GetLastScan(new Guid(project.Id));
+                var scan = astclient.GetLastScan(project.Id);
                 if (scan == null)
                 {
-                    result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), Guid.Empty, project.Name, 0, "No completed scans found"));
+                    result.Add(new Tuple<Guid, Guid, string, int?, string>(project.Id, Guid.Empty, project.Name, 0, "No completed scans found"));
                     continue;
                 }
 
@@ -337,7 +337,7 @@ namespace Checkmarx.API.AST.Tests
                 {
                     var scanDetails = astclient.GetScanDetails(scan.Id);
                     if (!string.IsNullOrEmpty(scanDetails.ErrorMessage))
-                        result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), scan.Id, project.Name, 0, scanDetails.ErrorMessage));
+                        result.Add(new Tuple<Guid, Guid, string, int?, string>(project.Id, scan.Id, project.Name, 0, scanDetails.ErrorMessage));
                 }
                 //catch (ApiException apiEx)
                 //{
@@ -345,7 +345,7 @@ namespace Checkmarx.API.AST.Tests
                 //}
                 catch (Exception ex)
                 {
-                    result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), scan.Id, project.Name, 0, ex.Message));
+                    result.Add(new Tuple<Guid, Guid, string, int?, string>(project.Id, scan.Id, project.Name, 0, ex.Message));
                 }
             }
 

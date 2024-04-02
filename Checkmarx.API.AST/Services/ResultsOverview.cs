@@ -68,7 +68,7 @@ namespace Checkmarx.API.AST.Services.ResultsOverview
         /// <param name="includeApplications">set as true if you want to include project applications</param>
         /// <param name="calculateFromMainBranch">set as true if you only want to use the main branch for severities calculations</param>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<IEnumerable<ProjectOverviewModel>> ProjectsAsync(System.Collections.Generic.IEnumerable<string> projectIds, string accept = null, System.Guid? correlationId = null, bool? includeGroups = null, bool? includeApplications = null, bool? calculateFromMainBranch = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<IEnumerable<ProjectOverviewModel>> ProjectsAsync(System.Collections.Generic.IEnumerable<Guid> projectIds, string accept = null, System.Guid? correlationId = null, bool? includeGroups = null, bool? includeApplications = null, bool? calculateFromMainBranch = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (projectIds == null)
                 throw new System.ArgumentNullException("projectIds");

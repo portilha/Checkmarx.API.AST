@@ -2,8 +2,10 @@ using Checkmarx.API.AST.Models;
 using Checkmarx.API.AST.Models.Report;
 using Checkmarx.API.AST.Services;
 using Checkmarx.API.AST.Services.Applications;
+using Checkmarx.API.AST.Services.PresetManagement;
 using Checkmarx.API.AST.Services.Reports;
 using Checkmarx.API.AST.Services.SASTMetadata;
+using Checkmarx.API.AST.Services.SASTQueriesAudit;
 using Checkmarx.API.AST.Services.Scans;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -51,30 +53,49 @@ namespace Checkmarx.API.AST.Tests
 
 
         [TestMethod]
-        public void GetQueriesTest()
+        public void GetPresetDetailsTest()
         {
+            var properties = typeof(PresetDetails).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
 
-            foreach (var proj in astclient.GetAllProjectsDetails().Projects)
+            foreach (var item in astclient.GetAllPresetsDetails())
             {
-                Trace.WriteLine($"{proj.Id} - {proj.Name}");
+                foreach (var property in properties)
+                {
+                    Trace.WriteLine($"{property.Name} = {property.GetValue(item)?.ToString()}");
+                }
+                Trace.WriteLine("---");
             }
+        }
 
 
+        [TestMethod]
+        public void GetTenantQueries()
+        {
+            var properties = typeof(Queries).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
 
+            foreach (var item in astclient.SASTQueriesAudit.QueriesAllAsync().Result)
+            {
+                foreach (var property in properties)
+                {
+                    Trace.WriteLine($"{property.Name} = {property.GetValue(item)?.ToString()}");
+                }
+
+                
+                Trace.WriteLine("---");
+            }
         }
 
 
         [TestMethod]
         public void QueriesForProjectTest()
         {
+            var listOfQueries = astclient.SASTQuery.GetQueriesForProject(astclient.Projects.GetListOfProjectsAsync().Result.Projects.First().Id);
 
-            var listOfQueries = astclient.SASTQuery.GetQueriesForProject(new Guid("ee6c74fb-1b4c-4e70-a29a-531029ed109f")).Where(x => x.IsExecutable).ToDictionary(x => x.Id);
-
-            var ids = "9177140066760164971";
+            var ids = "9098308495980928364";
 
             var properties = typeof(SASTQuery.Query).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
 
-            foreach (var item in listOfQueries.Values)
+            foreach (var item in listOfQueries.Where(x => x.Id == ids))
             {
                 foreach (var property in properties)
                 {

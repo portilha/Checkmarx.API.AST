@@ -296,6 +296,21 @@ namespace Checkmarx.API.AST
             }
         }
 
+
+        private SASTQueriesAudit _sastQueriesAudit;
+        public SASTQueriesAudit SASTQueriesAudit
+        {
+            get
+            {
+                if (_sastQueriesAudit == null)
+                    _sastQueriesAudit = new SASTQueriesAudit($"{ASTServer.AbsoluteUri}/api/cx-audit", _httpClient);
+
+                checkConnection();
+
+                return _sastQueriesAudit;
+            }
+        }
+
         private Logs _logs;
         public Logs Logs
         {
@@ -756,7 +771,7 @@ namespace Checkmarx.API.AST
         {
             List<Scan> list = new List<Scan>();
 
-            var scanList = Scans.GetListOfScansAsync(projectId.ToString()).Result;
+            var scanList = Scans.GetListOfScansAsync(projectId).Result;
             var scans = scanList.Scans.Select(x => x);
             if (scans.Any())
             {
@@ -1203,7 +1218,7 @@ namespace Checkmarx.API.AST
         {
             // When it is a scan with only SCA engine and 0 results, for some reason other APIs returns null in the sca scan status and results
             // This is the only one i found that returns something
-            var resultsOverview = ResultsOverview.ProjectsAsync(new List<string>() { projId.ToString() }).Result;
+            var resultsOverview = ResultsOverview.ProjectsAsync(new List<Guid>() { projId }).Result;
             if (resultsOverview != null)
             {
                 var resultOverview = resultsOverview.FirstOrDefault();
@@ -1929,6 +1944,9 @@ namespace Checkmarx.API.AST
 
         public IEnumerable<PresetSummary> GetAllPresets(int limit = 20)
         {
+            if (limit <= 0)
+                throw new ArgumentOutOfRangeException(nameof(limit));
+
             var listPresets = PresetManagement.GetPresetsAsync(limit).Result;
             if (listPresets.TotalCount > limit)
             {
@@ -1960,7 +1978,8 @@ namespace Checkmarx.API.AST
 
         public Dictionary<string, Services.SASTQuery.Query> GetProjectQueries(Guid projectId)
         {
-            return SASTQuery.GetQueriesForProject(projectId).Where(x => x.IsExecutable).ToDictionary(x => x.Id, StringComparer.InvariantCultureIgnoreCase);
+            // The Distinct is a workaround... not the solution.
+            return SASTQuery.GetQueriesForProject(projectId).DistinctBy(x => x.Id).ToDictionary(x => x.Id, StringComparer.InvariantCultureIgnoreCase);
         }
 
         public IEnumerable<Services.SASTQuery.Query> GetTeamCorpLevelQueries(Guid projectId)

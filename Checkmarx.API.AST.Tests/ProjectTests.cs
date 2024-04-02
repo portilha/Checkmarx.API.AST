@@ -138,7 +138,7 @@ namespace Checkmarx.API.AST.Tests
                 string preset = null;
                 string configuration = null;
 
-                astclient.RunUploadScan(new Guid(createdProject.Id), data, new List<ConfigType>() { ConfigType.Sca }, branch, preset, configuration);
+                astclient.RunUploadScan(createdProject.Id, data, new List<ConfigType>() { ConfigType.Sca }, branch, preset, configuration);
             }
             catch (Exception ex)
             {
@@ -158,7 +158,7 @@ namespace Checkmarx.API.AST.Tests
             var project = projectsList.Projects.SingleOrDefault(x => x.Name == "JohnDeere-JDF/jdf-r2-proc-databricks-client");
             Trace.WriteLine(project.Id);
 
-            var scan = astclient.GetLastScan(new Guid(project.Id));
+            var scan = astclient.GetLastScan(project.Id);
 
             var scandetails = astclient.GetScanDetails(scan.Id);
         }
@@ -179,7 +179,7 @@ namespace Checkmarx.API.AST.Tests
             var projects = astclient.GetAllProjectsDetails();
             var project = projects.Projects.Where(x => x.Name == "hcc/hype-sentry").FirstOrDefault();
 
-            var app = astclient.GetProjectApplication(new Guid(project.Id));
+            var app = astclient.GetProjectApplication(project.Id);
         }
 
         [TestMethod]

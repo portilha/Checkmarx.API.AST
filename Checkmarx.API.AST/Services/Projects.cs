@@ -1234,7 +1234,7 @@ namespace Checkmarx.API.AST.Services.Projects
         /// A unique identifier for a project
         /// </summary>
         [Newtonsoft.Json.JsonProperty("id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string Id { get; set; }
+        public Guid Id { get; set; }
 
         /// <summary>
         /// The project name
