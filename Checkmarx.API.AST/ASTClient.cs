@@ -50,15 +50,11 @@ namespace Checkmarx.API.AST
             Timeout = TimeSpan.FromMinutes(30)
         };
 
-        public int _bearerExpiresIn;
-        private DateTime _bearerValidTo;
-
         public const string SettingsAPISecuritySwaggerFolderFileFilter = "scan.config.apisec.swaggerFilter";
         public const string SettingsProjectRepoUrl = "scan.handler.git.repository";
         public const string SettingsProjectExclusions = "scan.config.sast.filter";
         public const string SettingsProjectConfiguration = "scan.config.sast.languageMode";
         public const string SettingsProjectPreset = "scan.config.sast.presetName";
-
 
         public const string SAST_Engine = "sast";
         public const string SCA_Engine = "sca";
@@ -67,6 +63,8 @@ namespace Checkmarx.API.AST
         public const string SCA_Container_Engine = "sca-container";
 
         private readonly static string CompletedStage = Checkmarx.API.AST.Services.Scans.Status.Completed.ToString();
+        
+        #region Services
 
         private Projects _projects;
         public Projects Projects
@@ -341,8 +339,12 @@ namespace Checkmarx.API.AST
                 return _logs;
             }
         }
+        #endregion
 
         #region Connection
+
+        private int _bearerExpiresIn;
+        private DateTime _bearerValidTo;
 
         public bool Connected
         {
@@ -1685,7 +1687,7 @@ namespace Checkmarx.API.AST
                     Severity = severity,
                     State = state,
                     Comment = comment
-                } 
+                }
             }).Wait();
 
             return true;
@@ -1779,32 +1781,25 @@ namespace Checkmarx.API.AST
             return GetTenantConfigurations().Where(x => x.Value.Key == SettingsProjectConfiguration).Select(x => x.Value);
         }
 
-        public string GetProjectConfiguration(Guid projectId)
+        public string GetProjectRepoUrl(Guid projectId) => getConfig(projectId, SettingsProjectRepoUrl);
+
+        public string GetProjectConfiguration(Guid projectId) => getConfig(projectId, SettingsProjectConfiguration);
+
+        public string GetProjectExclusions(Guid projectId) => getConfig(projectId, SettingsProjectExclusions);
+
+        public string GetProjectAPISecuritySwaggerFolderFileFilter(Guid projectId) => getConfig(projectId, SettingsAPISecuritySwaggerFolderFileFilter);
+
+        public void SetProjectExclusions(Guid projectId, string exclusions) => setConfig(projectId, SettingsProjectExclusions, exclusions);
+
+        private string getConfig(Guid projectId, string configKey)
         {
             if (projectId == Guid.Empty)
                 throw new ArgumentException(nameof(projectId));
 
             var configuration = GetProjectConfigurations(projectId);
-            if (configuration.ContainsKey(SettingsProjectConfiguration))
+            if (configuration.ContainsKey(configKey))
             {
-                var config = configuration[SettingsProjectConfiguration];
-
-                if (config != null && !string.IsNullOrWhiteSpace(config.Value))
-                    return config.Value;
-            }
-
-            return "Default";
-        }
-
-        public string GetProjectExclusions(Guid projectId)
-        {
-            if (projectId == Guid.Empty)
-                throw new ArgumentException(nameof(projectId));
-
-            var configuration = GetProjectConfigurations(projectId);
-            if (configuration.ContainsKey(SettingsProjectExclusions))
-            {
-                var config = configuration[SettingsProjectExclusions];
+                var config = configuration[configKey];
 
                 if (config != null && !string.IsNullOrWhiteSpace(config.Value))
                     return config.Value;
@@ -1813,24 +1808,28 @@ namespace Checkmarx.API.AST
             return null;
         }
 
-        public void SetProjectExclusions(Guid projectId, string exclusions)
+        private void setConfig(Guid projectId, string key, string value)
         {
             if (projectId == Guid.Empty)
                 throw new ArgumentException(nameof(projectId));
 
-            if (string.IsNullOrWhiteSpace(exclusions))
-                throw new ArgumentException(nameof(exclusions));
+            if (string.IsNullOrWhiteSpace(value))
+                throw new ArgumentException(nameof(value));
+
+            if (string.IsNullOrWhiteSpace(key))
+                throw new ArgumentException(nameof(key));
 
             List<ScanParameter> body = new List<ScanParameter>() {
                 new ScanParameter()
                 {
-                    Key = SettingsProjectExclusions,
-                    Value = exclusions
+                    Key = key,
+                    Value = value
                 }
             };
 
             Configuration.UpdateProjectConfigurationAsync(projectId.ToString(), body).Wait();
         }
+
 
         public Tuple<string, string> GetProjectFilesAndFoldersExclusions(Guid projectId)
         {
@@ -1853,23 +1852,6 @@ namespace Checkmarx.API.AST
             }
 
             return new Tuple<string, string>(string.Empty, string.Empty);
-        }
-
-        public string GetProjectRepoUrl(Guid projectId)
-        {
-            if (projectId == Guid.Empty)
-                throw new ArgumentException(nameof(projectId));
-
-            var configuration = GetProjectConfigurations(projectId);
-            if (configuration.ContainsKey(SettingsProjectRepoUrl))
-            {
-                var config = configuration[SettingsProjectRepoUrl];
-
-                if (config != null && !string.IsNullOrWhiteSpace(config.Value))
-                    return config.Value;
-            }
-
-            return null;
         }
 
         public string GetTenantAPISecuritySwaggerFolderFileFilter()
@@ -1905,23 +1887,6 @@ namespace Checkmarx.API.AST
             };
 
             Configuration.UpdateTenantConfigurationAsync(body).Wait();
-        }
-
-        public string GetProjectAPISecuritySwaggerFolderFileFilter(Guid projectId)
-        {
-            if (projectId == Guid.Empty)
-                throw new ArgumentException(nameof(projectId));
-
-            var configuration = GetProjectConfigurations(projectId);
-            if (configuration.ContainsKey(SettingsAPISecuritySwaggerFolderFileFilter))
-            {
-                var config = configuration[SettingsAPISecuritySwaggerFolderFileFilter];
-
-                if (config != null && !string.IsNullOrWhiteSpace(config.Value))
-                    return config.Value;
-            }
-
-            return null;
         }
 
         public void SetProjectAPISecuritySwaggerFolderFileFilter(Guid projectId, string filter = null, bool allowOverride = false)
