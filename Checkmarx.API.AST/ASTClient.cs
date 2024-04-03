@@ -46,7 +46,9 @@ namespace Checkmarx.API.AST
         public string ClientId { get; set; }
         public string ClientSecret { get; set; }
 
-        private readonly HttpClient _httpClient = new HttpClient();
+        private readonly HttpClient _httpClient = new HttpClient() {
+            Timeout = TimeSpan.FromMinutes(30)
+        };
 
         public int _bearerExpiresIn;
         private DateTime _bearerValidTo;
@@ -143,7 +145,7 @@ namespace Checkmarx.API.AST
             get
             {
                 if (_SASTResults == null)
-                    _SASTResults = new SASTResults($"{ASTServer.AbsoluteUri}api/sast-results", _httpClient);
+                    _SASTResults = new SASTResults(ASTServer, _httpClient);
 
                 checkConnection();
 
@@ -1623,8 +1625,8 @@ namespace Checkmarx.API.AST
             {
                 PredicateBySimiliartyIdBody newBody = new PredicateBySimiliartyIdBody
                 {
-                    SimilarityId = predicate.SimilarityId,
-                    ProjectId = projectId.ToString(),
+                    SimilarityId = predicate.SimilarityId.ToString(),
+                    ProjectId = projectId,
                     Severity = updateSeverity ? predicate.Severity : result.Severity,
                     State = updateState ? predicate.State : result.State,
                     Comment = updateComment ? predicate.Comment : null
@@ -1649,8 +1651,8 @@ namespace Checkmarx.API.AST
 
             PredicateBySimiliartyIdBody newBody = new PredicateBySimiliartyIdBody
             {
-                SimilarityId = similarityId,
-                ProjectId = projectId.ToString(),
+                SimilarityId = similarityId.ToString(),
+                ProjectId = projectId,
                 Severity = severity,
                 State = state
             };

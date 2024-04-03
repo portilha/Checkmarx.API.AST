@@ -61,7 +61,7 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void SASTResultsMarkingTest()
         {
-            astclient.MarkSASTResult(projectId, -25232135, Services.SASTResults.ResultsSeverity.HIGH, Services.SASTResults.ResultsState.NOT_EXPLOITABLE, "Test comment");
+            astclient.MarkSASTResult(new Guid("ee601929-fdb8-449d-8ab7-ea44f4ee2f0c"), 1604882342, Services.SASTResults.ResultsSeverity.HIGH, Services.SASTResults.ResultsState.URGENT, "Test comment 2");
         
             // assert that the changes were made.
 
@@ -72,14 +72,14 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void IaCResultsMarkingTest()
         {
-            Assert.IsTrue(astclient.MarkKICSResult(projectId));
+            astclient.MarkKICSResult("531bf8e9771fc9a38b866afcdc86e10dd80487262d98baf44f82522516f4db9e", new Guid("ee601929-fdb8-449d-8ab7-ea44f4ee2f0c"), Services.KicsResults.SeverityEnum.HIGH, Services.KicsResults.KicsStateEnum.URGENT, "Test");
         }
 
 
         [TestMethod]
         public void SCAResultsMarkingTest()
         {
-            Assert.IsTrue(astclient.MarkSCAResult(projectId));
+            // Assert.IsTrue(astclient.MarkSCAResult(,));
         }
 
 

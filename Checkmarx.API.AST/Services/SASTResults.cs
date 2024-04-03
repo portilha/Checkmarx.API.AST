@@ -26,9 +26,9 @@ namespace Checkmarx.API.AST.Services.SASTResults
         private System.Net.Http.HttpClient _httpClient;
         private System.Lazy<Newtonsoft.Json.JsonSerializerSettings> _settings;
 
-        public SASTResults(string baseUrl, System.Net.Http.HttpClient httpClient)
+        public SASTResults(Uri serverUrl, System.Net.Http.HttpClient httpClient)
         {
-            BaseUrl = baseUrl;
+            BaseUrl = $"{serverUrl.AbsoluteUri}api/sast-results";
             _httpClient = httpClient;
             _settings = new System.Lazy<Newtonsoft.Json.JsonSerializerSettings>(CreateSerializerSettings);
         }
@@ -425,7 +425,7 @@ namespace Checkmarx.API.AST.Services.SASTResults
         /// ID of the Similarity feature (Indicator to identify a result by its first and last nodes)
         /// </summary>
         [Newtonsoft.Json.JsonProperty("similarityID", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public int SimilarityID { get; set; }
+        public long SimilarityID { get; set; }
 
         [Newtonsoft.Json.JsonProperty("uniqueID", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.Obsolete]
@@ -1058,11 +1058,11 @@ namespace Checkmarx.API.AST.Services.SASTResults
         /// ID of the Similarity feature (Indicator to identify a result by its first and last nodes)
         /// </summary>
         [Newtonsoft.Json.JsonProperty("similarityID", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public int SimilarityID { get; set; }
+        public long SimilarityID { get; set; }
 
         [Newtonsoft.Json.JsonProperty("uniqueID", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.Obsolete]
-        public int UniqueID { get; set; }
+        public long UniqueID { get; set; }
 
         /// <summary>
         /// Confidence Level of the exsitin of the result

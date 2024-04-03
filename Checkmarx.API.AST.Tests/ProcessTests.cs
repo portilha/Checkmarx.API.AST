@@ -7,6 +7,7 @@ using Checkmarx.API.AST.Services.Reports;
 using Checkmarx.API.AST.Services.SASTMetadata;
 using Checkmarx.API.AST.Services.SASTQueriesAudit;
 using Checkmarx.API.AST.Services.Scans;
+using Keycloak.Net.Models.Root;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -154,5 +155,29 @@ namespace Checkmarx.API.AST.Tests
             astclient.KicsResultsPredicates.IndexPostAsync(newHistory).Wait();
 
         }
+
+
+        [TestMethod]
+        public void SASTClearResultHistoryTest()
+        {
+            var historyPerProject = astclient.SASTResultsPredicates.GetPredicatesBySimilarityIDAsync(-1317611858).Result.PredicateHistoryPerProject;
+
+            Assert.IsTrue(historyPerProject.Any());
+
+            var singleHistoryPerProject = astclient.SASTResultsPredicates.GetPredicatesBySimilarityIDAsync(-1317611858, new Guid[]{ new Guid("e9b83bdc-bf8b-4f2e-af28-95aecd644f1a") }).Result.PredicateHistoryPerProject;
+
+            Assert.IsTrue(singleHistoryPerProject.SingleOrDefault() != null);
+
+            foreach (var predicate in singleHistoryPerProject.Single().Predicates)
+            {
+                astclient.SASTResultsPredicates.DeletePredicateHistoryAsync(predicate.SimilarityId, predicate.ProjectId, predicate.ID).Wait();
+            }
+
+            
+
+
+        }
+
     }
+
 }

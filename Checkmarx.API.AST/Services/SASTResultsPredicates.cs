@@ -20,6 +20,7 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
 {
     using Checkmarx.API.AST.Services.SASTResults;
     using Microsoft.Extensions.Primitives;
+    using System;
     using System = global::System;
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.0.3.0 (NJsonSchema v11.0.0.0 (Newtonsoft.Json v13.0.0.0))")]
@@ -72,7 +73,7 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
         /// <param name="include_comment_json">if true, will include the comment's JSON data in the response.</param>
         /// <returns>successful operation</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<Response> GetPredicatesBySimilarityIDAsync(long similarityID, System.Collections.Generic.IEnumerable<string> project_ids = null, string authorization = null, string accept = null, System.Guid? correlationId = null, bool? include_comment_json = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<Response> GetPredicatesBySimilarityIDAsync(long similarityID, System.Collections.Generic.IEnumerable<Guid> project_ids = null, string authorization = null, string accept = null, System.Guid? correlationId = null, bool? include_comment_json = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (similarityID == null)
                 throw new System.ArgumentNullException("similarityID");
@@ -537,7 +538,7 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
         /// <param name="predicateID">ID of the predicate to be deleted</param>
         /// <returns>Predicate history successfully deleted.</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task DeletePredicateHistoryAsync(string similarityID, string projectID, string predicateID, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task DeletePredicateHistoryAsync(string similarityID, Guid projectID, string predicateID, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (similarityID == null)
                 throw new System.ArgumentNullException("similarityID");
@@ -927,13 +928,13 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
         /// ID of the related similarity ID.
         /// </summary>
         [Newtonsoft.Json.JsonProperty("similarityId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public long SimilarityId { get; set; }
+        public string SimilarityId { get; set; }
 
         /// <summary>
         /// ID of the related project ID.
         /// </summary>
         [Newtonsoft.Json.JsonProperty("projectId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string ProjectId { get; set; }
+        public Guid ProjectId { get; set; }
 
         [Newtonsoft.Json.JsonProperty("severity", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
@@ -989,7 +990,7 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.0.3.0 (NJsonSchema v11.0.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class PredicateWitCommentsJSON
+    public partial class PredicateWithCommentsJSON
     {
         /// <summary>
         /// ID of the predicate.
@@ -1136,13 +1137,13 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
         /// ID of the related similarity ID.
         /// </summary>
         [Newtonsoft.Json.JsonProperty("similarityId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public long SimilarityId { get; set; }
+        public string SimilarityId { get; set; }
 
         /// <summary>
         /// ID of the related project ID
         /// </summary>
         [Newtonsoft.Json.JsonProperty("projectId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string ProjectId { get; set; }
+        public Guid ProjectId { get; set; }
 
         [Newtonsoft.Json.JsonProperty("severity", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
@@ -1231,7 +1232,7 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
     public partial class Response2
     {
         [Newtonsoft.Json.JsonProperty("latestPredicatePerProject", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public System.Collections.Generic.ICollection<PredicateWitCommentsJSON> LatestPredicatePerProject { get; set; }
+        public System.Collections.Generic.ICollection<PredicateWithCommentsJSON> LatestPredicatePerProject { get; set; }
 
         [Newtonsoft.Json.JsonProperty("totalCount", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int TotalCount { get; set; }
