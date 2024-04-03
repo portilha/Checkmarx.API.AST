@@ -39,7 +39,7 @@ namespace Checkmarx.API.AST
 {
     public class ASTClient
     {
-        public Uri AcessControlServer { get; private set; }
+        public Uri AccessControlServer { get; private set; }
         public Uri ASTServer { get; private set; }
         public string Tenant { get; }
         public string KeyApi { get; set; }
@@ -391,7 +391,7 @@ namespace Checkmarx.API.AST
 
         private HttpResponseMessage requestAuthenticationToken()
         {
-            var identityURL = $"{AcessControlServer.AbsoluteUri}auth/realms/{Tenant}/protocol/openid-connect/token";
+            var identityURL = $"{AccessControlServer.AbsoluteUri}auth/realms/{Tenant}/protocol/openid-connect/token";
 
             Dictionary<string, string> kv;
 
@@ -450,7 +450,7 @@ namespace Checkmarx.API.AST
             if (string.IsNullOrWhiteSpace(apiKey)) throw new ArgumentNullException(nameof(apiKey));
 
             ASTServer = astServer;
-            AcessControlServer = accessControlServer;
+            AccessControlServer = accessControlServer;
             Tenant = tenant;
             KeyApi = apiKey;
         }
@@ -464,7 +464,7 @@ namespace Checkmarx.API.AST
             if (string.IsNullOrWhiteSpace(clientSecret)) throw new ArgumentNullException(nameof(clientSecret));
 
             ASTServer = astServer;
-            AcessControlServer = accessControlServer;
+            AccessControlServer = accessControlServer;
             Tenant = tenant;
             ClientId = clientId;
             ClientSecret = clientSecret;
