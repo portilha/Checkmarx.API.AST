@@ -798,7 +798,7 @@ namespace Checkmarx.API.AST
                     scans = scans.Where(x => x.Status == Status.Completed || x.Status == Status.Partial);
 
                 if (!string.IsNullOrEmpty(branch))
-                    scans = scans.Where(x => x.Branch.ToLower() == branch.ToLower());
+                    scans = scans.Where(x => x.Branch == branch);
 
                 if (maxScanDate != null)
                     scans = scans.Where(x => x.CreatedAt <= maxScanDate);
