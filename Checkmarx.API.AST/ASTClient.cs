@@ -819,8 +819,8 @@ namespace Checkmarx.API.AST
                 {
                     if (!string.IsNullOrEmpty(engine))
                     {
-                        if (scan.Engines != null && scan.Engines.Any(x => x== engine &&
-                                (scan.StatusDetails.Single(x => x.Name == engine).Status == CompletedStage)))
+                        if (scan.Engines != null && scan.Engines.Any(x => x == engine &&
+                                (scan.StatusDetails?.SingleOrDefault(x => x.Name == engine)?.Status == CompletedStage)))
                         {
                             list.Add(scan);
                         }
