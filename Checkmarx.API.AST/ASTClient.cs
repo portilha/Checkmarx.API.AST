@@ -1652,7 +1652,7 @@ namespace Checkmarx.API.AST
             if (projectId == Guid.Empty)
                 throw new ArgumentException(nameof(projectId));
 
-            KicsResultsPredicates.IndexPostAsync(
+            KicsResultsPredicates.UpdateAsync(
                 new[] { new POSTPredicate (){
                     SimilarityId = similarityId,
                     ProjectId = projectId,

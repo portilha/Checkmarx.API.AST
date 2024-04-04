@@ -125,7 +125,7 @@ namespace Checkmarx.API.AST.Tests
         {
             var properties = typeof(Predicate).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
 
-            foreach (PredicateHistory item in astclient.KicsResultsPredicates.IndexGetAsync("ed440168d16f631592d46e6511d6db66ea1927402a550aa04c48a3709bf4023d", new[] { new Guid("1c724868-72fa-4bfe-aca5-6c9096b48408") }).Result.PredicateHistoryPerProject)
+            foreach (PredicateHistory item in astclient.KicsResultsPredicates.ReadAsync("ed440168d16f631592d46e6511d6db66ea1927402a550aa04c48a3709bf4023d", new[] { new Guid("1c724868-72fa-4bfe-aca5-6c9096b48408") }).Result.PredicateHistoryPerProject)
             {
                 foreach (Predicate predicate in item.Predicates.Reverse())
                 {
@@ -141,7 +141,7 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void KicsPostHistoryTest()
         {
-            PredicateHistory item = astclient.KicsResultsPredicates.IndexGetAsync("ed440168d16f631592d46e6511d6db66ea1927402a550aa04c48a3709bf4023d", new[] { new Guid("1c724868-72fa-4bfe-aca5-6c9096b48408") }).Result.PredicateHistoryPerProject.SingleOrDefault();
+            PredicateHistory item = astclient.KicsResultsPredicates.ReadAsync("ed440168d16f631592d46e6511d6db66ea1927402a550aa04c48a3709bf4023d", new[] { new Guid("1c724868-72fa-4bfe-aca5-6c9096b48408") }).Result.PredicateHistoryPerProject.SingleOrDefault();
 
             var newHistory = item.Predicates.Reverse();
             foreach (var property in newHistory)
@@ -152,7 +152,7 @@ namespace Checkmarx.API.AST.Tests
                     property.Comment = $"{property.CreatedBy} added new comment: \"{property.Comment}\"";
             }
 
-            astclient.KicsResultsPredicates.IndexPostAsync(newHistory).Wait();
+            astclient.KicsResultsPredicates.UpdateAsync(newHistory).Wait();
 
         }
 

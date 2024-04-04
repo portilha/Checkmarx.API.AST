@@ -82,7 +82,7 @@ namespace Checkmarx.API.AST.Services
         /// <param name="project_ids">filter by project-ids. OR operator between the items. if not set will return all projects.</param>
         /// <returns>successful operation</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<Response> IndexGetAsync(string similarityID, System.Collections.Generic.IEnumerable<Guid> project_ids, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<Response> ReadAsync(string similarityID, System.Collections.Generic.IEnumerable<Guid> project_ids, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (similarityID == null)
                 throw new System.ArgumentNullException("similarityID");
@@ -187,9 +187,9 @@ namespace Checkmarx.API.AST.Services
             }
         }
 
-        public virtual async System.Threading.Tasks.Task IndexPostAsync(System.Collections.Generic.IEnumerable<Predicate> body, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task UpdateAsync(System.Collections.Generic.IEnumerable<Predicate> body, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
-            await IndexPostAsync(body.Select(predicate => new POSTPredicate
+            await UpdateAsync(body.Select(predicate => new POSTPredicate
             {
                 SimilarityId = predicate.SimilarityId,
                 ProjectId = predicate.ProjectId,
@@ -212,7 +212,7 @@ namespace Checkmarx.API.AST.Services
         /// <param name="correlationId">correlation id to keep track of a flow if many APIs are involved</param>
         /// <returns>successful operation</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task IndexPostAsync(System.Collections.Generic.IEnumerable<POSTPredicate> body, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task UpdateAsync(System.Collections.Generic.IEnumerable<POSTPredicate> body, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
