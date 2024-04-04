@@ -605,33 +605,6 @@ namespace Checkmarx.API.AST
             }
         }
 
-        public IEnumerable<Results> GetSASTScanResultsById(Guid scanId, int startAt = 0, int limit = 500)
-        {
-            if (startAt < 0)
-                throw new ArgumentOutOfRangeException(nameof(startAt));
-
-            if (limit <= 0)
-                throw new ArgumentOutOfRangeException(nameof(limit));
-
-            while (true)
-            {
-                var response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, limit).Result;
-
-                if (response.Results == null || !response.Results.Any())
-                    yield break;
-
-                foreach (var result in response.Results)
-                {
-                    yield return result;
-                }
-
-                if (response.Results.Count() < limit)
-                    yield break;
-
-                startAt += limit;
-            }
-        }
-
         public IEnumerable<KicsResult> GetKicsScanResultsById(Guid scanId, int startAt = 0, int limit = 500)
         {
             if (startAt < 0)
@@ -1160,7 +1133,7 @@ namespace Checkmarx.API.AST
             try
             {
                 // Scan query categories
-                var scanResults = GetSASTScanVulnerabilitiesDetails(model.Id).ToList();
+                var scanResults = GetSASTScanResultsById(model.Id).ToList();
 
                 scanDetails.SASTVulnerabilities = scanResults;
 
@@ -1400,7 +1373,7 @@ namespace Checkmarx.API.AST
             return null;
         }
 
-        public IEnumerable<Results> GetSASTScanVulnerabilitiesDetails(Guid scanId, int startAt = 0, int limit = 500)
+        public IEnumerable<Results> GetSASTScanResultsById(Guid scanId, int startAt = 0, int limit = 500)
         {
             if (startAt < 0)
                 throw new ArgumentOutOfRangeException(nameof(startAt));
@@ -1434,7 +1407,6 @@ namespace Checkmarx.API.AST
                         System.Threading.Thread.Sleep(500);
                     }
                 }
-
 
                 if (response.Results != null)
                 {

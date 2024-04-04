@@ -148,7 +148,7 @@ namespace Checkmarx.API.AST.Tests
             var lastSASTScan = astclient.GetLastScan(new Guid(proj.Id), true);
 
             //var newScanDetails = astclient.ScannersResults.GetResultsByScanAsync(new Guid(lastSASTScan.Id)).Result;
-            var newScanDetails2 = astclient.GetSASTScanVulnerabilitiesDetails(lastSASTScan.Id).ToList();
+            var newScanDetails2 = astclient.GetSASTScanResultsById(lastSASTScan.Id).ToList();
         }
 
         Guid _projectId = new Guid("6f6579f4-f441-4e8e-8241-f0b4174391d1");

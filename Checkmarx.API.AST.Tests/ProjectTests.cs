@@ -80,7 +80,7 @@ namespace Checkmarx.API.AST.Tests
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            var scanResults = astclient.GetSASTScanVulnerabilitiesDetails(lastScan.Id).ToList();
+            var scanResults = astclient.GetSASTScanResultsById(lastScan.Id).ToList();
 
             Trace.WriteLine(stopwatch.Elapsed.TotalSeconds);
 

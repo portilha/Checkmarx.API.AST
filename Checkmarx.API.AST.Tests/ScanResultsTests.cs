@@ -55,33 +55,72 @@ namespace Checkmarx.API.AST.Tests
 
         }
 
-        Guid projectId = new Guid("4bceceba-3be8-4ef6-b822-c7fee658fbf8");
-
-
         [TestMethod]
-        public void SASTResultsMarkingTest()
+        public void GetScanResultsDetailsTest()
         {
-            astclient.MarkSASTResult(new Guid("ee601929-fdb8-449d-8ab7-ea44f4ee2f0c"), 1604882342, Services.SASTResults.ResultsSeverity.HIGH, Services.SASTResults.ResultsState.URGENT, "Test comment 2");
-        
-            // assert that the changes were made.
+            bool updateState = true;
+            bool updateSeverity = true;
+            bool updateComment = true;
 
-            // Assert.AreEqual(Services.SASTResults.ResultsState.NOT_EXPLOITABLE, astclient.SASTResults)
+            var projects = astclient.GetAllProjectsDetails();
+
+            var projectWithResultsMarked = projects.Projects.FirstOrDefault(x => x.Name == "copy");
+            var projectToMarkResults = projects.Projects.FirstOrDefault(x => x.Name == "sergioCopy");
+
+            var lastScanFromProjectWithResultsMarked = astclient.GetLastScan(projectWithResultsMarked.Id);
+            var lastScanFromProjectToMarkResults = astclient.GetLastScan(projectToMarkResults.Id);
+
+            var resultsFromScan1 = astclient.GetSASTScanResultsById(lastScanFromProjectWithResultsMarked.Id).ToList();
+            var resultsFromScan2 = astclient.GetSASTScanResultsById(lastScanFromProjectToMarkResults.Id).ToList();
+
+            foreach (var result in resultsFromScan2)
+            {
+                var baseResult = resultsFromScan1.Where(x => x.SimilarityID == result.SimilarityID && x.QueryID == result.QueryID).FirstOrDefault();
+
+                if (baseResult == null)
+                    continue;
+
+                try
+                {
+                    PredicateHistory predicateHistory = null;
+                    var resultPedricate = astclient.SASTResultsPredicates.GetPredicatesBySimilarityIDAsync(result.SimilarityID).Result;
+                    if (resultPedricate.PredicateHistoryPerProject.Any())
+                    {
+                        predicateHistory = resultPedricate.PredicateHistoryPerProject.Where(x => x.ProjectId == projectWithResultsMarked.Id.ToString()).FirstOrDefault();
+                        if (predicateHistory == null)
+                            continue;
+
+                        List<PredicateBySimiliartyIdBody> body = new List<PredicateBySimiliartyIdBody>();
+                        foreach (var predicate in predicateHistory.Predicates.Reverse())
+                        {
+                            PredicateBySimiliartyIdBody newBody = new PredicateBySimiliartyIdBody();
+                            newBody.SimilarityId = predicate.SimilarityId;
+                            newBody.ProjectId = projectToMarkResults.Id;
+                            newBody.Severity = updateSeverity ? predicate.Severity : result.Severity;
+                            newBody.State = updateState ? predicate.State : result.State;
+                            newBody.Comment = updateComment ? predicate.Comment : null;
+
+                            body.Add(newBody);
+                        }
+
+                        if (body.Any())
+                        {
+                            astclient.SASTResultsPredicates.PredicateBySimiliartyIdAndProjectIdAsync(body).Wait();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"Fail to update result with id {result.ID} because {ex.Message}");
+                }
+            }
         }
 
 
         [TestMethod]
-        public void IaCResultsMarkingTest()
+        public void ResultsMarkingTest()
         {
-            astclient.MarkKICSResult("531bf8e9771fc9a38b866afcdc86e10dd80487262d98baf44f82522516f4db9e", new Guid("ee601929-fdb8-449d-8ab7-ea44f4ee2f0c"), Services.KicsResults.SeverityEnum.HIGH, Services.KicsResults.KicsStateEnum.URGENT, "Test");
+            //astclient.MarkSASTResult(new Guid("4bceceba-3be8-4ef6-b822-c7fee658fbf8"), "-25232135", Services.SASTResults.ResultsSeverity.HIGH, Services.SASTResults.ResultsState.NOT_EXPLOITABLE, "Test comment");
         }
-
-
-        [TestMethod]
-        public void SCAResultsMarkingTest()
-        {
-            // Assert.IsTrue(astclient.MarkSCAResult(,));
-        }
-
-
     }
 }
