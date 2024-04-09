@@ -2550,25 +2550,25 @@ namespace Checkmarx.API.AST.Services.SASTQueriesAudit
     public partial class Queries
     {
         [Newtonsoft.Json.JsonProperty("id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string? Id { get; set; } = default!;
+        public string Id { get; set; } = default!;
 
         [Newtonsoft.Json.JsonProperty("name", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string? Name { get; set; } = default!;
+        public string Name { get; set; } = default!;
 
         [Newtonsoft.Json.JsonProperty("group", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string? Group { get; set; } = default!;
+        public string Group { get; set; } = default!;
 
         [Newtonsoft.Json.JsonProperty("level", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string? Level { get; set; } = default!;
+        public string Level { get; set; } = default!;
 
         [Newtonsoft.Json.JsonProperty("lang", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string? Lang { get; set; } = default!;
+        public string Lang { get; set; } = default!;
 
         [Newtonsoft.Json.JsonProperty("path", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string? Path { get; set; } = default!;
+        public string Path { get; set; } = default!;
 
         [Newtonsoft.Json.JsonProperty("isExecutable", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public bool? IsExecutable { get; set; } = default!;
+        public bool IsExecutable { get; set; } = default!;
 
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
@@ -2598,34 +2598,34 @@ namespace Checkmarx.API.AST.Services.SASTQueriesAudit
     public partial class Query
     {
         [Newtonsoft.Json.JsonProperty("id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public int? Id { get; set; } = default!;
+        public string Id { get; set; } = default!;
 
         [Newtonsoft.Json.JsonProperty("source", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string? Source { get; set; } = default!;
+        public string Source { get; set; } = default!;
 
         [Newtonsoft.Json.JsonProperty("level", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string? Level { get; set; } = default!;
+        public string Level { get; set; } = default!;
 
         [Newtonsoft.Json.JsonProperty("path", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string? Path { get; set; } = default!;
+        public string Path { get; set; } = default!;
 
         [Newtonsoft.Json.JsonProperty("modified", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string? Modified { get; set; } = default!;
+        public string Modified { get; set; } = default!;
 
         [Newtonsoft.Json.JsonProperty("cwe", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public int? Cwe { get; set; } = default!;
+        public int Cwe { get; set; } = default!;
 
         [Newtonsoft.Json.JsonProperty("severity", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public int? Severity { get; set; } = default!;
+        public int Severity { get; set; } = default!;
 
         [Newtonsoft.Json.JsonProperty("isExecutable", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public bool? IsExecutable { get; set; } = default!;
+        public bool IsExecutable { get; set; } = default!;
 
         [Newtonsoft.Json.JsonProperty("cxDescriptionID", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public int? CxDescriptionID { get; set; } = default!;
+        public int CxDescriptionID { get; set; } = default!;
 
         [Newtonsoft.Json.JsonProperty("queryDescriptionID", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string? QueryDescriptionID { get; set; } = default!;
+        public string QueryDescriptionID { get; set; } = default!;
 
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
