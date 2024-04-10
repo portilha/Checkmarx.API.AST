@@ -46,7 +46,8 @@ namespace Checkmarx.API.AST
         public string ClientId { get; set; }
         public string ClientSecret { get; set; }
 
-        private readonly HttpClient _httpClient = new HttpClient() {
+        private readonly HttpClient _httpClient = new HttpClient()
+        {
             Timeout = TimeSpan.FromMinutes(30)
         };
 
@@ -63,7 +64,7 @@ namespace Checkmarx.API.AST
         public const string SCA_Container_Engine = "sca-container";
 
         private readonly static string CompletedStage = Checkmarx.API.AST.Services.Scans.Status.Completed.ToString();
-        
+
         #region Services
 
         private Projects _projects;
@@ -350,18 +351,11 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                try
+                if (_httpClient == null || (_bearerValidTo - DateTime.UtcNow).TotalMinutes < 5)
                 {
-                    if (_httpClient == null || (_bearerValidTo - DateTime.UtcNow).TotalMinutes < 5)
-                    {
-                        var token = authenticate();
-                        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                        _bearerValidTo = DateTime.UtcNow.AddSeconds(_bearerExpiresIn - 300);
-                    }
-                }
-                catch
-                {
-                    return false;
+                    var token = authenticate();
+                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                    _bearerValidTo = DateTime.UtcNow.AddSeconds(_bearerExpiresIn - 300);
                 }
                 return true;
             }
