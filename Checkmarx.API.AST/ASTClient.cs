@@ -519,20 +519,23 @@ namespace Checkmarx.API.AST
 
         #region Projects
 
-        public ProjectsCollection GetAllProjectsDetails(int getLimit = 500)
+        public ProjectsCollection GetAllProjectsDetails(int limit = 500)
         {
-            var listProjects = Projects.GetListOfProjectsAsync(getLimit).Result;
-            if (listProjects.TotalCount > getLimit)
+            if (limit <= 0)
+                throw new ArgumentOutOfRangeException(nameof(limit));
+
+            var listProjects = Projects.GetListOfProjectsAsync(limit).Result;
+            if (listProjects.TotalCount > limit)
             {
-                var offset = getLimit;
+                var offset = limit;
                 bool cont = true;
                 do
                 {
-                    var next = Projects.GetListOfProjectsAsync(getLimit, offset).Result;
+                    var next = Projects.GetListOfProjectsAsync(limit, offset).Result;
                     if (next.Projects.Any())
                     {
                         next.Projects.ToList().ForEach(o => listProjects.Projects.Add(o));
-                        offset += getLimit;
+                        offset += limit;
 
                         if (listProjects.Projects.Count == listProjects.TotalCount) cont = false;
                     }
