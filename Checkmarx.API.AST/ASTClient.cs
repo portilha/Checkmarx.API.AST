@@ -81,6 +81,21 @@ namespace Checkmarx.API.AST
             }
         }
 
+        private FeatureFlags _featureFlags;
+        public FeatureFlags FeatureFlags
+        {
+            get
+            {
+                if (_featureFlags == null)
+                    _featureFlags = new FeatureFlags(ASTServer, _httpClient);
+
+                checkConnection();
+
+                return _featureFlags;
+            }
+        }
+
+
         private Scans _scans;
         public Scans Scans
         {
