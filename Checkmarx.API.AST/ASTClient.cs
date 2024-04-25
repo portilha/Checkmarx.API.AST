@@ -95,6 +95,19 @@ namespace Checkmarx.API.AST
             }
         }
 
+        private Lists _lists;
+        public Lists Lists
+        {
+            get
+            {
+                if (_lists == null)
+                    _lists = new Lists(ASTServer, _httpClient);
+
+                checkConnection();
+
+                return _lists;
+            }
+        }
 
         private Scans _scans;
         public Scans Scans

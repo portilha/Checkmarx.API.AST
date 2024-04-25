@@ -45,6 +45,34 @@ namespace Checkmarx.API.AST.Tests
             }
         }
 
+        [TestMethod]
+        public void ListOfSeverityTest()
+        {
+            foreach (var severity in astclient.Lists.GetSeveritiesListAsync().Result)
+            {
+                Trace.WriteLine(severity);
+            }
+        }
+
+
+        [TestMethod]
+        public void ListOfStatesTest()
+        {
+            foreach (var state in astclient.Lists.GetStatesListAsync().Result)
+            {
+                Trace.WriteLine(state);
+            }
+        }
+
+
+        [TestMethod]
+        public void ListOfStatusesTest()
+        {
+            foreach (var statuses in astclient.Lists.GetStatusesListAsync().Result)
+            {
+                Trace.WriteLine(statuses);
+            }
+        }
 
     }
 }
