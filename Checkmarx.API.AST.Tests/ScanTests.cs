@@ -145,7 +145,7 @@ namespace Checkmarx.API.AST.Tests
         public void GetScanResultsTest()
         {
             var proj = astclient.Projects.GetProjectAsync(new Guid("723b770a-b9e9-436b-ad66-29326eb6da29")).Result;
-            var lastSASTScan = astclient.GetLastScan(new Guid(proj.Id), true);
+            var lastSASTScan = astclient.GetLastScan(proj.Id, true);
 
             //var newScanDetails = astclient.ScannersResults.GetResultsByScanAsync(new Guid(lastSASTScan.Id)).Result;
             var newScanDetails2 = astclient.GetSASTScanResultsById(lastSASTScan.Id).ToList();
@@ -180,7 +180,7 @@ namespace Checkmarx.API.AST.Tests
         {
             var proj = astclient.Projects.GetProjectAsync(_projectId).Result;
 
-            Scan lastKicsScan = astclient.GetLastScan(new Guid(proj.Id), true, scanType: Enums.ScanTypeEnum.kics);
+            Scan lastKicsScan = astclient.GetLastScan(proj.Id, true, scanType: Enums.ScanTypeEnum.kics);
 
             Assert.AreEqual(lastKicsScan.Id, new Guid("96f11e3b-dd7f-4dcc-8d54-e547e0cd8603"));
         }
@@ -191,7 +191,7 @@ namespace Checkmarx.API.AST.Tests
         {
             var proj = astclient.Projects.GetProjectAsync(_projectId).Result;
 
-            Scan lastKicsScan = astclient.GetLastScan(new Guid(proj.Id), true, scanType: Enums.ScanTypeEnum.kics);
+            Scan lastKicsScan = astclient.GetLastScan(proj.Id, true, scanType: Enums.ScanTypeEnum.kics);
 
             Trace.WriteLine(lastKicsScan.Id);
 
@@ -219,20 +219,34 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void ListSCAScanResultsTest()
         {
-            var proj = astclient.Projects.GetProjectAsync(_projectId).Result;
+            var proj = astclient.Projects.GetProjectAsync(new Guid("80fe1c50-f062-4061-a7ef-576fea9c2971")).Result;
 
-            Scan lastSCAScan = astclient.GetLastScan(new Guid(proj.Id), true, scanType: Enums.ScanTypeEnum.sca);
+            Scan lastSCAScan = astclient.GetLastScan(proj.Id, true, scanType: Enums.ScanTypeEnum.sca);
+
+            Trace.WriteLine(lastSCAScan.Id);
 
             Assert.IsNotNull(lastSCAScan);
 
             var properties = typeof(Services.ScannersResults.ScannerResult).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
 
-            foreach (Services.ScannersResults.ScannerResult result in astclient.GetScannersResultsById(lastSCAScan.Id, ASTClient.SCA_Engine))
+            var results = astclient.GetScannersResultsById(lastSCAScan.Id, ASTClient.SCA_Engine, ASTClient.SCA_Container_Engine);
+
+            // Assert.AreEqual(results.Count(), 1113);
+
+            foreach (Services.ScannersResults.ScannerResult result in results)
             {
                 foreach (var property in properties)
                 {
                     Trace.WriteLine($"{property.Name} = {property.GetValue(result)?.ToString()}");
                 }
+
+                Trace.WriteLine("- ADDITIONAL --");
+
+                foreach (var property in result.AdditionalProperties)
+                {
+                    Trace.WriteLine($"\t{property.Key} = {property.Value}");
+                }
+
                 Trace.WriteLine("---");
 
                 //if(!types.Contains(result.Type))
@@ -249,7 +263,7 @@ namespace Checkmarx.API.AST.Tests
 
             var proj = astclient.Projects.GetProjectAsync(new Guid("049b1439-34b1-498b-bae1-c767652fcbc0")).Result;
 
-            var lastSASTScan = astclient.GetLastScan(new Guid(proj.Id), true, scanType: Enums.ScanTypeEnum.sast);
+            var lastSASTScan = astclient.GetLastScan(proj.Id, true, scanType: Enums.ScanTypeEnum.sast);
 
             Assert.IsNotNull(lastSASTScan);
         }
@@ -366,11 +380,11 @@ namespace Checkmarx.API.AST.Tests
         public void ReRunScanGitTest()
         {
             var gitProj = astclient.Projects.GetProjectAsync(new Guid("fd71de0b-b3db-40a8-a885-8c2d0eb481b6")).Result;
-            var gitProjLastScan = astclient.GetLastScan(new Guid(gitProj.Id), true);
+            var gitProjLastScan = astclient.GetLastScan(gitProj.Id, true);
             var gitProjScanDetails = astclient.GetScanDetails(gitProjLastScan.Id);
             string gitProjbranch = gitProjLastScan.Branch;
 
-            var gitReScanResult = astclient.ReRunGitScan(new Guid(gitProj.Id), gitProjScanDetails.RepoUrl, new List<ConfigType>() { ConfigType.Sast }, gitProjbranch, gitProjScanDetails.Preset);
+            var gitReScanResult = astclient.ReRunGitScan(gitProj.Id, gitProjScanDetails.RepoUrl, new List<ConfigType>() { ConfigType.Sast }, gitProjbranch, gitProjScanDetails.Preset);
 
             astclient.DeleteScan(gitReScanResult.Id);
         }
@@ -379,12 +393,12 @@ namespace Checkmarx.API.AST.Tests
         public void ReRunScanZipTest()
         {
             var uploadProj = astclient.Projects.GetProjectAsync(new Guid("604e406d-c186-43ff-8694-ab295c39ea78")).Result;
-            var uploadProjLastScan = astclient.GetLastScan(new Guid(uploadProj.Id), true);
+            var uploadProjLastScan = astclient.GetLastScan(uploadProj.Id, true);
             //var uploadProjLastScan = astclient.Scans.GetScanAsync(new Guid("8f252210-cd6f-4d68-b158-9d7cece265ca")).Result;
             var uploadProjScanDetails = astclient.GetScanDetails(uploadProjLastScan.Id);
             string uploadProjBranch = uploadProjLastScan.Branch;
 
-            var uploadReScanResult = astclient.ReRunUploadScan(new Guid(uploadProj.Id), uploadProjLastScan.Id, new List<ConfigType>() { ConfigType.Sast }, uploadProjBranch, uploadProjScanDetails.Preset);
+            var uploadReScanResult = astclient.ReRunUploadScan(uploadProj.Id, uploadProjLastScan.Id, new List<ConfigType>() { ConfigType.Sast }, uploadProjBranch, uploadProjScanDetails.Preset);
 
             //astclient.DeleteScan(new Guid("fb20eb3c-29aa-461d-ac29-12d238d7e976"));
         }
@@ -392,7 +406,7 @@ namespace Checkmarx.API.AST.Tests
         public void DownloadSourceCodeTest()
         {
             var uploadProj = astclient.Projects.GetProjectAsync(new Guid("f8a2b16b-0044-440b-85ed-474bd5d93fca")).Result;
-            var uploadProjLastScan = astclient.GetLastScan(new Guid(uploadProj.Id), true);
+            var uploadProjLastScan = astclient.GetLastScan(uploadProj.Id, true);
             var uploadProjScanDetails = astclient.GetScanDetails(uploadProjLastScan.Id);
             string uploadProjBranch = uploadProjLastScan.Branch;
 

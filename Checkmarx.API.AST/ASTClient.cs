@@ -225,6 +225,22 @@ namespace Checkmarx.API.AST
             }
         }
 
+        // SCA API
+        private CxOneSCA _cxOneSCA;
+        public CxOneSCA SCA
+        {
+            get
+            {
+                if (_cxOneSCA == null)
+                    _cxOneSCA = new CxOneSCA(ASTServer, _httpClient);
+
+                checkConnection();
+
+                return _cxOneSCA;
+            }
+        }
+
+
         // Engine Scanners results
         private ScannersResults _scannersResults;
         public ScannersResults ScannersResults
@@ -946,6 +962,7 @@ namespace Checkmarx.API.AST
                     #endregion
 
                     #region SCA
+
                     var scaStatusDetails = scan.StatusDetails.SingleOrDefault(x => x.Name == SCA_Engine);
                     if (scaStatusDetails != null)
                     {

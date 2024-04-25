@@ -745,6 +745,12 @@ namespace Checkmarx.API.AST.Services.Projects
 
                         ProcessResponse(client_, response_);
 
+#if DEBUG
+                        System.Diagnostics.Trace.WriteLine(await response_.Content.ReadAsStringAsync());
+
+#endif
+
+
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
@@ -1296,7 +1302,7 @@ namespace Checkmarx.API.AST.Services.Projects
         /// A unique identifier for a project
         /// </summary>
         [Newtonsoft.Json.JsonProperty("id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string Id { get; set; }
+        public Guid Id { get; set; }
 
         /// <summary>
         /// The project name

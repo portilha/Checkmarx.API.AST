@@ -1,10 +1,12 @@
 using Checkmarx.API.AST.Models;
 using Checkmarx.API.AST.Models.Report;
+using Checkmarx.API.AST.Services;
 using Checkmarx.API.AST.Services.Reports;
 using Checkmarx.API.AST.Services.SASTMetadata;
 using Checkmarx.API.AST.Services.SASTResultsPredicates;
 using Checkmarx.API.AST.Services.Scans;
 using Flurl.Util;
+using Keycloak.Net.Models.Root;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
@@ -56,71 +58,39 @@ namespace Checkmarx.API.AST.Tests
         }
 
         [TestMethod]
-        public void GetScanResultsDetailsTest()
+        public void ListSCAFindings()
         {
-            bool updateState = true;
-            bool updateSeverity = true;
-            bool updateComment = true;
 
-            var projects = astclient.GetAllProjectsDetails();
+            var project = astclient.GetProject(new Guid("80fe1c50-f062-4061-a7ef-576fea9c2971"));
 
-            var projectWithResultsMarked = projects.Projects.FirstOrDefault(x => x.Name == "copy");
-            var projectToMarkResults = projects.Projects.FirstOrDefault(x => x.Name == "sergioCopy");
+            astclient.GetLastScan(new Guid("80fe1c50-f062-4061-a7ef-576fea9c2971"));
 
-            var lastScanFromProjectWithResultsMarked = astclient.GetLastScan(projectWithResultsMarked.Id);
-            var lastScanFromProjectToMarkResults = astclient.GetLastScan(projectToMarkResults.Id);
+            
 
-            var resultsFromScan1 = astclient.GetSASTScanResultsById(lastScanFromProjectWithResultsMarked.Id).ToList();
-            var resultsFromScan2 = astclient.GetSASTScanResultsById(lastScanFromProjectToMarkResults.Id).ToList();
 
-            foreach (var result in resultsFromScan2)
-            {
-                var baseResult = resultsFromScan1.Where(x => x.SimilarityID == result.SimilarityID && x.QueryID == result.QueryID).FirstOrDefault();
-
-                if (baseResult == null)
-                    continue;
-
-                try
-                {
-                    PredicateHistory predicateHistory = null;
-                    var resultPedricate = astclient.SASTResultsPredicates.GetPredicatesBySimilarityIDAsync(result.SimilarityID).Result;
-                    if (resultPedricate.PredicateHistoryPerProject.Any())
-                    {
-                        predicateHistory = resultPedricate.PredicateHistoryPerProject.Where(x => x.ProjectId == projectWithResultsMarked.Id.ToString()).FirstOrDefault();
-                        if (predicateHistory == null)
-                            continue;
-
-                        List<PredicateBySimiliartyIdBody> body = new List<PredicateBySimiliartyIdBody>();
-                        foreach (var predicate in predicateHistory.Predicates.Reverse())
-                        {
-                            PredicateBySimiliartyIdBody newBody = new PredicateBySimiliartyIdBody();
-                            newBody.SimilarityId = predicate.SimilarityId;
-                            newBody.ProjectId = projectToMarkResults.Id;
-                            newBody.Severity = updateSeverity ? predicate.Severity : result.Severity;
-                            newBody.State = updateState ? predicate.State : result.State;
-                            newBody.Comment = updateComment ? predicate.Comment : null;
-
-                            body.Add(newBody);
-                        }
-
-                        if (body.Any())
-                        {
-                            astclient.SASTResultsPredicates.PredicateBySimiliartyIdAndProjectIdAsync(body).Wait();
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Trace.WriteLine($"Fail to update result with id {result.ID} because {ex.Message}");
-                }
-            }
         }
 
 
         [TestMethod]
         public void ResultsMarkingTest()
         {
-            //astclient.MarkSASTResult(new Guid("4bceceba-3be8-4ef6-b822-c7fee658fbf8"), "-25232135", Services.SASTResults.ResultsSeverity.HIGH, Services.SASTResults.ResultsState.NOT_EXPLOITABLE, "Test comment");
+            astclient.SCA.UpdateResultState(new Services.PackageInfo
+            {
+                PackageManager= "Maven", 
+                PackageName = "com.thoughtworks.xstream:xstream",
+                PackageVersion = "1.4.7",
+                VulnerabilityId = "CVE-2021-21344",
+                ProjectIds = new Guid[] { new Guid("80fe1c50-f062-4061-a7ef-576fea9c2971") },
+                Actions = new[] {
+                    new ActionType
+                    {
+                        Type = "ChangeState",
+                        Value = "Confirmed",
+                        Comment = "something funny"
+                    }
+                },
+                
+            }).Wait();
         }
     }
 }

@@ -813,7 +813,7 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
     //}
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.0.3.0 (NJsonSchema v11.0.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class PredicateHistory
+    public partial class SASTPredicateHistory
     {
         /// <summary>
         /// ID of the related similarity ID.
@@ -1212,7 +1212,7 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
     public partial class Response
     {
         [Newtonsoft.Json.JsonProperty("predicateHistoryPerProject", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public System.Collections.Generic.ICollection<PredicateHistory> PredicateHistoryPerProject { get; set; }
+        public System.Collections.Generic.ICollection<SASTPredicateHistory> PredicateHistoryPerProject { get; set; }
 
         [Newtonsoft.Json.JsonProperty("totalCount", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int TotalCount { get; set; }
