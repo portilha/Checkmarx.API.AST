@@ -411,7 +411,7 @@ namespace Checkmarx.API.AST
                 throw new NotSupportedException();
         }
 
-        private string authenticate()
+        public string authenticate()
         {
             var response = requestAuthenticationToken();
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
@@ -1305,17 +1305,23 @@ namespace Checkmarx.API.AST
             return model;
         }
 
-        public Tuple<ReportResults, string> GetAstScanJsonReport(Guid projectId, Guid scanId)
+        public ReportResults GetCxOneScanJsonReport(Guid projectId, Guid scanId, double secondsBetweenPolls = 0.5)
         {
             checkConnection();
 
-            string message = string.Empty;
+            TimeSpan poolInverval = TimeSpan.FromSeconds(secondsBetweenPolls);
 
-            ScanReportCreateInput sc = new ScanReportCreateInput();
-            sc.ReportName = BaseReportCreateInputReportName.ScanReport;
-            sc.ReportType = BaseReportCreateInputReportType.Cli;
-            sc.FileFormat = BaseReportCreateInputFileFormat.Json;
-            sc.Data = new Data { ProjectId = projectId.ToString(), ScanId = scanId.ToString() };
+            ScanReportCreateInput sc = new ScanReportCreateInput
+            {
+                ReportName = BaseReportCreateInputReportName.ScanReport,
+                ReportType = BaseReportCreateInputReportType.Ui,
+                FileFormat = BaseReportCreateInputFileFormat.Json,
+                Data = new Data
+                {
+                    ProjectId = projectId,
+                    ScanId = scanId
+                }
+            };
 
             ReportCreateOutput createReportOutut = null;
             //createReportOutut = Reports.CreateReportAsync(sc).Result;
@@ -1328,7 +1334,7 @@ namespace Checkmarx.API.AST
                 }
                 catch
                 {
-                    System.Threading.Thread.Sleep(500);
+                    System.Threading.Thread.Sleep(poolInverval);
                     createNumberOfAttempts++;
 
                     if (createNumberOfAttempts < 3)
@@ -1339,80 +1345,68 @@ namespace Checkmarx.API.AST
                 break;
             }
 
-            if (createReportOutut != null)
+            if (createReportOutut == null)
+                throw new NotSupportedException();
+            
+            var createReportId = createReportOutut.ReportId;
+
+            if (createReportId == Guid.Empty)
+                throw new Exception($"Error getting Report of Scan {scanId}");
+
+            string downloadUrl = null;
+            Guid reportId = createReportId;
+            string reportStatus = "Requested";
+            string pastReportStatus = reportStatus;
+            double aprox_seconds_passed = 0.0;
+            while (reportStatus != "Completed")
             {
-                var createReportId = createReportOutut.ReportId;
-                if (createReportId != Guid.Empty)
+                System.Threading.Thread.Sleep(poolInverval);
+                aprox_seconds_passed += 1.020;
+
+                int numberOfAttempts = 0;
+                do
                 {
-                    string downloadUrl = null;
-                    Guid reportId = createReportId;
-                    string reportStatus = "Requested";
-                    string pastReportStatus = reportStatus;
-                    double aprox_seconds_passed = 0.0;
-                    while (reportStatus != "Completed")
+                    try
                     {
-                        System.Threading.Thread.Sleep(1000);
-                        aprox_seconds_passed += 1.020;
-
-                        //var statusResponse = Reports.GetReportAsync(reportId, true).GetAwaiter().GetResult();
-                        //reportId = statusResponse.ReportId;
-                        //reportStatus = statusResponse.Status.ToString();
-                        //downloadUrl = statusResponse.Url;
-
-                        int numberOfAttempts = 0;
-                        while (numberOfAttempts < 3)
-                        {
-                            try
-                            {
-                                var statusResponse = Reports.GetReportAsync(reportId, true).GetAwaiter().GetResult();
-                                reportId = statusResponse.ReportId;
-                                reportStatus = statusResponse.Status.ToString();
-                                downloadUrl = statusResponse.Url;
-                            }
-                            catch
-                            {
-                                System.Threading.Thread.Sleep(500);
-                                numberOfAttempts++;
-
-                                if (numberOfAttempts < 3)
-                                    continue;
-                                else
-                                    throw;
-                            }
-                            break;
-                        }
-
-                        if (reportStatus != "Requested" && reportStatus != "Completed" && reportStatus != "Started" && reportStatus != "Failed")
-                        {
-                            //Logging.LogManager.AppendLog(Logging.LogManager.LogSource.Worker, "Abnormal AST json report status! You may want to [cancel all] and retry.");
-                        }
-                        if (pastReportStatus != reportStatus)
-                        {
-                            pastReportStatus = reportStatus;
-                        }
-                        if (aprox_seconds_passed > 60)
-                        {
-                            message = "AST Scan json report for project {0} is taking a long time! Try again later.";
-                            return new Tuple<ReportResults, string>(null, message);
-                        }
-                        if (reportStatus == "Failed")
-                        {
-                            message = "AST Scan API says it could not generate a json report for project {0}. You may want to try again later.";
-                            return new Tuple<ReportResults, string>(null, message);
-                        }
+                        var statusResponse = Reports.GetReportAsync(reportId, true).Result;
+                        reportId = statusResponse.ReportId;
+                        reportStatus = statusResponse.Status.ToString();
+                        downloadUrl = statusResponse.Url;
                     }
+                    catch
+                    {
+                        System.Threading.Thread.Sleep(500);
+                        numberOfAttempts++;
 
-                    var reportString = Reports.DownloadScanReportJsonUrl(downloadUrl).GetAwaiter().GetResult();
-
-                    return new Tuple<ReportResults, string>(JsonConvert.DeserializeObject<ReportResults>(reportString), message);
+                        if (numberOfAttempts < 3)
+                            continue;
+                        else
+                            throw;
+                    }
+                    break;
                 }
-                else
+                while (numberOfAttempts < 3);
+
+                if (pastReportStatus != reportStatus)
                 {
-                    message = $"Error getting Report of Scan {scanId}";
+                    pastReportStatus = reportStatus;
+                }
+
+                if (aprox_seconds_passed > 60)
+                {
+                    throw new TimeoutException("AST Scan json report for project {0} is taking a long time! Try again later.");
+                }
+
+                if (reportStatus == "Failed")
+                {
+
+                    throw new Exception("AST Scan API says it could not generate a json report for project {0}. You may want to try again later.");
                 }
             }
 
-            return null;
+            var reportString = Reports.DownloadScanReportJsonUrl(downloadUrl).Result;
+
+            return JsonConvert.DeserializeObject<ReportResults>(reportString);
         }
 
         public IEnumerable<Results> GetSASTScanResultsById(Guid scanId, int startAt = 0, int limit = 500)

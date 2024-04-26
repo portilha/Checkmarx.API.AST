@@ -15,6 +15,7 @@
 
 namespace Checkmarx.API.AST.Services.Reports
 {
+    using System;
     using System.Net;
     using System = global::System;
 
@@ -657,11 +658,11 @@ namespace Checkmarx.API.AST.Services.Reports
     public partial class Data
     {
         [Newtonsoft.Json.JsonProperty("scanId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string ScanId { get; set; }
+        public Guid ScanId { get; set; }
 
         [Newtonsoft.Json.JsonProperty("projectId", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ProjectId { get; set; }
+        public Guid ProjectId { get; set; }
 
         [Newtonsoft.Json.JsonProperty("branchName", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string BranchName { get; set; }

@@ -89,7 +89,6 @@ namespace Checkmarx.API.AST.Tests
                         Comment = "something funny"
                     }
                 },
-                
             }).Wait();
         }
     }
