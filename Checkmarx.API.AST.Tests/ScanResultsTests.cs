@@ -1,3 +1,4 @@
+using Checkmarx.API.AST.Enums;
 using Checkmarx.API.AST.Models;
 using Checkmarx.API.AST.Models.Report;
 using Checkmarx.API.AST.Services;
@@ -55,6 +56,24 @@ namespace Checkmarx.API.AST.Tests
                 Configuration["ClientSecret"]);
             }
 
+        }
+
+        [TestMethod]
+        public void GetAllScans()
+        {
+            var scan = astclient.GetLastScan(
+                new Guid("79783c9d-2163-4dfc-8c47-6c49d1dfdd01"),
+                false,
+                branch: "docker_jan_2024", 
+                scanType: ScanTypeEnum.sast);
+
+            Assert.IsNotNull(scan);
+
+            var result = astclient.SASTResults.GetSASTResultsByScanAsync(scan.Id).Result.Results;
+
+            Assert.IsTrue(result.Any());
+
+            Trace.WriteLine(result.Count());
         }
 
         [TestMethod]
