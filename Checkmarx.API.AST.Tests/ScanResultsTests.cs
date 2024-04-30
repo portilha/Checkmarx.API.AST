@@ -83,12 +83,37 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void GetAllScansTest()
         {
-
             var scans = astclient.GetAllScans(
                 new Guid("79783c9d-2163-4dfc-8c47-6c49d1dfdd01"), branch: "docker_jan_2024");
 
             Assert.AreEqual(59, scans.Count());
 
+        }
+
+        [TestMethod]
+        public void GetFileFormatsTest()
+        {
+            var results = astclient.Requests.GetFileFormats().Result;
+
+            foreach (var result in results)
+            {
+                Trace.WriteLine(result.Route);
+
+                foreach (var item in result.FileFormats)
+                {
+                    Trace.WriteLine($"\t{item}");
+                }
+            }
+
+
+        }
+
+        [TestMethod]
+        public void GetSCAReportTest()
+        {
+            var result = astclient.Requests.GetReportRequest(new Guid("11d24a2f-d0ca-4727-aed0-395fdcfa66ac"), "SpdxJson");
+
+            Assert.IsNotNull(result);
         }
 
         [TestMethod]
@@ -98,9 +123,8 @@ namespace Checkmarx.API.AST.Tests
             astclient.GetLastScan(new Guid("80fe1c50-f062-4061-a7ef-576fea9c2971"));
         }
 
-
         [TestMethod]
-        public void ResultsMarkingTest()
+        public void SCAResultsMarkingTest()
         {
             astclient.SCA.UpdateResultState(new Services.PackageInfo
             {

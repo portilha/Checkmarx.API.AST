@@ -72,10 +72,8 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_projects == null)
+                if (_projects == null && Connected)
                     _projects = new Projects($"{ASTServer.AbsoluteUri}api/projects", _httpClient);
-
-                checkConnection();
 
                 return _projects;
             }
@@ -86,10 +84,8 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_featureFlags == null)
+                if (_featureFlags == null && Connected)
                     _featureFlags = new FeatureFlags(ASTServer, _httpClient);
-
-                checkConnection();
 
                 return _featureFlags;
             }
@@ -100,10 +96,10 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_lists == null)
+                if (_lists == null && Connected)
                     _lists = new Lists(ASTServer, _httpClient);
 
-                checkConnection();
+
 
                 return _lists;
             }
@@ -114,10 +110,10 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_scans == null)
+                if (_scans == null && Connected)
                     _scans = new Scans($"{ASTServer.AbsoluteUri}api/scans", _httpClient);
 
-                checkConnection();
+
 
                 return _scans;
             }
@@ -128,24 +124,37 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_reports == null)
+                if (_reports == null && Connected)
                     _reports = new Reports($"{ASTServer.AbsoluteUri}api/reports", _httpClient);
 
-                checkConnection();
+
 
                 return _reports;
             }
         }
+
+        private Requests _requests;
+        public Requests Requests
+        {
+            get
+            {
+                if (_requests == null && Connected)
+                    _requests = new Requests(ASTServer, _httpClient);
+
+                return _requests;
+            }
+        }
+
 
         private SASTMetadata _SASTMetadata;
         public SASTMetadata SASTMetadata
         {
             get
             {
-                if (_SASTMetadata == null)
+                if (_SASTMetadata == null && Connected)
                     _SASTMetadata = new SASTMetadata($"{ASTServer.AbsoluteUri}api/sast-metadata", _httpClient);
 
-                checkConnection();
+
 
                 return _SASTMetadata;
             }
@@ -156,10 +165,8 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_applications == null)
+                if (_applications == null && Connected)
                     _applications = new Applications($"{ASTServer.AbsoluteUri}api/applications", _httpClient);
-
-                checkConnection();
 
                 return _applications;
             }
@@ -171,10 +178,8 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_SASTResults == null)
+                if (_SASTResults == null && Connected)
                     _SASTResults = new SASTResults(ASTServer, _httpClient);
-
-                checkConnection();
 
                 return _SASTResults;
             }
@@ -186,10 +191,10 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_SASTResultsPredicates == null)
+                if (_SASTResultsPredicates == null && Connected)
                     _SASTResultsPredicates = new SASTResultsPredicates($"{ASTServer.AbsoluteUri}api/sast-results-predicates", _httpClient);
 
-                checkConnection();
+
 
                 return _SASTResultsPredicates;
             }
@@ -201,10 +206,10 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_kicsResults == null)
+                if (_kicsResults == null && Connected)
                     _kicsResults = new KicsResults($"{ASTServer.AbsoluteUri}api/kics-results", _httpClient);
 
-                checkConnection();
+
 
                 return _kicsResults;
             }
@@ -216,10 +221,10 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_kicsResultsPredicates == null)
+                if (_kicsResultsPredicates == null && Connected)
                     _kicsResultsPredicates = new KICSResultsPredicates(ASTServer, _httpClient);
 
-                checkConnection();
+
 
                 return _kicsResultsPredicates;
             }
@@ -231,10 +236,10 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_cxOneSCA == null)
+                if (_cxOneSCA == null && Connected)
                     _cxOneSCA = new CxOneSCA(ASTServer, _httpClient);
 
-                checkConnection();
+
 
                 return _cxOneSCA;
             }
@@ -247,10 +252,10 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_scannersResults == null)
+                if (_scannersResults == null && Connected)
                     _scannersResults = new ScannersResults($"{ASTServer.AbsoluteUri}api/results", _httpClient);
 
-                checkConnection();
+
 
                 return _scannersResults;
             }
@@ -262,10 +267,10 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_resultsSummary == null)
+                if (_resultsSummary == null && Connected)
                     _resultsSummary = new ResultsSummary($"{ASTServer.AbsoluteUri}api/scan-summary", _httpClient);
 
-                checkConnection();
+
 
                 return _resultsSummary;
             }
@@ -276,10 +281,10 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_resultsOverview == null)
+                if (_resultsOverview == null && Connected)
                     _resultsOverview = new ResultsOverview($"{ASTServer.AbsoluteUri}api/results-overview", _httpClient);
 
-                checkConnection();
+
 
                 return _resultsOverview;
             }
@@ -291,10 +296,10 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_configuration == null)
+                if (_configuration == null && Connected)
                     _configuration = new Configuration($"{ASTServer.AbsoluteUri}api/configuration", _httpClient);
 
-                checkConnection();
+
 
                 return _configuration;
             }
@@ -305,10 +310,10 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_repostore == null)
+                if (_repostore == null && Connected)
                     _repostore = new Repostore($"{ASTServer.AbsoluteUri}api/repostore/code", _httpClient);
 
-                checkConnection();
+
 
                 return _repostore;
             }
@@ -319,10 +324,10 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_uploads == null)
+                if (_uploads == null && Connected)
                     _uploads = new Uploads($"{ASTServer.AbsoluteUri}api/uploads", _httpClient);
 
-                checkConnection();
+
 
                 return _uploads;
             }
@@ -333,10 +338,10 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_presetManagement == null)
+                if (_presetManagement == null && Connected)
                     _presetManagement = new PresetManagement($"{ASTServer.AbsoluteUri}api/presets", _httpClient);
 
-                checkConnection();
+
 
                 return _presetManagement;
             }
@@ -347,10 +352,10 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_sastQuery == null)
+                if (_sastQuery == null && Connected)
                     _sastQuery = new SASTQuery(ASTServer.AbsoluteUri, _httpClient);
 
-                checkConnection();
+
 
                 return _sastQuery;
             }
@@ -362,10 +367,10 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_sastQueriesAudit == null)
+                if (_sastQueriesAudit == null && Connected)
                     _sastQueriesAudit = new SASTQueriesAudit($"{ASTServer.AbsoluteUri}api/cx-audit", _httpClient);
 
-                checkConnection();
+
 
                 return _sastQueriesAudit;
             }
@@ -376,14 +381,15 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_logs == null)
+                if (_logs == null && Connected)
                     _logs = new Logs($"{ASTServer.AbsoluteUri}api/logs", _httpClient);
 
-                checkConnection();
+
 
                 return _logs;
             }
         }
+
         #endregion
 
         #region Connection
@@ -744,7 +750,8 @@ namespace Checkmarx.API.AST
             {
                 var result = Scans.GetListOfScansAsync(projectId, limit: itemsPerPage, offset: startAt, branch: branch).Result;
 
-                foreach (var scan in result.Scans) {
+                foreach (var scan in result.Scans)
+                {
                     yield return scan;
                 }
 
@@ -1365,7 +1372,7 @@ namespace Checkmarx.API.AST
 
             if (createReportOutut == null)
                 throw new NotSupportedException();
-            
+
             var createReportId = createReportOutut.ReportId;
 
             if (createReportId == Guid.Empty)
