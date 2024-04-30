@@ -372,7 +372,7 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void SASTResultsTest()
         {
-            var teste = astclient.SASTResults.GetSASTResultsByScanAsync(new Guid("b0e11442-2694-4102-ae4f-e3a3dcb3559e")).Result;
+            var teste = astclient.GetSASTScanResultsById(new Guid("b0e11442-2694-4102-ae4f-e3a3dcb3559e"));
         }
 
         #region ReRun Scans
@@ -426,9 +426,9 @@ namespace Checkmarx.API.AST.Tests
             var projects = prjcts.Projects.ToList();
             foreach (var project in projects)
             {
-                var scans = astclient.Scans.GetListOfScansAsync(project.Id).Result;
+                var scans = astclient.GetAllScans(project.Id);
                 //foreach(var scan in scans.Scans.Where(x => x.SourceOrigin == "ASAProgramTracker"))
-                foreach (var scan in scans.Scans.Where(x => x.SourceOrigin == "Amazon CloudFront"))
+                foreach (var scan in scans.Where(x => x.SourceOrigin == "Amazon CloudFront"))
                 {
                     ids.Add(scan.Id);
                 }

@@ -59,34 +59,43 @@ namespace Checkmarx.API.AST.Tests
         }
 
         [TestMethod]
-        public void GetAllScans()
+        public void GetLastScan()
         {
             var scan = astclient.GetLastScan(
                 new Guid("79783c9d-2163-4dfc-8c47-6c49d1dfdd01"),
                 false,
-                branch: "docker_jan_2024", 
-                scanType: ScanTypeEnum.sast);
+                branch: "docker_jan_2024",
+                scanType: ScanTypeEnum.sast,
+                maxScanDate: DateTime.Now);
 
             Assert.IsNotNull(scan);
 
-            var result = astclient.SASTResults.GetSASTResultsByScanAsync(scan.Id).Result.Results;
+            Trace.WriteLine(scan.Id);
+            Trace.WriteLine(scan.CreatedAt.ToString());
+
+            var result = astclient.GetSASTScanResultsById(scan.Id);
 
             Assert.IsTrue(result.Any());
 
-            Trace.WriteLine(result.Count());
+            Assert.AreEqual(1964, result.Count());
+        }
+
+        [TestMethod]
+        public void GetAllScansTest()
+        {
+
+            var scans = astclient.GetAllScans(
+                new Guid("79783c9d-2163-4dfc-8c47-6c49d1dfdd01"), branch: "docker_jan_2024");
+
+            Assert.AreEqual(59, scans.Count());
+
         }
 
         [TestMethod]
         public void ListSCAFindings()
         {
-
             var project = astclient.GetProject(new Guid("80fe1c50-f062-4061-a7ef-576fea9c2971"));
-
             astclient.GetLastScan(new Guid("80fe1c50-f062-4061-a7ef-576fea9c2971"));
-
-            
-
-
         }
 
 
@@ -95,7 +104,7 @@ namespace Checkmarx.API.AST.Tests
         {
             astclient.SCA.UpdateResultState(new Services.PackageInfo
             {
-                PackageManager= "Maven", 
+                PackageManager= "Maven",
                 PackageName = "com.thoughtworks.xstream:xstream",
                 PackageVersion = "1.4.7",
                 VulnerabilityId = "CVE-2021-21344",

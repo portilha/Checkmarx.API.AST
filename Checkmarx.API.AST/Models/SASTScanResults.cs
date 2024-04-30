@@ -56,6 +56,11 @@ namespace Checkmarx.API.AST.Models
         public int? FNAddedLow { get; set; }
 
         public ICollection<string> LanguagesDetected { get; set; }
+
+        public bool IsCompleted()
+        {
+            return Status.ToLower() == "completed";
+        }
     }
 
     //public class SCAScanResults

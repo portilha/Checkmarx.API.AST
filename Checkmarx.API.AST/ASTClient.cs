@@ -738,6 +738,24 @@ namespace Checkmarx.API.AST
             return GetScans(projectId, branch: branch);
         }
 
+        private IEnumerable<Scan> getAllScans(Guid projectId, string branch = null, int itemsPerPage = 1000, int startAt = 0)
+        {
+            while (true)
+            {
+                var result = Scans.GetListOfScansAsync(projectId, limit: itemsPerPage, offset: startAt, branch: branch).Result;
+
+                foreach (var scan in result.Scans) {
+                    yield return scan;
+                }
+
+                startAt += itemsPerPage;
+
+                if (result.Scans.Count == 0)
+                    yield break;
+            }
+        }
+
+
         public Scan GetLastScan(Guid projectId, bool fullScanOnly = false, bool completed = true, string branch = null, ScanTypeEnum scanType = ScanTypeEnum.sast, DateTime? maxScanDate = null)
         {
             if (!fullScanOnly && !maxScanDate.HasValue)
@@ -804,8 +822,8 @@ namespace Checkmarx.API.AST
         {
             List<Scan> list = new List<Scan>();
 
-            var scanList = Scans.GetListOfScansAsync(projectId).Result;
-            var scans = scanList.Scans.Select(x => x);
+            var scans = getAllScans(projectId, branch);
+
             if (scans.Any())
             {
                 if (completed)

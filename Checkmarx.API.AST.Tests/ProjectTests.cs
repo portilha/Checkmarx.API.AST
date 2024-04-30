@@ -215,7 +215,7 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void SASTResultsTest()
         {
-            var teste = astclient.SASTResults.GetSASTResultsByScanAsync(new Guid("b0e11442-2694-4102-ae4f-e3a3dcb3559e")).Result;
+            var teste = astclient.GetSASTScanResultsById(new Guid("b0e11442-2694-4102-ae4f-e3a3dcb3559e"));
         }
 
         [TestMethod]
