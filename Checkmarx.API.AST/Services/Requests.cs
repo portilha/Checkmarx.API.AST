@@ -86,6 +86,9 @@ namespace Checkmarx.API.AST.Services
         public bool ExcludePolicies { get; set; }
     }
 
+    /// <summary>
+    /// Based on the documentation, https://checkmarx.com/resource/documents/en/34965-145615-checkmarx-sca--rest--api---export-service.html
+    /// </summary>
     public partial class Requests
     {
         private string _baseUrl = "/api/sca/export";
