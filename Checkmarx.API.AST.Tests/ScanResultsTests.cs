@@ -93,7 +93,7 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void GetFileFormatsTest()
         {
-            var results = astclient.Requests.GetFileFormats().Result;
+            var results = astclient.Requests.GetFileFormats().Result.Where(y => y.Route == "/requests");
 
             foreach (var result in results)
             {
@@ -111,7 +111,9 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void GetSCAReportTest()
         {
-            var result = astclient.Requests.GetReportRequest(new Guid("11d24a2f-d0ca-4727-aed0-395fdcfa66ac"), "SpdxJson");
+            var result = astclient.Requests.GetReportRequest(new Guid("11d24a2f-d0ca-4727-aed0-395fdcfa66ac"), "CycloneDxJson");
+
+            Trace.WriteLine(result);
 
             Assert.IsNotNull(result);
         }

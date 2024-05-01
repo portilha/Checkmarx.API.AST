@@ -496,11 +496,15 @@ namespace Checkmarx.API.AST.Services
             }
         }
 
-        public dynamic GetReportRequest(Guid scanId, string fileFormat,
+        public string GetReportRequest(Guid scanId, string fileFormat,
             double poolInterval = 0.5)
         {
-            ScanData sc = new()
-            {
+            var listOfSupportedFormats = GetFileFormats().Result.Single(y => y.Route == "/requests").FileFormats;
+            if (!listOfSupportedFormats.Contains(fileFormat, StringComparer.OrdinalIgnoreCase)) {
+                throw new NotSupportedException($"Format \"{fileFormat}\" NOT Supported. Supported Formats: {string.Join(";", listOfSupportedFormats)}");
+            }
+
+            ScanData sc = new() {
                 ScanId = scanId,
                 FileFormat = fileFormat
             };
@@ -525,8 +529,7 @@ namespace Checkmarx.API.AST.Services
             }
             while (!statusResponse.IsCompleted());
 
-            return JsonConvert.DeserializeObject<dynamic>(
-                DownloadScanReportJsonUrl(statusResponse.FileUrl).Result);
+            return DownloadScanReportJsonUrl(statusResponse.FileUrl).Result;
         }
 
         protected struct ObjectResponseResult<T>
