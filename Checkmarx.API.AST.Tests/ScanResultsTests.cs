@@ -104,14 +104,12 @@ namespace Checkmarx.API.AST.Tests
                     Trace.WriteLine($"\t{item}");
                 }
             }
-
-
         }
 
         [TestMethod]
         public void GetSCAReportTest()
         {
-            var result = astclient.Requests.GetReportRequest(new Guid("11d24a2f-d0ca-4727-aed0-395fdcfa66ac"), "CycloneDxJson");
+            var result = astclient.Requests.GetReportRequest(new Guid("11d24a2f-d0ca-4727-aed0-395fdcfa66ac"), "CycloneDxXml");
 
             Trace.WriteLine(result);
 

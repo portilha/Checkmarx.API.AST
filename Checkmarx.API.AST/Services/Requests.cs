@@ -10,8 +10,6 @@ using System.Threading;
 
 namespace Checkmarx.API.AST.Services
 {
-
-
     public class ExportStatusDetails
     {
         const string Completed = "Completed";
@@ -67,23 +65,56 @@ namespace Checkmarx.API.AST.Services
 
     public class ExportParameters
     {
+        /// <summary>
+        /// If you would like to exclude all development and test dependencies from the SBOM, set this flag as true.. Default: false
+        /// </summary>
         [JsonProperty("hideDevAndTestDependencies")]
         public bool HideDevAndTestDependencies { get; set; }
 
+        /// <summary>
+        /// If you would like to exclude all licenses that aren't marked as "Effective" from the SBOM, set this flag as true. Default: false
+        /// </summary>
         [JsonProperty("showOnlyEffectiveLicenses")]
         public bool ShowOnlyEffectiveLicenses { get; set; }
 
+        /// <summary>
+        /// Relevant only for scan reports
+        /// </summary>
         [JsonProperty("excludePackages")]
         public bool ExcludePackages { get; set; }
 
+        /// <summary>
+        /// Relevant only for scan reports
+        /// </summary>
         [JsonProperty("excludeLicenses")]
         public bool ExcludeLicenses { get; set; }
 
+        /// <summary>
+        /// Relevant only for scan reports
+        /// </summary>
         [JsonProperty("excludeVulnerabilities")]
         public bool ExcludeVulnerabilities { get; set; }
 
+        /// <summary>
+        /// Relevant only for scan reports
+        /// </summary>
         [JsonProperty("excludePolicies")]
         public bool ExcludePolicies { get; set; }
+
+
+        /// <summary>
+        /// Comma separated list of paths to manifest files that will be remediated. Paths are relative to the repo folder
+        /// </summary>
+        /// <remarks>Relevant only for RemediatedPackagesJson reports</remarks>
+        [JsonProperty("filePaths")]
+        public List<string> FilePaths { get; set; }
+
+        /// <summary>
+        /// If set as true, the output will always be returned in a zip archive. If false (default), then if there is a single filepath the output will be returned as a json.
+        /// </summary>
+        /// <remarks>If there are multiple filepaths, then the output is always returned as a zip archive, even if this parameter is set as false.</remarks>
+        [JsonProperty("compressedOutput")]
+        public bool CompressedOutput { get; set; }
     }
 
     /// <summary>
@@ -131,7 +162,7 @@ namespace Checkmarx.API.AST.Services
         /// </summary>
         /// <returns>Accepted</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<ExportDataResponse> CreateReportAsync(ScanData body, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        internal virtual async System.Threading.Tasks.Task<ExportDataResponse> CreateReportAsync(ScanData body, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (body == null)
                 throw new System.ArgumentNullException("body");
@@ -207,7 +238,7 @@ namespace Checkmarx.API.AST.Services
         /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<ExportStatusDetails> GetReportStatusAsync(System.Guid exportId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        internal virtual async System.Threading.Tasks.Task<ExportStatusDetails> GetReportStatusAsync(System.Guid exportId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (exportId == Guid.Empty)
                 throw new System.ArgumentNullException(nameof(exportId));
@@ -275,13 +306,12 @@ namespace Checkmarx.API.AST.Services
             }
         }
 
-
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
         /// Download a report
         /// </summary>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<string> DownloadScanReportJsonUrl(string url, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        internal virtual async System.Threading.Tasks.Task<string> DownloadScanReport(string url, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (string.IsNullOrEmpty(url))
                 throw new System.ArgumentNullException("exportId");
@@ -347,76 +377,6 @@ namespace Checkmarx.API.AST.Services
                     catch
                     {
                         throw;
-                    }
-                    finally
-                    {
-                        if (disposeResponse_)
-                            response_.Dispose();
-                    }
-                }
-            }
-            finally
-            {
-                if (disposeClient_)
-                    client_.Dispose();
-            }
-        }
-
-        public async System.Threading.Tasks.Task DownloadAsync(System.Guid exportId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
-        {
-            if (exportId == Guid.Empty)
-                throw new System.ArgumentNullException("reportId");
-
-            var urlBuilder_ = new System.Text.StringBuilder();
-            urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/{reportId}/download");
-            urlBuilder_.Replace("{reportId}", System.Uri.EscapeDataString(ConvertToString(exportId, System.Globalization.CultureInfo.InvariantCulture)));
-
-            var client_ = new System.Net.Http.HttpClient();
-            var disposeClient_ = false;
-            try
-            {
-                using (var request_ = new System.Net.Http.HttpRequestMessage())
-                {
-                    request_.Method = new System.Net.Http.HttpMethod("GET");
-
-                    PrepareRequest(client_, request_, urlBuilder_);
-
-                    var url_ = urlBuilder_.ToString();
-                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
-
-                    PrepareRequest(client_, request_, url_);
-
-                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
-                    var disposeResponse_ = true;
-                    try
-                    {
-                        var headers_ = System.Linq.Enumerable.ToDictionary(response_.Headers, h_ => h_.Key, h_ => h_.Value);
-                        if (response_.Content != null && response_.Content.Headers != null)
-                        {
-                            foreach (var item_ in response_.Content.Headers)
-                                headers_[item_.Key] = item_.Value;
-                        }
-
-                        ProcessResponse(client_, response_);
-
-                        var status_ = (int)response_.StatusCode;
-                        if (status_ == 301)
-                        {
-                            string responseText_ = (response_.Content == null) ? string.Empty : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
-                            throw new ApiException("Moved Permanently", status_, responseText_, headers_, null);
-                        }
-                        else
-
-                        if (status_ == 200 || status_ == 204)
-                        {
-
-                            return;
-                        }
-                        else
-                        {
-                            var responseData_ = response_.Content == null ? null : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
-                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
-                        }
                     }
                     finally
                     {
@@ -499,12 +459,23 @@ namespace Checkmarx.API.AST.Services
         public string GetReportRequest(Guid scanId, string fileFormat,
             double poolInterval = 0.5)
         {
+            if (scanId== Guid.Empty)
+                throw new ArgumentNullException(nameof(scanId));
+
+            if (string.IsNullOrWhiteSpace(fileFormat))
+                throw new ArgumentNullException(nameof(fileFormat));
+
+            if (poolInterval < 0)
+                throw new ArgumentOutOfRangeException(nameof(poolInterval));
+
             var listOfSupportedFormats = GetFileFormats().Result.Single(y => y.Route == "/requests").FileFormats;
-            if (!listOfSupportedFormats.Contains(fileFormat, StringComparer.OrdinalIgnoreCase)) {
+            if (!listOfSupportedFormats.Contains(fileFormat, StringComparer.OrdinalIgnoreCase))
+            {
                 throw new NotSupportedException($"Format \"{fileFormat}\" NOT Supported. Supported Formats: {string.Join(";", listOfSupportedFormats)}");
             }
 
-            ScanData sc = new() {
+            ScanData sc = new()
+            {
                 ScanId = scanId,
                 FileFormat = fileFormat
             };
@@ -529,7 +500,7 @@ namespace Checkmarx.API.AST.Services
             }
             while (!statusResponse.IsCompleted());
 
-            return DownloadScanReportJsonUrl(statusResponse.FileUrl).Result;
+            return DownloadScanReport(statusResponse.FileUrl).Result;
         }
 
         protected struct ObjectResponseResult<T>
