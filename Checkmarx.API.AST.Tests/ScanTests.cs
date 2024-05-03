@@ -59,7 +59,8 @@ namespace Checkmarx.API.AST.Tests
         public void GetScanDetailsTest()
         {
             var projects = astclient.GetAllProjectsDetails();
-            var project = projects.Projects.FirstOrDefault(x => x.Name == "plug-and-sell/JAVA/crosssell-core-pb");
+            var project = projects.Projects.Single(
+                x => x.Name == "plug-and-sell/JAVA/crosssell-core-pb");
 
             var lastScan = astclient.GetLastScan(project.Id);
 
@@ -159,19 +160,19 @@ namespace Checkmarx.API.AST.Tests
             Assert.IsNotNull(astclient.Scans);
 
             var projects = astclient.GetAllProjectsDetails().Projects.ToList();
-            var proj = projects.Where(x => x.Name == "EM-AMD/bcait-bcaresearch").FirstOrDefault();
 
-            //var proj = astclient.Projects.GetProjectAsync(new Guid("9d0f8153-6da7-45ae-b471-e9fc335c9ed7")).Result;
-            var scansList = astclient.GetScans(proj.Id).ToList();
-            //var scansList = astclient.Scans.GetListOfScansAsync(proj.Id).Result;
+            var proj = projects.Single(x => x.Name == "EM-AMD/bcait-bcaresearch");
+
             var lastSASTScan = astclient.GetLastScan(proj.Id, true);
 
-            //var oldScanDetails = astclient.GetScanDetails(new Guid(proj.Id), new Guid(lastSASTScan.Id), DateTime.Now);
-            //Trace.WriteLine($"Total: {oldScanDetails.SASTResults.Total} | High: {oldScanDetails.SASTResults.High} | Medium: {oldScanDetails.SASTResults.Medium} | Low: {oldScanDetails.SASTResults.Low} | Info: {oldScanDetails.SASTResults.Info} | ToVerify: {oldScanDetails.SASTResults.ToVerify}");
-
-
             var newScanDetails = astclient.GetScanDetails(lastSASTScan.Id);
-            Trace.WriteLine($"Total: {newScanDetails.SASTResults.Total} | High: {newScanDetails.SASTResults.High} | Medium: {newScanDetails.SASTResults.Medium} | Low: {newScanDetails.SASTResults.Low} | Info: {newScanDetails.SASTResults.Info} | ToVerify: {newScanDetails.SASTResults.ToVerify}");
+
+            Trace.WriteLine($"Total: {newScanDetails.SASTResults.Total} " +
+                $"| High: {newScanDetails.SASTResults.High} " +
+                $"| Medium: {newScanDetails.SASTResults.Medium} " +
+                $"| Low: {newScanDetails.SASTResults.Low} " +
+                $"| Info: {newScanDetails.SASTResults.Info} " +
+                $"| ToVerify: {newScanDetails.SASTResults.ToVerify}");
         }
 
 
@@ -202,7 +203,7 @@ namespace Checkmarx.API.AST.Tests
             // Fields
             Trace.WriteLine(string.Join(";", properties.Select(p => "\"" + p.Name +"\"")));
 
-            var listOfIaCResults =  astclient.GetKicsScanResultsById(lastKicsScan.Id);
+            var listOfIaCResults = astclient.GetKicsScanResultsById(lastKicsScan.Id);
 
             Trace.WriteLine(listOfIaCResults.Count());
 
@@ -219,7 +220,8 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void ListSCAScanResultsTest()
         {
-            var proj = astclient.Projects.GetProjectAsync(new Guid("80fe1c50-f062-4061-a7ef-576fea9c2971")).Result;
+            var proj = astclient.Projects.GetProjectAsync(
+                new Guid("80fe1c50-f062-4061-a7ef-576fea9c2971")).Result;
 
             Scan lastSCAScan = astclient.GetLastScan(proj.Id, true, scanType: Enums.ScanTypeEnum.sca);
 
@@ -230,8 +232,6 @@ namespace Checkmarx.API.AST.Tests
             var properties = typeof(Services.ScannersResults.ScannerResult).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
 
             var results = astclient.GetScannersResultsById(lastSCAScan.Id, ASTClient.SCA_Engine, ASTClient.SCA_Container_Engine);
-
-            // Assert.AreEqual(results.Count(), 1113);
 
             foreach (Services.ScannersResults.ScannerResult result in results)
             {
@@ -248,12 +248,7 @@ namespace Checkmarx.API.AST.Tests
                 }
 
                 Trace.WriteLine("---");
-
-                //if(!types.Contains(result.Type))
-                //    types.Add(result.Type);
             }
-
-            //foreach (var type in types) { Trace.WriteLine(type);}
         }
 
         [TestMethod]
@@ -403,42 +398,6 @@ namespace Checkmarx.API.AST.Tests
             //astclient.DeleteScan(new Guid("fb20eb3c-29aa-461d-ac29-12d238d7e976"));
         }
 
-        public void DownloadSourceCodeTest()
-        {
-            var uploadProj = astclient.Projects.GetProjectAsync(new Guid("f8a2b16b-0044-440b-85ed-474bd5d93fca")).Result;
-            var uploadProjLastScan = astclient.GetLastScan(uploadProj.Id, true);
-            var uploadProjScanDetails = astclient.GetScanDetails(uploadProjLastScan.Id);
-            string uploadProjBranch = uploadProjLastScan.Branch;
-
-            byte[] source = astclient.Repostore.GetSourceCode(uploadProjLastScan.Id).Result;
-
-            string uploadUrl = astclient.Uploads.GetPresignedURLForUploading().Result;
-            astclient.Uploads.SendHTTPRequestByFullURL(uploadUrl, source).Wait();
-
-            //var uploadReScanResult = astclient.ReRunUploadScan(new Guid(uploadProj.Id), uploadProjBranch, uploadProjScanDetails.Preset, uploadUrl);
-        }
-
-        public void DeleteScansTest()
-        {
-            List<Guid> ids = new List<Guid>();
-
-            var prjcts = astclient.GetAllProjectsDetails();
-            var projects = prjcts.Projects.ToList();
-            foreach (var project in projects)
-            {
-                var scans = astclient.GetAllScans(project.Id);
-                //foreach(var scan in scans.Scans.Where(x => x.SourceOrigin == "ASAProgramTracker"))
-                foreach (var scan in scans.Where(x => x.SourceOrigin == "Amazon CloudFront"))
-                {
-                    ids.Add(scan.Id);
-                }
-            }
-
-            foreach (var id in ids)
-            {
-                astclient.DeleteScan(id);
-            }
-        }
 
         #endregion
     }

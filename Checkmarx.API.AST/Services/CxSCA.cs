@@ -50,10 +50,12 @@ namespace Checkmarx.API.AST.Services
     public class ActionType
     {
         [JsonProperty("actionType")]
-        public string Type { get; set; }
+        [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
+        public ActionTypeEnum Type { get; set; }
 
         [JsonProperty("value")]
-        public string Value { get; set; }
+        [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
+        public VulnerabilityStatus Value { get; set; }
 
         [JsonProperty("comment")]
         public string Comment { get; set; }

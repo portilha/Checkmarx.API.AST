@@ -299,8 +299,6 @@ namespace Checkmarx.API.AST
                 if (_configuration == null && Connected)
                     _configuration = new Configuration($"{ASTServer.AbsoluteUri}api/configuration", _httpClient);
 
-
-
                 return _configuration;
             }
         }
@@ -1726,9 +1724,33 @@ namespace Checkmarx.API.AST
             return true;
         }
 
-        public bool MarkSCAResult(Guid projectId)
+        public void MarkSCAVulnerability(Guid projectId, Vulnerability vulnerabilityRisk, VulnerabilityStatus vulnerabilityStatus, string message)
         {
-            throw new NotSupportedException();
+            if (projectId == Guid.Empty)
+                throw new ArgumentNullException(nameof(projectId));
+
+            if (vulnerabilityRisk == null)
+                throw new ArgumentNullException(nameof(vulnerabilityRisk));
+
+            if (string.IsNullOrEmpty(message))
+                throw new ArgumentNullException(nameof(message));
+
+            SCA.UpdateResultState(new PackageInfo
+            {
+                PackageManager= vulnerabilityRisk.PackageManager,
+                PackageName = vulnerabilityRisk.PackageName,
+                PackageVersion = vulnerabilityRisk.PackageVersion,
+                VulnerabilityId = vulnerabilityRisk.Id,
+                ProjectIds = [projectId],
+                Actions = [
+                new ActionType
+                {
+                    Type = ActionTypeEnum.ChangeState,
+                    Value = vulnerabilityStatus,
+                    Comment = message
+                }
+            ],
+            }).Wait();
         }
 
         #endregion
@@ -1738,6 +1760,7 @@ namespace Checkmarx.API.AST
         public void GetGroups()
         {
             checkConnection();
+
             var groupAPI = new Services.GroupsResult.GroupsResults($"{ASTServer.AbsoluteUri}auth/realms/{Tenant}/pip/groups", _httpClient);
             var groups = groupAPI.GetGroupsAsync().Result;
         }

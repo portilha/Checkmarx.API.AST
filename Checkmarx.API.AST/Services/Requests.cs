@@ -10,6 +10,26 @@ using System.Threading;
 
 namespace Checkmarx.API.AST.Services
 {
+    public enum ActionTypeEnum
+    {
+        [System.Runtime.Serialization.EnumMember(Value = @"ChangeState")]
+        ChangeState
+    }
+
+    public enum VulnerabilityStatus
+    {
+        [System.Runtime.Serialization.EnumMember(Value = @"Confirmed")]
+        Confirmed,
+        [System.Runtime.Serialization.EnumMember(Value = @"NotExploitable")]
+        NotExploitable,
+        [System.Runtime.Serialization.EnumMember(Value = @"ProposedNotExploitable")]
+        ProposedNotExploitable,
+        [System.Runtime.Serialization.EnumMember(Value = @"ToVerify")]
+        ToVerify,
+        [System.Runtime.Serialization.EnumMember(Value = @"Urgent")]
+        Urgent
+    }
+
     public class ExportStatusDetails
     {
         const string Completed = "Completed";
@@ -43,10 +63,10 @@ namespace Checkmarx.API.AST.Services
 
     public class ScanData
     {
-        [JsonProperty("ScanId")]
+        [JsonProperty("ScanId", Required = Newtonsoft.Json.Required.Always)]
         public Guid ScanId { get; set; }
 
-        [JsonProperty("FileFormat")]
+        [JsonProperty("FileFormat", Required = Newtonsoft.Json.Required.Always)]
         public string FileFormat { get; set; }
 
         [JsonProperty("ExportParameters")]
@@ -456,34 +476,45 @@ namespace Checkmarx.API.AST.Services
             }
         }
 
+
         public string GetReportRequest(Guid scanId, string fileFormat,
             double poolInterval = 0.5)
         {
-            if (scanId== Guid.Empty)
-                throw new ArgumentNullException(nameof(scanId));
+            return GetReportRequest(new()
+            {
+                ScanId = scanId,
+                FileFormat = fileFormat
+            }, poolInterval);
+        }
 
-            if (string.IsNullOrWhiteSpace(fileFormat))
-                throw new ArgumentNullException(nameof(fileFormat));
+        public string GetReportRequest(ScanData scanData,
+            double poolInterval = 0.5)
+        {
+            if (scanData == null)
+                throw new ArgumentNullException(nameof(scanData));
+
+            if (scanData.ScanId == Guid.Empty)
+                throw new ArgumentNullException(nameof(scanData.ScanId));
+
+            if (string.IsNullOrWhiteSpace(scanData.FileFormat))
+                throw new ArgumentNullException(nameof(scanData.FileFormat));
 
             if (poolInterval < 0)
                 throw new ArgumentOutOfRangeException(nameof(poolInterval));
 
-            var listOfSupportedFormats = GetFileFormats().Result.Single(y => y.Route == "/requests").FileFormats;
-            if (!listOfSupportedFormats.Contains(fileFormat, StringComparer.OrdinalIgnoreCase))
+            var listOfSupportedFormats = GetFileFormats().Result
+                .Single(y => y.Route == "/requests")
+                .FileFormats;
+
+            if (!listOfSupportedFormats.Contains(scanData.FileFormat, StringComparer.OrdinalIgnoreCase))
             {
-                throw new NotSupportedException($"Format \"{fileFormat}\" NOT Supported. Supported Formats: {string.Join(";", listOfSupportedFormats)}");
+                throw new NotSupportedException($"Format \"{scanData.FileFormat}\" NOT Supported. Supported Formats: {string.Join(";", listOfSupportedFormats)}");
             }
 
-            ScanData sc = new()
-            {
-                ScanId = scanId,
-                FileFormat = fileFormat
-            };
-
-            ExportDataResponse createReportOutut = CreateReportAsync(sc).Result;
+            ExportDataResponse createReportOutut = CreateReportAsync(scanData).Result;
 
             if (createReportOutut.ExportId == Guid.Empty)
-                throw new Exception($"Error getting report of scan {scanId}");
+                throw new Exception($"Error getting report of scan {scanData.ScanId}");
 
             ExportStatusDetails statusResponse;
             do
@@ -492,7 +523,7 @@ namespace Checkmarx.API.AST.Services
 
                 if (statusResponse.IsFailed())
                 {
-                    throw new Exception($"Failed to generate a report for scan {scanId}.");
+                    throw new Exception($"Failed to generate a report for scan {scanData.ScanId}.");
                 }
 
                 if (!statusResponse.IsCompleted())
@@ -501,6 +532,12 @@ namespace Checkmarx.API.AST.Services
             while (!statusResponse.IsCompleted());
 
             return DownloadScanReport(statusResponse.FileUrl).Result;
+        }
+
+        public ScanReportJson GetScanReport(Guid scanId, double poolInterval = 0.5)
+        {
+            return JsonConvert.DeserializeObject<ScanReportJson>(
+                GetReportRequest(scanId, "ScanReportJson", poolInterval: poolInterval));
         }
 
         protected struct ObjectResponseResult<T>
