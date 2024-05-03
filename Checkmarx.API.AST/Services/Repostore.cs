@@ -118,8 +118,7 @@ namespace Checkmarx.API.AST.Services.Repostore
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            try
-                            {
+                         
                                 byte[] result = null;
                                 byte[] buffer = new byte[4096];
 
@@ -141,11 +140,7 @@ namespace Checkmarx.API.AST.Services.Repostore
                                     //}
                                 }
                                 return result;
-                            }
-                            catch (Exception ex)
-                            {
-                                throw;
-                            }
+                            
                         }
                         else
                         if (status_ == 400)

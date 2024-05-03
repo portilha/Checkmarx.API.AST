@@ -116,21 +116,16 @@ namespace Checkmarx.API.AST.Services.Uploads
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            try
+
+                            using (Stream dataStream = response_.Content.ReadAsStreamAsync().Result)
                             {
-                                using (Stream dataStream = response_.Content.ReadAsStreamAsync().Result)
+                                using (StreamReader reader = new StreamReader(dataStream))
                                 {
-                                    using (StreamReader reader = new StreamReader(dataStream))
-                                    {
-                                        string responseFromServer = reader.ReadToEnd();
-                                        return JsonConvert.DeserializeObject<dynamic>(responseFromServer)["url"].ToObject<string>();
-                                    }
+                                    string responseFromServer = reader.ReadToEnd();
+                                    return JsonConvert.DeserializeObject<dynamic>(responseFromServer)["url"].ToObject<string>();
                                 }
                             }
-                            catch (Exception ex)
-                            {
-                                throw;
-                            }
+
                         }
                         else
                         if (status_ == 400)
@@ -199,32 +194,6 @@ namespace Checkmarx.API.AST.Services.Uploads
                     stream.Write(bytes, 0, bytes.Length);
                     //stream.Close();
                     request_.Content = GetContent(stream);
-                    
-
-
-
-                    //var content_ = new System.Net.Http.StreamContent(new System.IO.MemoryStream());
-                    //content_.Headers.ContentLength = bytes.LongLength;
-
-                    //using (Stream rs = content_.ReadAsStream())
-                    //{
-                    //    try
-                    //    {
-                    //        rs.Write(bytes, 0, bytes.Length);
-                    //        rs.Flush();
-                    //    }
-                    //    catch (Exception ex)
-                    //    {
-
-                    //        throw;
-                    //    }
-                    //}
-
-
-
-
-                    //request_.Content = content_;
-                    
 
                     request_.Method = new System.Net.Http.HttpMethod("PUT");
 
@@ -251,20 +220,13 @@ namespace Checkmarx.API.AST.Services.Uploads
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            try
+                            using (Stream dataStream = response_.Content.ReadAsStreamAsync().Result)
                             {
-                                using (Stream dataStream = response_.Content.ReadAsStreamAsync().Result)
+                                using (StreamReader reader = new StreamReader(dataStream))
                                 {
-                                    using (StreamReader reader = new StreamReader(dataStream))
-                                    {
-                                        string responseFromServer = reader.ReadToEnd();
-                                        return;
-                                    }
+                                    string responseFromServer = reader.ReadToEnd();
+                                    return;
                                 }
-                            }
-                            catch (Exception ex)
-                            {
-                                throw;
                             }
                         }
                         else
