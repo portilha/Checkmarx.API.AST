@@ -2,8 +2,10 @@ using Checkmarx.API.AST.Enums;
 using Checkmarx.API.AST.Models;
 using Checkmarx.API.AST.Models.Report;
 using Checkmarx.API.AST.Services;
+using Checkmarx.API.AST.Services.KicsResults;
 using Checkmarx.API.AST.Services.Reports;
 using Checkmarx.API.AST.Services.SASTMetadata;
+using Checkmarx.API.AST.Services.SASTResults;
 using Checkmarx.API.AST.Services.SASTResultsPredicates;
 using Checkmarx.API.AST.Services.Scans;
 using Flurl.Util;
@@ -113,7 +115,7 @@ namespace Checkmarx.API.AST.Tests
         }
 
         [TestMethod]
-        public void RandomMarkingTheFindingsTest()
+        public void RandomMarkingTheSCAFindingsTest()
         {
             ScanReportJson result = astclient.Requests.GetScanReport(
                 astclient.GetLastScan(ProjectId, fullScanOnly: false, completed: true, scanType: ScanTypeEnum.sca).Id);
@@ -123,7 +125,41 @@ namespace Checkmarx.API.AST.Tests
             foreach (var vuln in result.Vulnerabilities)
             {
                 astclient.MarkSCAVulnerability(ProjectId, vuln,
-                    GetRandomVulnerabilityStatus(),
+                    GetRandomEnumMember<VulnerabilityStatus>(),
+                    GetRandomJoke());
+            }
+        }
+
+        [TestMethod]
+        public void RandomMarkingTheSASTFindingsTest()
+        {
+            var results = astclient.GetSASTScanResultsById(
+                astclient.GetLastScan(ProjectId, fullScanOnly: false, completed: true, scanType: ScanTypeEnum.sast).Id);
+
+            Assert.IsNotNull(results);
+
+            foreach (var vuln in results)
+            {
+                astclient.MarkSASTResult(ProjectId, vuln.SimilarityID,
+                    vuln.Severity,
+                    GetRandomEnumMember<ResultsState>(),
+                    GetRandomJoke());
+            }
+        }
+
+        [TestMethod]
+        public void RandomMarkingTheIaCFindingsTest()
+        {
+            var results = astclient.GetKicsScanResultsById(
+                astclient.GetLastScan(ProjectId, fullScanOnly: false, completed: true, scanType: ScanTypeEnum.kics).Id);
+
+            Assert.IsNotNull(results);
+
+            foreach (var vuln in results)
+            {
+                astclient.MarkKICSResult(vuln.SimilarityID, ProjectId,
+                    vuln.Severity,
+                    GetRandomEnumMember<KicsStateEnum>(),
                     GetRandomJoke());
             }
         }
@@ -173,13 +209,14 @@ namespace Checkmarx.API.AST.Tests
             return jokes[index];
         }
 
-
-        public static VulnerabilityStatus GetRandomVulnerabilityStatus()
+        public static T GetRandomEnumMember<T>() where T : Enum
         {
             Random random = new Random();
-            var values = Enum.GetValues(typeof(VulnerabilityStatus));
-            return (VulnerabilityStatus)values.GetValue(random.Next(values.Length));
+            var values = Enum.GetValues(typeof(T));
+            return (T)values.GetValue(random.Next(values.Length));
         }
+
+   
 
         [TestMethod]
         public void GetListOfStatesTest()
@@ -218,7 +255,7 @@ namespace Checkmarx.API.AST.Tests
         public void ListSCAFindings()
         {
             astclient.GetProject(ProjectId);
-            
+
             astclient.GetLastScan(ProjectId);
         }
     }
