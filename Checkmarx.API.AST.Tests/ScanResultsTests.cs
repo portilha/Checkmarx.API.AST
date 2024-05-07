@@ -82,7 +82,7 @@ namespace Checkmarx.API.AST.Tests
             Assert.AreEqual(1964, result.Count());
         }
 
-        private Guid ProjectId = new Guid("1d0d1c07-56d7-40e5-8ffd-21638bfb0f9d");
+        private Guid ProjectId = new Guid("05076f46-0650-4562-9182-7287ba2c6221");
 
         [TestMethod]
         public void GetAllScansTest()
@@ -140,7 +140,8 @@ namespace Checkmarx.API.AST.Tests
 
             foreach (var vuln in results)
             {
-                astclient.MarkSASTResult(ProjectId, vuln.SimilarityID,
+                astclient.MarkSASTResult(ProjectId, 
+                    vuln.SimilarityID,
                     vuln.Severity,
                     GetRandomEnumMember<ResultsState>(),
                     GetRandomJoke());
@@ -157,7 +158,8 @@ namespace Checkmarx.API.AST.Tests
 
             foreach (var vuln in results)
             {
-                astclient.MarkKICSResult(vuln.SimilarityID, ProjectId,
+                astclient.MarkKICSResult(ProjectId,
+                    vuln.SimilarityID,
                     vuln.Severity,
                     GetRandomEnumMember<KicsStateEnum>(),
                     GetRandomJoke());

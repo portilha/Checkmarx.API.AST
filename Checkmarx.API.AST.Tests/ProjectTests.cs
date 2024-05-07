@@ -153,9 +153,8 @@ namespace Checkmarx.API.AST.Tests
             Assert.IsNotNull(astclient.Projects);
 
             var projectsList = astclient.GetAllProjectsDetails();
-            var count = projectsList.TotalCount;
-
-            var project = projectsList.Projects.SingleOrDefault(x => x.Name == "JohnDeere-JDF/jdf-r2-proc-databricks-client");
+            
+            var project = projectsList.SingleOrDefault(x => x.Name == "JohnDeere-JDF/jdf-r2-proc-databricks-client");
             Trace.WriteLine(project.Id);
 
             var scan = astclient.GetLastScan(project.Id);
@@ -177,9 +176,9 @@ namespace Checkmarx.API.AST.Tests
             Assert.IsNotNull(astclient.Applications);
 
             var projects = astclient.GetAllProjectsDetails();
-            var project = projects.Projects.Where(x => x.Name == "hcc/hype-sentry").FirstOrDefault();
 
-            var app = astclient.GetProjectApplication(project.Id);
+            Trace.WriteLine(projects.Count);
+
         }
 
         [TestMethod]

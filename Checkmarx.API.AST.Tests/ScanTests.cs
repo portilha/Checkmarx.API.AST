@@ -59,7 +59,7 @@ namespace Checkmarx.API.AST.Tests
         public void GetScanDetailsTest()
         {
             var projects = astclient.GetAllProjectsDetails();
-            var project = projects.Projects.Single(
+            var project = projects.Single(
                 x => x.Name == "plug-and-sell/JAVA/crosssell-core-pb");
 
             var lastScan = astclient.GetLastScan(project.Id);
@@ -70,7 +70,7 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void DeleteProjectsTest()
         {
-            var projects = astclient.GetAllProjectsDetails().Projects.ToList();
+            var projects = astclient.GetAllProjectsDetails();
 
             var projsScanned = projects.Where(x => x.Tags.ContainsKey("sast_id"));
 
@@ -106,7 +106,7 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void GetSCAInfoTest()
         {
-            var projects = astclient.GetAllProjectsDetails().Projects.ToList();
+            var projects = astclient.GetAllProjectsDetails();
 
             var proj = projects.Where(x => x.Name == "cs_lac_tyt_ws5bfel_util_prod").FirstOrDefault();
 
@@ -122,7 +122,7 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void GetScanInfoTest()
         {
-            var projects = astclient.GetAllProjectsDetails().Projects.ToList();
+            var projects = astclient.GetAllProjectsDetails();
             //var proj = projects.Where(x => x.Name == "cs_lac_tyt_ws5bfel_util_prod").FirstOrDefault();
 
             foreach (var proj in projects)
@@ -159,7 +159,7 @@ namespace Checkmarx.API.AST.Tests
         {
             Assert.IsNotNull(astclient.Scans);
 
-            var projects = astclient.GetAllProjectsDetails().Projects.ToList();
+            var projects = astclient.GetAllProjectsDetails();
 
             var proj = projects.Single(x => x.Name == "EM-AMD/bcait-bcaresearch");
 

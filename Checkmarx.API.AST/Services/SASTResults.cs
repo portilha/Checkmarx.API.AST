@@ -85,7 +85,7 @@ namespace Checkmarx.API.AST.Services.SASTResults
         /// <param name="sort">sorting ORDERED array. each string pattern "[-+]field". - mean ASC, + mean DESC.</param>
         /// <returns>successful operation</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        internal virtual async System.Threading.Tasks.Task<Response> GetSASTResultsByScanAsync(Guid scan_id, int? offset = null, int? limit = null, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Collections.Generic.IEnumerable<Anonymous> severity = null, System.Collections.Generic.IEnumerable<Anonymous2> status = null, string group = null, string compliance = null,
+        internal virtual async System.Threading.Tasks.Task<SASTResultsResponse> GetSASTResultsByScanAsync(Guid scan_id, int? offset = null, int? limit = null, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Collections.Generic.IEnumerable<Anonymous> severity = null, System.Collections.Generic.IEnumerable<Anonymous2> status = null, string group = null, string compliance = null,
                                                                                              string query = null, System.Collections.Generic.IEnumerable<string> language = null, System.Collections.Generic.IEnumerable<double> query_ids = null, System.Collections.Generic.IEnumerable<string> node_ids = null, string source_file = null, SourceFileOperation? source_file_operation = null,
                                                                                              string source_node = null, SourceNodeOperation? source_node_operation = null, string sink_node = null, SinkNodeOperation? sink_node_operation = null, string sink_file = null, SinkFileOperation? sink_file_operation = null, bool? include_nodes = null, bool? apply_predicates = null,
                                                                                               System.Collections.Generic.IEnumerable<Anonymous3> sort = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
@@ -222,7 +222,7 @@ namespace Checkmarx.API.AST.Services.SASTResults
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<SASTResultsResponse>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -824,10 +824,10 @@ namespace Checkmarx.API.AST.Services.SASTResults
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.15.10.0 (NJsonSchema v10.6.10.0 (Newtonsoft.Json v11.0.0.0))")]
-    public partial class Response
+    public partial class SASTResultsResponse
     {
         [Newtonsoft.Json.JsonProperty("results", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public System.Collections.Generic.ICollection<Results> Results { get; set; }
+        public System.Collections.Generic.ICollection<SASTResult> Results { get; set; }
 
         [Newtonsoft.Json.JsonProperty("totalCount", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int TotalCount { get; set; }
@@ -996,7 +996,7 @@ namespace Checkmarx.API.AST.Services.SASTResults
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.15.10.0 (NJsonSchema v10.6.10.0 (Newtonsoft.Json v11.0.0.0))")]
-    public partial class Results
+    public partial class SASTResult
     {
         /// <summary>
         /// ID of the result

@@ -30,9 +30,9 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
         private System.Net.Http.HttpClient _httpClient;
         private static System.Lazy<Newtonsoft.Json.JsonSerializerSettings> _settings = new System.Lazy<Newtonsoft.Json.JsonSerializerSettings>(CreateSerializerSettings, true);
 
-        public SASTResultsPredicates(string baseUrl, System.Net.Http.HttpClient httpClient)
+        public SASTResultsPredicates(Uri astServer, System.Net.Http.HttpClient httpClient)
         {
-            BaseUrl = baseUrl;
+            BaseUrl = $"{astServer.AbsoluteUri}api/sast-results-predicates";
             _httpClient = httpClient;
             _settings = new System.Lazy<Newtonsoft.Json.JsonSerializerSettings>(CreateSerializerSettings);
         }
@@ -196,7 +196,7 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
         /// <param name="project_ids">filter by project-ids. OR operator between the items. if not set will return all projects.</param>
         /// <returns>successful operation</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<Response2> GetLatestPredicatesBySimilarityIDAsync(long similarityID, System.Collections.Generic.IEnumerable<string> project_ids = null, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<SASTPredicateWithComments> GetLatestPredicatesBySimilarityIDAsync(long similarityID, System.Collections.Generic.IEnumerable<Guid> project_ids = null, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (similarityID == null)
                 throw new System.ArgumentNullException("similarityID");
@@ -255,7 +255,7 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response2>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<SASTPredicateWithComments>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -1229,7 +1229,7 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.0.3.0 (NJsonSchema v11.0.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class Response2
+    public partial class SASTPredicateWithComments 
     {
         [Newtonsoft.Json.JsonProperty("latestPredicatePerProject", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.Collections.Generic.ICollection<PredicateWithCommentsJSON> LatestPredicatePerProject { get; set; }

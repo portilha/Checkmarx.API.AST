@@ -37,6 +37,14 @@ using System.Data;
 
 namespace Checkmarx.API.AST
 {
+    public struct CxOneConnection
+    {
+        public Uri ASTServer;
+        public Uri ACServer;
+        public string Tenant;
+        public string ApiKey;
+    }
+
     public class ASTClient
     {
         public Uri AccessControlServer { get; private set; }
@@ -192,7 +200,7 @@ namespace Checkmarx.API.AST
             get
             {
                 if (_SASTResultsPredicates == null && Connected)
-                    _SASTResultsPredicates = new SASTResultsPredicates($"{ASTServer.AbsoluteUri}api/sast-results-predicates", _httpClient);
+                    _SASTResultsPredicates = new SASTResultsPredicates(ASTServer, _httpClient);
 
 
 
@@ -471,6 +479,9 @@ namespace Checkmarx.API.AST
 
         #region Client
 
+        public ASTClient(CxOneConnection connectionSettings)
+            : this(connectionSettings.ASTServer, connectionSettings.ACServer, connectionSettings.Tenant, connectionSettings.ApiKey) {  }
+
         /// <summary>
         /// 
         /// </summary>
@@ -567,33 +578,25 @@ namespace Checkmarx.API.AST
 
         #region Projects
 
-        public ProjectsCollection GetAllProjectsDetails(int limit = 500)
+        public ICollection<Services.Projects.Project> GetAllProjectsDetails(int startAt = 0, int limit = 500)
         {
             if (limit <= 0)
                 throw new ArgumentOutOfRangeException(nameof(limit));
 
-            var listProjects = Projects.GetListOfProjectsAsync(limit).Result;
-            if (listProjects.TotalCount > limit)
+            var result = new List<Services.Projects.Project>();
+
+            while (true)
             {
-                var offset = limit;
-                bool cont = true;
-                do
-                {
-                    var next = Projects.GetListOfProjectsAsync(limit, offset).Result;
-                    if (next.Projects.Any())
-                    {
-                        next.Projects.ToList().ForEach(o => listProjects.Projects.Add(o));
-                        offset += limit;
+                var resultPage = Projects.GetListOfProjectsAsync(limit: limit, offset: startAt).Result;
 
-                        if (listProjects.Projects.Count == listProjects.TotalCount) cont = false;
-                    }
-                    else
-                        cont = false;
+                if (resultPage.Projects != null)
+                    result.AddRange(resultPage.Projects);
 
-                } while (cont);
+                startAt += limit;
+
+                if (resultPage.TotalCount == 0 || resultPage.TotalCount < limit)
+                    return result;
             }
-
-            return listProjects;
         }
 
         public RichProject GetProject(Guid id)
@@ -1432,7 +1435,7 @@ namespace Checkmarx.API.AST
             return JsonConvert.DeserializeObject<ReportResults>(reportString);
         }
 
-        public IEnumerable<Results> GetSASTScanResultsById(Guid scanId, int startAt = 0, int limit = 500)
+        public IEnumerable<SASTResult> GetSASTScanResultsById(Guid scanId, int startAt = 0, int limit = 500)
         {
             if (startAt < 0)
                 throw new ArgumentOutOfRangeException(nameof(startAt));
@@ -1443,7 +1446,7 @@ namespace Checkmarx.API.AST
 
             while (true)
             {
-                Services.SASTResults.Response response = null;
+                Services.SASTResults.SASTResultsResponse response = null;
                 int numTries = 0;
                 bool retry = true;
                 // Sometimes the call is throwing a 502 Bad Gateway. That is the reason there is this while loop - retries 3 times
@@ -1641,7 +1644,7 @@ namespace Checkmarx.API.AST
 
         #region Results
 
-        public bool MarkSASTResult(Guid projectId, Results result, IEnumerable<PredicateWithCommentJSON> history, bool updateSeverity = true, bool updateState = true, bool updateComment = true)
+        public bool MarkSASTResult(Guid projectId, SASTResult result, IEnumerable<PredicateWithCommentJSON> history, bool updateSeverity = true, bool updateState = true, bool updateComment = true)
         {
             if (projectId == Guid.Empty)
                 throw new ArgumentException(nameof(projectId));
@@ -1697,13 +1700,12 @@ namespace Checkmarx.API.AST
         }
 
         /// <summary>
-        /// Mark kics results.
+        /// Mark IaC, KICS results.
         /// </summary>
-        /// <remarks>the same as SAST </remarks>
         /// <param name="projectId"></param>
         /// <returns></returns>
         /// <exception cref="NotSupportedException"></exception>
-        public bool MarkKICSResult(string similarityId, Guid projectId, Services.KicsResults.SeverityEnum severity, KicsStateEnum state, string comment = null)
+        public bool MarkKICSResult(Guid projectId, string similarityId, Services.KicsResults.SeverityEnum severity, KicsStateEnum state, string comment = null)
         {
             if (string.IsNullOrWhiteSpace(similarityId))
                 throw new ArgumentNullException(nameof(similarityId));
