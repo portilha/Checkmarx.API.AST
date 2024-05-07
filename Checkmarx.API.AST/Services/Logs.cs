@@ -20,6 +20,7 @@
 namespace Checkmarx.API.AST.Services.Logs
 {
     using Checkmarx.API.AST.Services.SASTQueriesAudit;
+    using System;
     using System = global::System;
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
@@ -29,9 +30,9 @@ namespace Checkmarx.API.AST.Services.Logs
         private System.Net.Http.HttpClient _httpClient;
         private System.Lazy<Newtonsoft.Json.JsonSerializerSettings> _settings;
 
-        public Logs(string baseUrl, System.Net.Http.HttpClient httpClient)
+        public Logs(Uri server, System.Net.Http.HttpClient httpClient)
         {
-            BaseUrl = baseUrl;
+            BaseUrl = $"{server.AbsoluteUri}api/logs";
             _httpClient = httpClient;
             _settings = new System.Lazy<Newtonsoft.Json.JsonSerializerSettings>(CreateSerializerSettings, true);
         }

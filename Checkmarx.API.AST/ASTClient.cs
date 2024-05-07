@@ -180,8 +180,12 @@ namespace Checkmarx.API.AST
             }
         }
 
-        // Engine SAST results
+        
         private SASTResults _SASTResults;
+        
+        /// <summary>
+        /// Engine SAST results
+        /// </summary>
         public SASTResults SASTResults
         {
             get
@@ -193,8 +197,12 @@ namespace Checkmarx.API.AST
             }
         }
 
-        // Engine SAST results Predicates
+        
         private SASTResultsPredicates _SASTResultsPredicates;
+        
+        /// <summary>
+        /// Engine SAST results Predicates
+        /// </summary>
         public SASTResultsPredicates SASTResultsPredicates
         {
             get
@@ -208,8 +216,12 @@ namespace Checkmarx.API.AST
             }
         }
 
-        // KICS results
+        
         private KicsResults _kicsResults;
+        
+        /// <summary>
+        /// KICS results
+        /// </summary>
         public KicsResults KicsResults
         {
             get
@@ -223,8 +235,11 @@ namespace Checkmarx.API.AST
             }
         }
 
-        // KICS results
         private KICSResultsPredicates _kicsResultsPredicates;
+        
+        /// <summary>
+        /// KICS marking/predicates
+        /// </summary>
         public KICSResultsPredicates KicsResultsPredicates
         {
             get
@@ -238,8 +253,11 @@ namespace Checkmarx.API.AST
             }
         }
 
-        // SCA API
         private CxOneSCA _cxOneSCA;
+        
+        /// <summary>
+        /// SCA API
+        /// </summary>
         public CxOneSCA SCA
         {
             get
@@ -253,9 +271,11 @@ namespace Checkmarx.API.AST
             }
         }
 
-
-        // Engine Scanners results
         private ScannersResults _scannersResults;
+        
+        /// <summary>
+        /// Engine Scanners results
+        /// </summary>
         public ScannersResults ScannersResults
         {
             get
@@ -269,8 +289,12 @@ namespace Checkmarx.API.AST
             }
         }
 
-        // Engine Results Summary
+        
         private ResultsSummary _resultsSummary;
+
+        /// <summary>
+        /// Engine Results Summary
+        /// </summary>
         public ResultsSummary ResultsSummary
         {
             get
@@ -298,8 +322,12 @@ namespace Checkmarx.API.AST
             }
         }
 
-        // Configurations
+        
         private Configuration _configuration;
+
+        /// <summary>
+        /// Configurations
+        /// </summary>
         public Configuration Configuration
         {
             get
@@ -312,6 +340,7 @@ namespace Checkmarx.API.AST
         }
 
         private Repostore _repostore;
+        
         public Repostore Repostore
         {
             get
@@ -326,6 +355,7 @@ namespace Checkmarx.API.AST
         }
 
         private Uploads _uploads;
+        
         public Uploads Uploads
         {
             get
@@ -340,6 +370,7 @@ namespace Checkmarx.API.AST
         }
 
         private PresetManagement _presetManagement;
+        
         public PresetManagement PresetManagement
         {
             get
@@ -354,6 +385,7 @@ namespace Checkmarx.API.AST
         }
 
         private SASTQuery _sastQuery;
+        
         public SASTQuery SASTQuery
         {
             get
@@ -369,6 +401,7 @@ namespace Checkmarx.API.AST
 
 
         private SASTQueriesAudit _sastQueriesAudit;
+        
         public SASTQueriesAudit SASTQueriesAudit
         {
             get
@@ -383,14 +416,16 @@ namespace Checkmarx.API.AST
         }
 
         private Logs _logs;
+        
+        /// <summary>
+        /// Log Services
+        /// </summary>
         public Logs Logs
         {
             get
             {
                 if (_logs == null && Connected)
-                    _logs = new Logs($"{ASTServer.AbsoluteUri}api/logs", _httpClient);
-
-
+                    _logs = new Logs(ASTServer, _httpClient);
 
                 return _logs;
             }
@@ -528,7 +563,6 @@ namespace Checkmarx.API.AST
         #endregion
 
         #region Applications
-
 
         // TODO: When this cache should be invalidated
         private Services.Applications.ApplicationsCollection _apps { get; set; }
@@ -762,7 +796,6 @@ namespace Checkmarx.API.AST
                     yield break;
             }
         }
-
 
         public Scan GetLastScan(Guid projectId, bool fullScanOnly = false, bool completed = true, string branch = null, ScanTypeEnum scanType = ScanTypeEnum.sast, DateTime? maxScanDate = null)
         {
