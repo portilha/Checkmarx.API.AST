@@ -39,8 +39,8 @@ namespace Checkmarx.API.AST
 {
     public struct CxOneConnection
     {
-        public Uri ASTServer;
-        public Uri ACServer;
+        public Uri CxOneServer;
+        public Uri AccessControlServer;
         public string Tenant;
         public string ApiKey;
     }
@@ -480,7 +480,7 @@ namespace Checkmarx.API.AST
         #region Client
 
         public ASTClient(CxOneConnection connectionSettings)
-            : this(connectionSettings.ASTServer, connectionSettings.ACServer, connectionSettings.Tenant, connectionSettings.ApiKey) {  }
+            : this(connectionSettings.CxOneServer, connectionSettings.AccessControlServer, connectionSettings.Tenant, connectionSettings.ApiKey) {  }
 
         /// <summary>
         /// 
