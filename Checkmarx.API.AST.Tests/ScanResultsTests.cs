@@ -27,7 +27,7 @@ namespace Checkmarx.API.AST.Tests
     public class ScanResultsTests
     {
 
-        private static ASTClient astclient;
+        private static ASTClient astClient;
 
         public static IConfigurationRoot Configuration { get; private set; }
 
@@ -42,7 +42,7 @@ namespace Checkmarx.API.AST.Tests
 
             if (!string.IsNullOrWhiteSpace(Configuration["API_KEY"]))
             {
-                astclient = new ASTClient(
+                astClient = new ASTClient(
                 new System.Uri(Configuration["ASTServer"]),
                 new System.Uri(Configuration["AccessControlServer"]),
                 Configuration["Tenant"],
@@ -50,7 +50,7 @@ namespace Checkmarx.API.AST.Tests
             }
             else
             {
-                astclient = new ASTClient(
+                astClient = new ASTClient(
                 new System.Uri(Configuration["ASTServer"]),
                 new System.Uri(Configuration["AccessControlServer"]),
                 Configuration["Tenant"],
@@ -63,7 +63,7 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void GetLastScan()
         {
-            var scan = astclient.GetLastScan(
+            var scan = astClient.GetLastScan(
                 ProjectId,
                 false,
                 branch: null,
@@ -75,7 +75,7 @@ namespace Checkmarx.API.AST.Tests
             Trace.WriteLine(scan.Id);
             Trace.WriteLine(scan.CreatedAt.ToString());
 
-            var result = astclient.GetSASTScanResultsById(scan.Id);
+            var result = astClient.GetSASTScanResultsById(scan.Id);
 
             Assert.IsTrue(result.Any());
 
@@ -87,7 +87,7 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void GetAllScansTest()
         {
-            var scans = astclient.GetAllScans(ProjectId);
+            var scans = astClient.GetAllScans(ProjectId);
 
             Assert.AreEqual(2, scans.Count());
 
@@ -101,7 +101,7 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void GetFileFormatsTest()
         {
-            var results = astclient.Requests.GetFileFormats().Result;
+            var results = astClient.Requests.GetFileFormats().Result;
 
             foreach (var result in results)
             {
@@ -114,17 +114,32 @@ namespace Checkmarx.API.AST.Tests
             }
         }
 
+
+        [TestMethod]
+        public void GetLastCommentNoteTest()
+        {
+ 
+            long similarityId = -1661514465;
+            Guid projectId = new Guid("1b6f5699-b459-40fa-9e12-b4c84436b5ab");
+
+            var lastState = astClient.SASTResultsPredicates.GetLatestPredicatesBySimilarityIDAsync(similarityId, [projectId]).Result;
+
+            Assert.AreEqual(lastState.LatestPredicatePerProject?.FirstOrDefault()?.Comment, "Unsnoozed");
+
+        }
+
+
         [TestMethod]
         public void RandomMarkingTheSCAFindingsTest()
         {
-            ScanReportJson result = astclient.Requests.GetScanReport(
-                astclient.GetLastScan(ProjectId, fullScanOnly: false, completed: true, scanType: ScanTypeEnum.sca).Id);
+            ScanReportJson result = astClient.Requests.GetScanReport(
+                astClient.GetLastScan(ProjectId, fullScanOnly: false, completed: true, scanType: ScanTypeEnum.sca).Id);
 
             Assert.IsNotNull(result);
 
             foreach (var vuln in result.Vulnerabilities)
             {
-                astclient.MarkSCAVulnerability(ProjectId, vuln,
+                astClient.MarkSCAVulnerability(ProjectId, vuln,
                     GetRandomEnumMember<VulnerabilityStatus>(),
                     GetRandomJoke());
             }
@@ -133,14 +148,14 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void RandomMarkingTheSASTFindingsTest()
         {
-            var results = astclient.GetSASTScanResultsById(
-                astclient.GetLastScan(ProjectId, fullScanOnly: false, completed: true, scanType: ScanTypeEnum.sast).Id);
+            var results = astClient.GetSASTScanResultsById(
+                astClient.GetLastScan(ProjectId, fullScanOnly: false, completed: true, scanType: ScanTypeEnum.sast).Id);
 
             Assert.IsNotNull(results);
 
             foreach (var vuln in results)
             {
-                astclient.MarkSASTResult(ProjectId, 
+                astClient.MarkSASTResult(ProjectId,
                     vuln.SimilarityID,
                     vuln.Severity,
                     GetRandomEnumMember<ResultsState>(),
@@ -151,14 +166,14 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void RandomMarkingTheIaCFindingsTest()
         {
-            var results = astclient.GetKicsScanResultsById(
-                astclient.GetLastScan(ProjectId, fullScanOnly: false, completed: true, scanType: ScanTypeEnum.kics).Id);
+            var results = astClient.GetKicsScanResultsById(
+                astClient.GetLastScan(ProjectId, fullScanOnly: false, completed: true, scanType: ScanTypeEnum.kics).Id);
 
             Assert.IsNotNull(results);
 
             foreach (var vuln in results)
             {
-                astclient.MarkKICSResult(ProjectId,
+                astClient.MarkKICSResult(ProjectId,
                     vuln.SimilarityID,
                     vuln.Severity,
                     GetRandomEnumMember<KicsStateEnum>(),
@@ -218,12 +233,12 @@ namespace Checkmarx.API.AST.Tests
             return (T)values.GetValue(random.Next(values.Length));
         }
 
-   
+
 
         [TestMethod]
         public void GetListOfStatesTest()
         {
-            foreach (var state in astclient.Lists.GetStatesListAsync().Result)
+            foreach (var state in astClient.Lists.GetStatesListAsync().Result)
             {
                 Trace.WriteLine(state);
             }
@@ -232,8 +247,8 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void GetSCAPackagesJsonReportTest()
         {
-            var result = astclient.Requests.GetReportRequest(
-                astclient.GetLastScan(ProjectId, fullScanOnly: false, completed: true, scanType: ScanTypeEnum.sca).Id, "SpdxJson");
+            var result = astClient.Requests.GetReportRequest(
+                astClient.GetLastScan(ProjectId, fullScanOnly: false, completed: true, scanType: ScanTypeEnum.sca).Id, "SpdxJson");
 
             Trace.WriteLine(result);
 
@@ -244,8 +259,8 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void GetSCAReportTest()
         {
-            var result = astclient.Requests.GetReportRequest(
-                astclient.GetLastScan(ProjectId, fullScanOnly: false, completed: true, scanType: ScanTypeEnum.sca).Id, "CycloneDxJSON");
+            var result = astClient.Requests.GetReportRequest(
+                astClient.GetLastScan(ProjectId, fullScanOnly: false, completed: true, scanType: ScanTypeEnum.sca).Id, "CycloneDxJSON");
 
             Trace.WriteLine(result);
 
@@ -256,9 +271,9 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void ListSCAFindings()
         {
-            astclient.GetProject(ProjectId);
+            astClient.GetProject(ProjectId);
 
-            astclient.GetLastScan(ProjectId);
+            astClient.GetLastScan(ProjectId);
         }
     }
 }

@@ -180,9 +180,9 @@ namespace Checkmarx.API.AST
             }
         }
 
-        
+
         private SASTResults _SASTResults;
-        
+
         /// <summary>
         /// Engine SAST results
         /// </summary>
@@ -197,9 +197,9 @@ namespace Checkmarx.API.AST
             }
         }
 
-        
+
         private SASTResultsPredicates _SASTResultsPredicates;
-        
+
         /// <summary>
         /// Engine SAST results Predicates
         /// </summary>
@@ -216,9 +216,9 @@ namespace Checkmarx.API.AST
             }
         }
 
-        
+
         private KicsResults _kicsResults;
-        
+
         /// <summary>
         /// KICS results
         /// </summary>
@@ -236,7 +236,7 @@ namespace Checkmarx.API.AST
         }
 
         private KICSResultsPredicates _kicsResultsPredicates;
-        
+
         /// <summary>
         /// KICS marking/predicates
         /// </summary>
@@ -254,7 +254,7 @@ namespace Checkmarx.API.AST
         }
 
         private CxOneSCA _cxOneSCA;
-        
+
         /// <summary>
         /// SCA API
         /// </summary>
@@ -272,7 +272,7 @@ namespace Checkmarx.API.AST
         }
 
         private ScannersResults _scannersResults;
-        
+
         /// <summary>
         /// Engine Scanners results
         /// </summary>
@@ -289,7 +289,7 @@ namespace Checkmarx.API.AST
             }
         }
 
-        
+
         private ResultsSummary _resultsSummary;
 
         /// <summary>
@@ -322,7 +322,7 @@ namespace Checkmarx.API.AST
             }
         }
 
-        
+
         private Configuration _configuration;
 
         /// <summary>
@@ -340,7 +340,7 @@ namespace Checkmarx.API.AST
         }
 
         private Repostore _repostore;
-        
+
         public Repostore Repostore
         {
             get
@@ -355,7 +355,7 @@ namespace Checkmarx.API.AST
         }
 
         private Uploads _uploads;
-        
+
         public Uploads Uploads
         {
             get
@@ -370,7 +370,7 @@ namespace Checkmarx.API.AST
         }
 
         private PresetManagement _presetManagement;
-        
+
         public PresetManagement PresetManagement
         {
             get
@@ -385,7 +385,7 @@ namespace Checkmarx.API.AST
         }
 
         private SASTQuery _sastQuery;
-        
+
         public SASTQuery SASTQuery
         {
             get
@@ -401,7 +401,7 @@ namespace Checkmarx.API.AST
 
 
         private SASTQueriesAudit _sastQueriesAudit;
-        
+
         public SASTQueriesAudit SASTQueriesAudit
         {
             get
@@ -416,7 +416,7 @@ namespace Checkmarx.API.AST
         }
 
         private Logs _logs;
-        
+
         /// <summary>
         /// Log Services
         /// </summary>
@@ -515,7 +515,7 @@ namespace Checkmarx.API.AST
         #region Client
 
         public ASTClient(CxOneConnection connectionSettings)
-            : this(connectionSettings.CxOneServer, connectionSettings.AccessControlServer, connectionSettings.Tenant, connectionSettings.ApiKey) {  }
+            : this(connectionSettings.CxOneServer, connectionSettings.AccessControlServer, connectionSettings.Tenant, connectionSettings.ApiKey) { }
 
         /// <summary>
         /// 
@@ -2145,6 +2145,22 @@ namespace Checkmarx.API.AST
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Get the last note of the history of comments of the SAST finding.
+        /// </summary>
+        /// <param name="similarityID"></param>
+        /// <param name="projects_ids"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public string GetLastSASTNote(long similarityID, params Guid[] projects_ids)
+        {
+            if (!projects_ids.Any())
+                throw new ArgumentOutOfRangeException(nameof(projects_ids));
+
+            var lastState = SASTResultsPredicates.GetLatestPredicatesBySimilarityIDAsync(similarityID, projects_ids).Result;
+            return lastState.LatestPredicatePerProject?.FirstOrDefault()?.Comment;
         }
 
         #endregion
