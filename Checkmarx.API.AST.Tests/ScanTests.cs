@@ -345,13 +345,7 @@ namespace Checkmarx.API.AST.Tests
                 try
                 {
                     var scanDetails = astclient.GetScanDetails(scan.Id);
-                    if (!string.IsNullOrEmpty(scanDetails.ErrorMessage))
-                        result.Add(new Tuple<Guid, Guid, string, int?, string>(project.Id, scan.Id, project.Name, 0, scanDetails.ErrorMessage));
                 }
-                //catch (ApiException apiEx)
-                //{
-                //    result.Add(new Tuple<Guid, Guid, string, int?, string>(new Guid(project.Id), new Guid(scan.Id), project.Name, apiEx.StatusCode, apiEx.Message));
-                //}
                 catch (Exception ex)
                 {
                     result.Add(new Tuple<Guid, Guid, string, int?, string>(project.Id, scan.Id, project.Name, 0, ex.Message));

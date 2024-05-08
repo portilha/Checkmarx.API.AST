@@ -151,7 +151,7 @@ namespace Checkmarx.API.AST.Tests
             astClient.MarkSASTResult(ProjectId,
                                      -203301157,
                                      ResultsSeverity.HIGH,
-                                     ResultsState.TO_VERIFY,
+                                     ResultsState.CONFIRMED,
                                      null);
         }
 
@@ -159,8 +159,6 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void RandomMarkingTheSASTFindingsTest()
         {
- 
-
             var lastScan = astClient.GetLastScan(ProjectId, fullScanOnly: false, completed: true, scanType: ScanTypeEnum.sast);
 
             Trace.WriteLine(lastScan.Id);

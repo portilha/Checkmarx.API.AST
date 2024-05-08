@@ -54,10 +54,7 @@ namespace Checkmarx.API.AST
         public string ClientId { get; set; }
         public string ClientSecret { get; set; }
 
-        private readonly HttpClient _httpClient = new HttpClient()
-        {
-            Timeout = TimeSpan.FromMinutes(30)
-        };
+        private readonly HttpClient _httpClient = new HttpClient();
 
         public const string SettingsAPISecuritySwaggerFolderFileFilter = "scan.config.apisec.swaggerFilter";
         public const string SettingsProjectRepoUrl = "scan.handler.git.repository";
@@ -80,7 +77,7 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_projects == null && Connected)
+                if (Connected && _projects  == null)
                     _projects = new Projects($"{ASTServer.AbsoluteUri}api/projects", _httpClient);
 
                 return _projects;
@@ -92,7 +89,7 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_featureFlags == null && Connected)
+                if (Connected && _featureFlags  == null)
                     _featureFlags = new FeatureFlags(ASTServer, _httpClient);
 
                 return _featureFlags;
@@ -104,10 +101,8 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_lists == null && Connected)
+                if (Connected && _lists  == null)
                     _lists = new Lists(ASTServer, _httpClient);
-
-
 
                 return _lists;
             }
@@ -118,7 +113,7 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_scans == null && Connected)
+                if (Connected && _scans  == null)
                     _scans = new Scans($"{ASTServer.AbsoluteUri}api/scans", _httpClient);
 
                 return _scans;
@@ -130,10 +125,8 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_reports == null && Connected)
+                if (Connected && _reports  == null)
                     _reports = new Reports($"{ASTServer.AbsoluteUri}api/reports", _httpClient);
-
-
 
                 return _reports;
             }
@@ -144,7 +137,7 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_requests == null && Connected)
+                if (Connected && _requests  == null)
                     _requests = new Requests(ASTServer, _httpClient);
 
                 return _requests;
@@ -157,7 +150,7 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_SASTMetadata == null && Connected)
+                if (Connected && _SASTMetadata  == null)
                     _SASTMetadata = new SASTMetadata($"{ASTServer.AbsoluteUri}api/sast-metadata", _httpClient);
 
 
@@ -171,7 +164,7 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_applications == null && Connected)
+                if (Connected && _applications  == null)
                     _applications = new Applications($"{ASTServer.AbsoluteUri}api/applications", _httpClient);
 
                 return _applications;
@@ -188,7 +181,7 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_SASTResults == null && Connected)
+                if (Connected && _SASTResults  == null)
                     _SASTResults = new SASTResults(ASTServer, _httpClient);
 
                 return _SASTResults;
@@ -205,7 +198,7 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_SASTResultsPredicates == null && Connected)
+                if (Connected && _SASTResultsPredicates  == null)
                     _SASTResultsPredicates = new SASTResultsPredicates(ASTServer, _httpClient);
 
 
@@ -224,7 +217,7 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_kicsResults == null && Connected)
+                if (Connected && _kicsResults  == null)
                     _kicsResults = new KicsResults($"{ASTServer.AbsoluteUri}api/kics-results", _httpClient);
 
 
@@ -242,7 +235,7 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_kicsResultsPredicates == null && Connected)
+                if (Connected && _kicsResultsPredicates  == null)
                     _kicsResultsPredicates = new KICSResultsPredicates(ASTServer, _httpClient);
 
 
@@ -260,7 +253,7 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_cxOneSCA == null && Connected)
+                if (Connected && _cxOneSCA  == null)
                     _cxOneSCA = new CxOneSCA(ASTServer, _httpClient);
 
 
@@ -278,7 +271,7 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_scannersResults == null && Connected)
+                if (Connected && _scannersResults  == null)
                     _scannersResults = new ScannersResults($"{ASTServer.AbsoluteUri}api/results", _httpClient);
 
 
@@ -297,7 +290,7 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_resultsSummary == null && Connected)
+                if (Connected && _resultsSummary  == null)
                     _resultsSummary = new ResultsSummary($"{ASTServer.AbsoluteUri}api/scan-summary", _httpClient);
 
 
@@ -311,7 +304,7 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_resultsOverview == null && Connected)
+                if (Connected && _resultsOverview  == null)
                     _resultsOverview = new ResultsOverview($"{ASTServer.AbsoluteUri}api/results-overview", _httpClient);
 
 
@@ -330,7 +323,7 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_configuration == null && Connected)
+                if (Connected && _configuration  == null)
                     _configuration = new Configuration($"{ASTServer.AbsoluteUri}api/configuration", _httpClient);
 
                 return _configuration;
@@ -343,7 +336,7 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_repostore == null && Connected)
+                if (Connected && _repostore  == null)
                     _repostore = new Repostore($"{ASTServer.AbsoluteUri}api/repostore/code", _httpClient);
 
 
@@ -358,7 +351,7 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_uploads == null && Connected)
+                if (Connected && _uploads  == null)
                     _uploads = new Uploads($"{ASTServer.AbsoluteUri}api/uploads", _httpClient);
 
 
@@ -373,7 +366,7 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_presetManagement == null && Connected)
+                if (Connected && _presetManagement  == null)
                     _presetManagement = new PresetManagement($"{ASTServer.AbsoluteUri}api/presets", _httpClient);
 
 
@@ -388,10 +381,8 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_sastQuery == null && Connected)
+                if (Connected && _sastQuery  == null)
                     _sastQuery = new SASTQuery(ASTServer.AbsoluteUri, _httpClient);
-
-
 
                 return _sastQuery;
             }
@@ -404,7 +395,7 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_sastQueriesAudit == null && Connected)
+                if (Connected && _sastQueriesAudit  == null)
                     _sastQueriesAudit = new SASTQueriesAudit($"{ASTServer.AbsoluteUri}api/cx-audit", _httpClient);
 
 
@@ -422,7 +413,7 @@ namespace Checkmarx.API.AST
         {
             get
             {
-                if (_logs == null && Connected)
+                if (Connected && _logs  == null)
                     _logs = new Logs(ASTServer, _httpClient);
 
                 return _logs;
@@ -444,6 +435,7 @@ namespace Checkmarx.API.AST
                 {
                     var token = authenticate();
                     _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                    _httpClient.DefaultRequestHeaders.ConnectionClose = false; // Explicitly ask to keep connection alive
                     _bearerValidTo = DateTime.UtcNow.AddSeconds(_bearerExpiresIn - 300);
                 }
                 return true;
@@ -738,7 +730,7 @@ namespace Checkmarx.API.AST
             }
         }
 
-        private IEnumerable<ResultsSummary> GetResultsSummaryById(Guid scanId)
+        public IEnumerable<ResultsSummary> GetResultsSummaryById(Guid scanId)
         {
             return ResultsSummary.SummaryByScansIdsAsync(new Guid[] { scanId }).Result.ScansSummaries;
         }
@@ -917,455 +909,466 @@ namespace Checkmarx.API.AST
             return GetScanDetails(Scans.GetScanAsync(scanId).Result);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="projectId"></param>
-        /// <param name="scan"></param>
-        /// <returns></returns>
-        /// <exception cref="NullReferenceException"></exception>
-        /// <exception cref="Exception"></exception>
         public ScanDetails GetScanDetails(Scan scan)
         {
             if (scan == null)
-                throw new NullReferenceException($"No scan found.");
+                throw new ArgumentNullException($"No scan found.");
 
-            ScanDetails scanDetails = new()
-            {
-                Id = scan.Id,
-                Status = scan.Status.ToString(),
-                Successful = scan.Status == Status.Completed || scan.Status == Status.Partial,
-                InitiatorName = scan.Initiator,
-                Branch = scan.Branch,
-                SourceType = scan.SourceType,
-                SourceOrigin = scan.SourceOrigin,
-                FinishedOn = scan.UpdatedAt.DateTime,
-                Duration = scan.UpdatedAt.DateTime - scan.CreatedAt.DateTime,
-                Type = scan.Metadata?.Type,
-                RepoUrl = scan.Metadata?.Handler?.GitHandler?.RepoUrl,
-                UploadUrl = scan.Metadata?.Handler?.UploadHandler?.UploadUrl
-            };
-
-            if (scanDetails.Successful)
-            {
-                if (scan.StatusDetails == null)
-                    throw new Exception($"There is no information about scan engine status.");
-
-
-                bool fetchedResultsSuccessfully = true;
-                try
-                {
-                    var resultsSummary = GetResultsSummaryById(scanDetails.Id).FirstOrDefault();
-
-                    // Known issue where there is a successful scan, but ResultsSummary throws a 404
-                    // In this case, we are going to try to fetch the sast results in another way
-
-                    #region SAST
-
-                    var sastStatusDetails = scan.StatusDetails.SingleOrDefault(x => x.Name == SAST_Engine);
-                    if (sastStatusDetails != null)
-                    {
-                        scanDetails.SASTResults = new ScanResultDetails
-                        {
-                            Status = sastStatusDetails.Status,
-                            Successful = sastStatusDetails.Status == CompletedStage
-                        };
-
-                        if (scanDetails.SASTResults.Successful)
-                        {
-                            scanDetails = getSASTScanResultDetails(scanDetails, resultsSummary);
-
-                            // Get sast metadata
-                            try
-                            {
-                                // TODO: Refactor this to avoid throwing exceptions all the time regarding a know situation.
-                                ScanInfo metadata = SASTMetadata.GetMetadataAsync(scanDetails.Id).Result;
-                                if (metadata != null)
-                                {
-                                    scanDetails.Preset = metadata.QueryPreset;
-                                    scanDetails.LoC = metadata.Loc;
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Trace.WriteLine($"Error fetching project {scan.ProjectId} Preset and LoC. Reason {ex.Message.Replace("\n", " ")}");
-                            }
-
-                            if (string.IsNullOrWhiteSpace(scanDetails.Preset))
-                                scanDetails.Preset = GetScanPresetFromConfigurations(scan.ProjectId, scanDetails.Id);
-
-                        }
-                        else
-                        {
-                            scanDetails.SASTResults.Details = $"Current scan status is {sastStatusDetails.Status}";
-                        }
-                    }
-                    #endregion
-
-                    #region KICS
-
-                    var kicsStatusDetails = scan.StatusDetails.SingleOrDefault(x => x.Name == KICS_Engine);
-                    if (kicsStatusDetails != null)
-                    {
-                        scanDetails.KicsResults = new ScanResultDetails();
-                        scanDetails.KicsResults.Status = kicsStatusDetails.Status;
-                        scanDetails.KicsResults.Successful = kicsStatusDetails.Status == CompletedStage;
-
-                        if (scanDetails.KicsResults.Successful)
-                            scanDetails.KicsResults = getKicsScanResultDetails(scanDetails.KicsResults, resultsSummary);
-                        else
-                            scanDetails.KicsResults.Details = $"Current scan status is {sastStatusDetails.Status}";
-                    }
-                    #endregion
-
-                    #region SCA
-
-                    var scaStatusDetails = scan.StatusDetails.SingleOrDefault(x => x.Name == SCA_Engine);
-                    if (scaStatusDetails != null)
-                    {
-                        scanDetails.ScaResults = new ScanResultDetails();
-                        scanDetails.ScaResults.Status = scaStatusDetails.Status;
-                        scanDetails.ScaResults.Successful = scaStatusDetails.Status == CompletedStage;
-
-                        if (scanDetails.ScaResults.Successful)
-                            scanDetails.ScaResults = getScaScanResultDetails(scanDetails.ScaResults, resultsSummary);
-                        else
-                            scanDetails.ScaResults.Details = $"Current scan status is {scaStatusDetails.Status}";
-                    }
-                    #endregion
-                }
-                catch
-                {
-                    fetchedResultsSuccessfully = false;
-                }
-
-                if (!fetchedResultsSuccessfully)
-                {
-                    #region SAST
-
-                    var sastStatusDetails = scan.StatusDetails.SingleOrDefault(x => x.Name == SAST_Engine);
-                    if (sastStatusDetails != null)
-                    {
-                        scanDetails.SASTResults = new ScanResultDetails();
-                        scanDetails.SASTResults.Status = sastStatusDetails.Status;
-                        scanDetails.SASTResults.Successful = sastStatusDetails.Status == CompletedStage;
-
-                        if (scanDetails.SASTResults.Successful)
-                        {
-                            scanDetails = getSASTScanResultDetailsBydId(scanDetails, scanDetails.Id);
-
-                            // Get sast metadata
-                            try
-                            {
-                                ScanInfo metadata = SASTMetadata.GetMetadataAsync(scanDetails.Id).Result;
-                                if (metadata != null)
-                                {
-                                    scanDetails.Preset = metadata.QueryPreset;
-                                    scanDetails.LoC = metadata.Loc;
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine($"Error fetching project {scan.ProjectId} Preset and LoC because {ex.Message}.");
-                            }
-                        }
-                        else
-                        {
-                            scanDetails.SASTResults.Details = $"Current scan status is {sastStatusDetails.Status}";
-                        }
-                    }
-
-                    #endregion
-
-                    #region  Kicks
-
-                    var kicsStatusDetails = scan.StatusDetails.SingleOrDefault(x => x.Name == KICS_Engine);
-                    if (kicsStatusDetails != null)
-                    {
-                        scanDetails.KicsResults = new ScanResultDetails
-                        {
-                            Status = kicsStatusDetails.Status,
-                            Successful = kicsStatusDetails.Status == CompletedStage
-                        };
-
-                        if (scanDetails.KicsResults.Successful)
-                        {
-                            scanDetails.KicsResults = getKicsScanResultDetailsBydId(scanDetails.KicsResults, scanDetails.Id);
-                        }
-                        else
-                        {
-                            scanDetails.KicsResults.Details = $"Current scan status is {sastStatusDetails.Status}";
-                        }
-                    }
-
-                    #endregion
-
-                    #region SCA
-
-                    var scaStatusDetails = scan.StatusDetails.Where(x => x.Name == SCA_Engine).FirstOrDefault();
-                    if (scaStatusDetails != null)
-                    {
-                        scanDetails.ScaResults = new ScanResultDetails();
-                        scanDetails.ScaResults.Status = scaStatusDetails.Status;
-                        scanDetails.ScaResults.Successful = scaStatusDetails.Status == CompletedStage;
-
-                        if (scanDetails.ScaResults.Successful)
-                        {
-                            scanDetails.ScaResults = getSCAScanResultDetailsBydId(scanDetails.ScaResults, scan.ProjectId, scanDetails.Id);
-                        }
-                        else
-                        {
-                            scanDetails.ScaResults.Details = $"Current scan status is {sastStatusDetails.Status}";
-                        }
-                    }
-
-                    #endregion
-                }
-            }
-
-            // Languages detected in the SAST, Kicks and SCA scans
-            // For now, just adding the SAST languages detected
-            if (scanDetails.SASTResults != null && scanDetails.SASTResults.LanguagesDetected != null)
-            {
-                scanDetails.Languages = string.Join(";", scanDetails.SASTResults.LanguagesDetected.Where(x => x != "Common").Select(x => x).ToList());
-            }
-
-            return scanDetails;
+            return new ScanDetails(this, scan);
         }
 
-        /// <summary>
-        /// Very performance intensive.
-        /// </summary>
-        /// <param name="scanDetails"></param>
-        /// <param name="scanId"></param>
-        /// <returns></returns>
-        private ScanDetails getSASTScanResultDetailsBydId(ScanDetails scanDetails, Guid scanId)
-        {
-            var model = scanDetails.SASTResults;
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="projectId"></param>
+        ///// <param name="scan"></param>
+        ///// <returns></returns>
+        ///// <exception cref="NullReferenceException"></exception>
+        ///// <exception cref="Exception"></exception>
+        //public ScanDetails GetScanDetails(Scan scan)
+        //{
+        //    if (scan == null)
+        //        throw new NullReferenceException($"No scan found.");
 
-            var sastResults = GetSASTScanResultsById(scanId).ToList();
-            if (sastResults != null)
-            {
-                scanDetails.SASTVulnerabilities = sastResults;
+        //    ScanDetails scanDetails = new(this, scan)
+        //    {
+        //        Id = scan.Id,
+        //        Status = scan.Status.ToString(),
+        //        Successful = scan.Status == Status.Completed || scan.Status == Status.Partial,
+        //        InitiatorName = scan.Initiator,
+        //        Branch = scan.Branch,
+        //        SourceType = scan.SourceType,
+        //        SourceOrigin = scan.SourceOrigin,
+        //        FinishedOn = scan.UpdatedAt.DateTime,
+        //        Duration = scan.UpdatedAt.DateTime - scan.CreatedAt.DateTime,
+        //        Type = scan.Metadata?.Type,
+        //        RepoUrl = scan.Metadata?.Handler?.GitHandler?.RepoUrl,
+        //        UploadUrl = scan.Metadata?.Handler?.UploadHandler?.UploadUrl
+        //    };
 
-                var results = sastResults.Where(x => x.State != ResultsState.NOT_EXPLOITABLE);
+        //    if (scanDetails.Successful)
+        //    {
+        //        if (scan.StatusDetails == null)
+        //            throw new Exception($"There is no information about scan engine status.");
 
-                model.Id = scanId;
-                model.Total = results.Count();
-                model.High = results.Where(x => x.Severity == ResultsSeverity.HIGH).Count();
-                model.Medium = results.Where(x => x.Severity == ResultsSeverity.MEDIUM).Count();
-                model.Low = results.Where(x => x.Severity == ResultsSeverity.LOW).Count();
-                model.Info = results.Where(x => x.Severity == ResultsSeverity.INFO).Count();
 
-                model.HighToVerify = sastResults.Where(x => x.Severity == ResultsSeverity.HIGH && x.State == ResultsState.TO_VERIFY).Count();
-                model.MediumToVerify = sastResults.Where(x => x.Severity == ResultsSeverity.MEDIUM && x.State == ResultsState.TO_VERIFY).Count();
-                model.LowToVerify = sastResults.Where(x => x.Severity == ResultsSeverity.LOW && x.State == ResultsState.TO_VERIFY).Count();
+        //        bool fetchedResultsSuccessfully = true;
+        //        try
+        //        {
+        //            var resultsSummary = GetResultsSummaryById(scanDetails.Id).FirstOrDefault();
 
-                model.ToVerify = sastResults.Where(x => x.State == ResultsState.TO_VERIFY).Count();
-                model.NotExploitableMarked = sastResults.Where(x => x.State == ResultsState.NOT_EXPLOITABLE).Count();
-                model.PNEMarked = sastResults.Where(x => x.State == ResultsState.PROPOSED_NOT_EXPLOITABLE).Count();
-                model.OtherStates = sastResults.Where(x => x.State != ResultsState.CONFIRMED && x.State != ResultsState.URGENT && x.State != ResultsState.NOT_EXPLOITABLE && x.State != ResultsState.PROPOSED_NOT_EXPLOITABLE && x.State != ResultsState.TO_VERIFY).Count();
-                model.LanguagesDetected = sastResults.Select(x => x.LanguageName).Distinct().ToList();
-                //model.Queries = report.ScanResults.Sast.Languages.Sum(x => x.Queries.Count());
+        //            // Known issue where there is a successful scan, but ResultsSummary throws a 404
+        //            // In this case, we are going to try to fetch the sast results in another way
 
-                try
-                {
-                    // Scan query categories
-                    var scanResultsHigh = results.Where(x => x.Severity == ResultsSeverity.HIGH);
-                    var scanResultsMedium = results.Where(x => x.Severity == ResultsSeverity.MEDIUM);
-                    var scanResultsLow = results.Where(x => x.Severity == ResultsSeverity.LOW);
+        //            #region SAST
 
-                    var scanQueriesHigh = scanResultsHigh.Select(x => x.QueryID).Distinct().ToList();
-                    var scanQueriesMedium = scanResultsMedium.Select(x => x.QueryID).Distinct().ToList();
-                    var scanQueriesLow = scanResultsLow.Select(x => x.QueryID).Distinct().ToList();
+        //            var sastStatusDetails = scan.StatusDetails.SingleOrDefault(x => x.Name == SAST_Engine);
+        //            if (sastStatusDetails != null)
+        //            {
+        //                scanDetails.SASTResults = new ScanResultDetails
+        //                {
+        //                    Status = sastStatusDetails.Status,
+        //                    Successful = sastStatusDetails.Status == CompletedStage
+        //                };
 
-                    model.QueriesHigh = scanQueriesHigh.Count();
-                    model.QueriesMedium = scanQueriesMedium.Count();
-                    model.QueriesLow = scanQueriesLow.Count();
-                    model.Queries = model.QueriesHigh + model.QueriesMedium + model.QueriesLow;
-                }
-                catch
-                {
-                    model.QueriesHigh = null;
-                    model.QueriesMedium = null;
-                    model.QueriesLow = null;
-                }
-            }
+        //                if (scanDetails.SASTResults.Successful)
+        //                {
+        //                    scanDetails = getSASTScanResultDetails(scanDetails, resultsSummary);
 
-            return scanDetails;
-        }
+        //                    // Get sast metadata
+        //                    try
+        //                    {
+        //                        // TODO: Refactor this to avoid throwing exceptions all the time regarding a known situation.
 
-        /// <summary>
-        /// Very performance intensive.
-        /// </summary>
-        /// <param name="scanDetails"></param>
-        /// <param name="resultsSummary"></param>
-        /// <returns></returns>
-        private ScanDetails getSASTScanResultDetails(ScanDetails scanDetails, ResultsSummary resultsSummary)
-        {
-            if (resultsSummary == null)
-                return scanDetails;
+        //                        ScanInfo metadata = SASTMetadata.GetMetadataAsync(scanDetails.Id).Result;
+        //                        if (metadata != null)
+        //                        {
+        //                            scanDetails.Preset = metadata.QueryPreset;
+        //                            scanDetails.LoC = metadata.Loc;
+        //                        }
+        //                    }
+        //                    catch (Exception ex)
+        //                    {
+        //                        Trace.WriteLine($"Error fetching project {scan.ProjectId} Preset and LoC. Reason {ex.Message.Replace("\n", " ")}");
+        //                    }
 
-            var model = scanDetails.SASTResults;
+        //                    if (string.IsNullOrWhiteSpace(scanDetails.Preset))
+        //                        scanDetails.Preset = GetScanPresetFromConfigurations(scan.ProjectId, scanDetails.Id);
+        //                }
+        //                else
+        //                {
+        //                    scanDetails.SASTResults.Details = $"Current scan status is {sastStatusDetails.Status}";
+        //                }
+        //            }
+        //            #endregion
 
-            var sastCounters = resultsSummary.SastCounters;
+        //            #region KICS
 
-            model.Id = new Guid(resultsSummary.ScanId);
-            model.High = sastCounters.SeverityCounters
-                .Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.HIGH).Sum(x => x.Counter);
-            model.Medium = sastCounters.SeverityCounters
-                .Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.MEDIUM).Sum(x => x.Counter);
-            model.Low = sastCounters.SeverityCounters
-                .Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.LOW).Sum(x => x.Counter);
-            model.Info = sastCounters.SeverityCounters
-                .Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.INFO).Sum(x => x.Counter);
+        //            var kicsStatusDetails = scan.StatusDetails.SingleOrDefault(x => x.Name == KICS_Engine);
+        //            if (kicsStatusDetails != null)
+        //            {
+        //                scanDetails.KicsResults = new ScanResultDetails();
+        //                scanDetails.KicsResults.Status = kicsStatusDetails.Status;
+        //                scanDetails.KicsResults.Successful = kicsStatusDetails.Status == CompletedStage;
 
-            // ToVerify -> we dont want to include the info vulns
-            model.ToVerify = sastCounters.StateCounters.Where(x => x.State == ResultsSummaryState.TO_VERIFY).Sum(x => x.Counter) - model.Info;
+        //                if (scanDetails.KicsResults.Successful)
+        //                    scanDetails.KicsResults = getKicsScanResultDetails(scanDetails.KicsResults, resultsSummary);
+        //                else
+        //                    scanDetails.KicsResults.Details = $"Current scan status is {sastStatusDetails.Status}";
+        //            }
+        //            #endregion
 
-            model.Total = sastCounters.TotalCounter;
+        //            #region SCA
 
-            model.LanguagesDetected = sastCounters.LanguageCounters.Select(x => x.Language).Distinct().ToList();
-            model.Queries = sastCounters.QueriesCounters.Count;
+        //            var scaStatusDetails = scan.StatusDetails.SingleOrDefault(x => x.Name == SCA_Engine);
+        //            if (scaStatusDetails != null)
+        //            {
+        //                scanDetails.ScaResults = new ScanResultDetails();
+        //                scanDetails.ScaResults.Status = scaStatusDetails.Status;
+        //                scanDetails.ScaResults.Successful = scaStatusDetails.Status == CompletedStage;
 
-            // Number of queries
-            try
-            {
-                // Scan query categories
-                var scanResults = GetSASTScanResultsById(model.Id).ToList();
+        //                if (scanDetails.ScaResults.Successful)
+        //                    scanDetails.ScaResults = getScaScanResultDetails(scanDetails.ScaResults, resultsSummary);
+        //                else
+        //                    scanDetails.ScaResults.Details = $"Current scan status is {scaStatusDetails.Status}";
+        //            }
+        //            #endregion
+        //        }
+        //        catch
+        //        {
+        //            fetchedResultsSuccessfully = false;
+        //        }
 
-                scanDetails.SASTVulnerabilities = scanResults;
+        //        if (!fetchedResultsSuccessfully)
+        //        {
+        //            #region SAST
 
-                var scanResultsHigh = scanResults.Where(x => x.Severity == ResultsSeverity.HIGH);
-                var scanResultsMedium = scanResults.Where(x => x.Severity == ResultsSeverity.MEDIUM);
-                var scanResultsLow = scanResults.Where(x => x.Severity == ResultsSeverity.LOW);
+        //            var sastStatusDetails = scan.StatusDetails.SingleOrDefault(x => x.Name == SAST_Engine);
+        //            if (sastStatusDetails != null)
+        //            {
+        //                scanDetails.SASTResults = new ScanResultDetails();
+        //                scanDetails.SASTResults.Status = sastStatusDetails.Status;
+        //                scanDetails.SASTResults.Successful = sastStatusDetails.Status == CompletedStage;
 
-                var scanQueriesHigh = scanResultsHigh.Select(x => x.QueryID).Distinct().ToList();
-                var scanQueriesMedium = scanResultsMedium.Select(x => x.QueryID).Distinct().ToList();
-                var scanQueriesLow = scanResultsLow.Select(x => x.QueryID).Distinct().ToList();
+        //                if (scanDetails.SASTResults.Successful)
+        //                {
+        //                    scanDetails = getSASTScanResultDetailsBydId(scanDetails, scanDetails.Id);
 
-                model.QueriesHigh = scanQueriesHigh.Count();
-                model.QueriesMedium = scanQueriesMedium.Count();
-                model.QueriesLow = scanQueriesLow.Count();
-                model.Queries = model.QueriesHigh + model.QueriesMedium + model.QueriesLow;
+        //                    // Get sast metadata
+        //                    try
+        //                    {
+        //                        ScanInfo metadata = SASTMetadata.GetMetadataAsync(scanDetails.Id).Result;
+        //                        if (metadata != null)
+        //                        {
+        //                            scanDetails.Preset = metadata.QueryPreset;
+        //                            scanDetails.LoC = metadata.Loc;
+        //                        }
+        //                    }
+        //                    catch (Exception ex)
+        //                    {
+        //                        Console.WriteLine($"Error fetching project {scan.ProjectId} Preset and LoC because {ex.Message}.");
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    scanDetails.SASTResults.Details = $"Current scan status is {sastStatusDetails.Status}";
+        //                }
+        //            }
 
-                model.HighToVerify = scanResults.Where(x => x.Severity == ResultsSeverity.HIGH && x.State == ResultsState.TO_VERIFY).Count();
-                model.MediumToVerify = scanResults.Where(x => x.Severity == ResultsSeverity.MEDIUM && x.State == ResultsState.TO_VERIFY).Count();
-                model.LowToVerify = scanResults.Where(x => x.Severity == ResultsSeverity.LOW && x.State == ResultsState.TO_VERIFY).Count();
+        //            #endregion
 
-                model.ToVerify = scanResults.Where(x => x.State == ResultsState.TO_VERIFY).Count();
-                model.NotExploitableMarked = scanResults.Where(x => x.State == ResultsState.NOT_EXPLOITABLE).Count();
-                model.PNEMarked = scanResults.Where(x => x.State == ResultsState.PROPOSED_NOT_EXPLOITABLE).Count();
-                model.OtherStates = scanResults.Where(x => x.State != ResultsState.CONFIRMED && x.State != ResultsState.URGENT && x.State != ResultsState.NOT_EXPLOITABLE && x.State != ResultsState.PROPOSED_NOT_EXPLOITABLE && x.State != ResultsState.TO_VERIFY).Count();
-            }
-            catch
-            {
-                model.QueriesHigh = null;
-                model.QueriesMedium = null;
-                model.QueriesLow = null;
-            }
+        //            #region  Kicks
 
-            return scanDetails;
-        }
+        //            var kicsStatusDetails = scan.StatusDetails.SingleOrDefault(x => x.Name == KICS_Engine);
+        //            if (kicsStatusDetails != null)
+        //            {
+        //                scanDetails.KicsResults = new ScanResultDetails
+        //                {
+        //                    Status = kicsStatusDetails.Status,
+        //                    Successful = kicsStatusDetails.Status == CompletedStage
+        //                };
 
-        private ScanResultDetails getKicsScanResultDetailsBydId(ScanResultDetails model, Guid scanId)
-        {
-            var kicsResults = GetKicsScanResultsById(scanId);
-            if (kicsResults != null)
-            {
-                var results = kicsResults.Where(x => x.State != KicsStateEnum.NOT_EXPLOITABLE);
+        //                if (scanDetails.KicsResults.Successful)
+        //                {
+        //                    scanDetails.KicsResults = getKicsScanResultDetailsBydId(scanDetails.KicsResults, scanDetails.Id);
+        //                }
+        //                else
+        //                {
+        //                    scanDetails.KicsResults.Details = $"Current scan status is {sastStatusDetails.Status}";
+        //                }
+        //            }
 
-                model.Id = scanId;
-                model.Total = results.Count();
-                model.High = results.Where(x => x.Severity == Services.KicsResults.SeverityEnum.HIGH).Count();
-                model.Medium = results.Where(x => x.Severity == Services.KicsResults.SeverityEnum.MEDIUM).Count();
-                model.Low = results.Where(x => x.Severity == Services.KicsResults.SeverityEnum.LOW).Count();
-                model.Info = results.Where(x => x.Severity == Services.KicsResults.SeverityEnum.INFO).Count();
-                model.ToVerify = kicsResults.Where(x => x.State == KicsStateEnum.TO_VERIFY).Count();
-            }
+        //            #endregion
 
-            return model;
-        }
+        //            #region SCA
 
-        private ScanResultDetails getKicsScanResultDetails(ScanResultDetails model, ResultsSummary resultsSummary)
-        {
-            if (resultsSummary != null)
-            {
-                var kicsCounters = resultsSummary.KicsCounters;
+        //            var scaStatusDetails = scan.StatusDetails.Where(x => x.Name == SCA_Engine).FirstOrDefault();
+        //            if (scaStatusDetails != null)
+        //            {
+        //                scanDetails.ScaResults = new ScanResultDetails();
+        //                scanDetails.ScaResults.Status = scaStatusDetails.Status;
+        //                scanDetails.ScaResults.Successful = scaStatusDetails.Status == CompletedStage;
 
-                model.Id = new Guid(resultsSummary.ScanId);
-                model.High = kicsCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.HIGH).Sum(x => x.Counter);
-                model.Medium = kicsCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.MEDIUM).Sum(x => x.Counter);
-                model.Low = kicsCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.LOW).Sum(x => x.Counter);
-                model.Info = kicsCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.INFO).Sum(x => x.Counter);
-                model.ToVerify = kicsCounters.StateCounters.Where(x => x.State == ResultsSummaryState.TO_VERIFY).Sum(x => x.Counter);
-                model.Total = kicsCounters.TotalCounter;
-            }
+        //                if (scanDetails.ScaResults.Successful)
+        //                {
+        //                    scanDetails.ScaResults = getSCAScanResultDetailsBydId(scanDetails.ScaResults, scan.ProjectId, scanDetails.Id);
+        //                }
+        //                else
+        //                {
+        //                    scanDetails.ScaResults.Details = $"Current scan status is {sastStatusDetails.Status}";
+        //                }
+        //            }
 
-            return model;
-        }
+        //            #endregion
+        //        }
+        //    }
 
-        private ScanResultDetails getSCAScanResultDetailsBydId(ScanResultDetails model, Guid projId, Guid scanId)
-        {
-            // When it is a scan with only SCA engine and 0 results, for some reason other APIs returns null in the sca scan status and results
-            // This is the only one i found that returns something
-            var resultsOverview = ResultsOverview.ProjectsAsync(new List<Guid>() { projId }).Result;
-            if (resultsOverview != null)
-            {
-                var resultOverview = resultsOverview.FirstOrDefault();
-                if (resultOverview != null && resultOverview.scaCounters != null)
-                {
-                    model.Id = scanId;
+        //    // Languages detected in the SAST, Kicks and SCA scans
+        //    // For now, just adding the SAST languages detected
+        //    if (scanDetails.SASTResults != null && scanDetails.SASTResults.LanguagesDetected != null)
+        //    {
+        //        scanDetails.Languages = string.Join(";", scanDetails.SASTResults.LanguagesDetected.Where(x => x != "Common").Select(x => x).ToList());
+        //    }
 
-                    if (resultOverview.scaCounters.severityCounters != null && resultOverview.scaCounters.severityCounters.Any())
-                    {
-                        model.High = resultOverview.scaCounters.severityCounters.Where(x => x.Severity.ToUpper() == "HIGH").Sum(x => x.Counter);
-                        model.Medium = resultOverview.scaCounters.severityCounters.Where(x => x.Severity.ToUpper() == "MEDIUM").Sum(x => x.Counter);
-                        model.Low = resultOverview.scaCounters.severityCounters.Where(x => x.Severity.ToUpper() == "LOW").Sum(x => x.Counter);
-                        model.Info = resultOverview.scaCounters.severityCounters.Where(x => x.Severity.ToUpper() == "INFO").Sum(x => x.Counter);
-                    }
-                    else
-                    {
-                        model.High = 0;
-                        model.Medium = 0;
-                        model.Low = 0;
-                        model.Info = 0;
-                    }
+        //    return scanDetails;
+        //}
 
-                    if (resultOverview.scaCounters.state != null && resultOverview.scaCounters.state.Any())
-                        model.ToVerify = resultOverview.scaCounters.state.Where(x => x.state.ToUpper() == "TO_VERIFY").Sum(x => x.counter);
-                    else
-                        model.ToVerify = 0;
+        ///// <summary>
+        ///// Very performance intensive.
+        ///// </summary>
+        ///// <param name="scanDetails"></param>
+        ///// <param name="scanId"></param>
+        ///// <returns></returns>
+        //private ScanDetails getSASTScanResultDetailsBydId(ScanDetails scanDetails, Guid scanId)
+        //{
+        //    var model = scanDetails.SASTResults;
 
-                    model.Total = resultOverview.scaCounters.totalCounter;
-                }
-            }
+        //    var sastResults = GetSASTScanResultsById(scanId).ToList();
+        //    if (sastResults != null)
+        //    {
+        //        scanDetails.SASTVulnerabilities = sastResults;
 
-            return model;
-        }
+        //        var results = sastResults.Where(x => x.State != ResultsState.NOT_EXPLOITABLE);
 
-        private ScanResultDetails getScaScanResultDetails(ScanResultDetails model, ResultsSummary resultsSummary)
-        {
-            if (resultsSummary != null)
-            {
-                var scaCounters = resultsSummary.ScaCounters;
+        //        model.Id = scanId;
+        //        model.Total = results.Count();
+        //        model.High = results.Where(x => x.Severity == ResultsSeverity.HIGH).Count();
+        //        model.Medium = results.Where(x => x.Severity == ResultsSeverity.MEDIUM).Count();
+        //        model.Low = results.Where(x => x.Severity == ResultsSeverity.LOW).Count();
+        //        model.Info = results.Where(x => x.Severity == ResultsSeverity.INFO).Count();
 
-                model.Id = new Guid(resultsSummary.ScanId);
-                model.High = scaCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.HIGH).Sum(x => x.Counter);
-                model.Medium = scaCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.MEDIUM).Sum(x => x.Counter);
-                model.Low = scaCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.LOW).Sum(x => x.Counter);
-                model.Info = scaCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.INFO).Sum(x => x.Counter);
-                model.ToVerify = scaCounters.StateCounters.Where(x => x.State == ResultsSummaryState.TO_VERIFY).Sum(x => x.Counter);
-                model.Total = scaCounters.TotalCounter;
-            }
+        //        model.HighToVerify = sastResults.Where(x => x.Severity == ResultsSeverity.HIGH && x.State == ResultsState.TO_VERIFY).Count();
+        //        model.MediumToVerify = sastResults.Where(x => x.Severity == ResultsSeverity.MEDIUM && x.State == ResultsState.TO_VERIFY).Count();
+        //        model.LowToVerify = sastResults.Where(x => x.Severity == ResultsSeverity.LOW && x.State == ResultsState.TO_VERIFY).Count();
 
-            return model;
-        }
+        //        model.ToVerify = sastResults.Where(x => x.State == ResultsState.TO_VERIFY).Count();
+        //        model.NotExploitableMarked = sastResults.Where(x => x.State == ResultsState.NOT_EXPLOITABLE).Count();
+        //        model.PNEMarked = sastResults.Where(x => x.State == ResultsState.PROPOSED_NOT_EXPLOITABLE).Count();
+        //        model.OtherStates = sastResults.Where(x => 
+        //                                                    x.State != ResultsState.CONFIRMED && 
+        //                                                    x.State != ResultsState.URGENT && 
+        //                                                    x.State != ResultsState.NOT_EXPLOITABLE && 
+        //                                                    x.State != ResultsState.PROPOSED_NOT_EXPLOITABLE && 
+        //                                                    x.State != ResultsState.TO_VERIFY).Count();
+        //        model.LanguagesDetected = sastResults.Select(x => x.LanguageName).Distinct().ToList();
+        //        //model.Queries = report.ScanResults.Sast.Languages.Sum(x => x.Queries.Count());
+
+        //        try
+        //        {
+        //            // Scan query categories
+        //            var scanResultsHigh = results.Where(x => x.Severity == ResultsSeverity.HIGH);
+        //            var scanResultsMedium = results.Where(x => x.Severity == ResultsSeverity.MEDIUM);
+        //            var scanResultsLow = results.Where(x => x.Severity == ResultsSeverity.LOW);
+
+        //            var scanQueriesHigh = scanResultsHigh.Select(x => x.QueryID).Distinct().ToList();
+        //            var scanQueriesMedium = scanResultsMedium.Select(x => x.QueryID).Distinct().ToList();
+        //            var scanQueriesLow = scanResultsLow.Select(x => x.QueryID).Distinct().ToList();
+
+        //            model.QueriesHigh = scanQueriesHigh.Count();
+        //            model.QueriesMedium = scanQueriesMedium.Count();
+        //            model.QueriesLow = scanQueriesLow.Count();
+        //            model.Queries = model.QueriesHigh + model.QueriesMedium + model.QueriesLow;
+        //        }
+        //        catch
+        //        {
+        //            model.QueriesHigh = null;
+        //            model.QueriesMedium = null;
+        //            model.QueriesLow = null;
+        //        }
+        //    }
+
+        //    return scanDetails;
+        //}
+
+        ///// <summary>
+        ///// Very performance intensive.
+        ///// </summary>
+        ///// <param name="scanDetails"></param>
+        ///// <param name="resultsSummary"></param>
+        ///// <returns></returns>
+        //private ScanDetails getSASTScanResultDetails(ScanDetails scanDetails, ResultsSummary resultsSummary)
+        //{
+        //    if (resultsSummary == null)
+        //        return scanDetails;
+
+        //    var model = scanDetails.SASTResults;
+
+        //    var sastCounters = resultsSummary.SastCounters;
+
+        //    model.Id = new Guid(resultsSummary.ScanId);
+        //    model.High = sastCounters.SeverityCounters
+        //        .Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.HIGH).Sum(x => x.Counter);
+        //    model.Medium = sastCounters.SeverityCounters
+        //        .Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.MEDIUM).Sum(x => x.Counter);
+        //    model.Low = sastCounters.SeverityCounters
+        //        .Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.LOW).Sum(x => x.Counter);
+        //    model.Info = sastCounters.SeverityCounters
+        //        .Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.INFO).Sum(x => x.Counter);
+
+        //    // ToVerify -> we dont want to include the info vulns
+        //    model.ToVerify = sastCounters.StateCounters.Where(x => x.State == ResultsSummaryState.TO_VERIFY).Sum(x => x.Counter) - model.Info;
+
+        //    model.Total = sastCounters.TotalCounter;
+
+        //    model.LanguagesDetected = sastCounters.LanguageCounters.Select(x => x.Language).Distinct().ToList();
+        //    model.Queries = sastCounters.QueriesCounters.Count;
+
+        //    // Number of queries
+        //    try
+        //    {
+        //        // Scan query categories
+        //        var scanResults = GetSASTScanResultsById(model.Id).ToList();
+
+        //        scanDetails.SASTVulnerabilities = scanResults;
+
+        //        var scanResultsHigh = scanResults.Where(x => x.Severity == ResultsSeverity.HIGH);
+        //        var scanResultsMedium = scanResults.Where(x => x.Severity == ResultsSeverity.MEDIUM);
+        //        var scanResultsLow = scanResults.Where(x => x.Severity == ResultsSeverity.LOW);
+
+        //        var scanQueriesHigh = scanResultsHigh.Select(x => x.QueryID).Distinct().ToList();
+        //        var scanQueriesMedium = scanResultsMedium.Select(x => x.QueryID).Distinct().ToList();
+        //        var scanQueriesLow = scanResultsLow.Select(x => x.QueryID).Distinct().ToList();
+
+        //        model.QueriesHigh = scanQueriesHigh.Count();
+        //        model.QueriesMedium = scanQueriesMedium.Count();
+        //        model.QueriesLow = scanQueriesLow.Count();
+        //        model.Queries = model.QueriesHigh + model.QueriesMedium + model.QueriesLow;
+
+        //        model.HighToVerify = scanResults.Where(x => x.Severity == ResultsSeverity.HIGH && x.State == ResultsState.TO_VERIFY).Count();
+        //        model.MediumToVerify = scanResults.Where(x => x.Severity == ResultsSeverity.MEDIUM && x.State == ResultsState.TO_VERIFY).Count();
+        //        model.LowToVerify = scanResults.Where(x => x.Severity == ResultsSeverity.LOW && x.State == ResultsState.TO_VERIFY).Count();
+
+        //        model.ToVerify = scanResults.Where(x => x.State == ResultsState.TO_VERIFY).Count();
+        //        model.NotExploitableMarked = scanResults.Where(x => x.State == ResultsState.NOT_EXPLOITABLE).Count();
+        //        model.PNEMarked = scanResults.Where(x => x.State == ResultsState.PROPOSED_NOT_EXPLOITABLE).Count();
+        //        model.OtherStates = scanResults.Where(x => x.State != ResultsState.CONFIRMED && x.State != ResultsState.URGENT && x.State != ResultsState.NOT_EXPLOITABLE && x.State != ResultsState.PROPOSED_NOT_EXPLOITABLE && x.State != ResultsState.TO_VERIFY).Count();
+        //    }
+        //    catch
+        //    {
+        //        model.QueriesHigh = null;
+        //        model.QueriesMedium = null;
+        //        model.QueriesLow = null;
+        //    }
+
+        //    return scanDetails;
+        //}
+
+        //private ScanResultDetails getKicsScanResultDetailsBydId(ScanResultDetails model, Guid scanId)
+        //{
+        //    var kicsResults = GetKicsScanResultsById(scanId);
+        //    if (kicsResults != null)
+        //    {
+        //        var results = kicsResults.Where(x => x.State != KicsStateEnum.NOT_EXPLOITABLE);
+
+        //        model.Id = scanId;
+        //        model.Total = results.Count();
+        //        model.High = results.Where(x => x.Severity == Services.KicsResults.SeverityEnum.HIGH).Count();
+        //        model.Medium = results.Where(x => x.Severity == Services.KicsResults.SeverityEnum.MEDIUM).Count();
+        //        model.Low = results.Where(x => x.Severity == Services.KicsResults.SeverityEnum.LOW).Count();
+        //        model.Info = results.Where(x => x.Severity == Services.KicsResults.SeverityEnum.INFO).Count();
+        //        model.ToVerify = kicsResults.Where(x => x.State == KicsStateEnum.TO_VERIFY).Count();
+        //    }
+
+        //    return model;
+        //}
+
+        //private ScanResultDetails getKicsScanResultDetails(ScanResultDetails model, ResultsSummary resultsSummary)
+        //{
+        //    if (resultsSummary != null)
+        //    {
+        //        var kicsCounters = resultsSummary.KicsCounters;
+
+        //        model.Id = new Guid(resultsSummary.ScanId);
+        //        model.High = kicsCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.HIGH).Sum(x => x.Counter);
+        //        model.Medium = kicsCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.MEDIUM).Sum(x => x.Counter);
+        //        model.Low = kicsCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.LOW).Sum(x => x.Counter);
+        //        model.Info = kicsCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.INFO).Sum(x => x.Counter);
+        //        model.ToVerify = kicsCounters.StateCounters.Where(x => x.State == ResultsSummaryState.TO_VERIFY).Sum(x => x.Counter);
+        //        model.Total = kicsCounters.TotalCounter;
+        //    }
+
+        //    return model;
+        //}
+
+        //private ScanResultDetails getSCAScanResultDetailsBydId(ScanResultDetails model, Guid projId, Guid scanId)
+        //{
+        //    // When it is a scan with only SCA engine and 0 results, for some reason other APIs returns null in the sca scan status and results
+        //    // This is the only one i found that returns something
+        //    var resultsOverview = ResultsOverview.ProjectsAsync(new List<Guid>() { projId }).Result;
+        //    if (resultsOverview != null)
+        //    {
+        //        var resultOverview = resultsOverview.FirstOrDefault();
+        //        if (resultOverview != null && resultOverview.scaCounters != null)
+        //        {
+        //            model.Id = scanId;
+
+        //            if (resultOverview.scaCounters.severityCounters != null && resultOverview.scaCounters.severityCounters.Any())
+        //            {
+        //                model.High = resultOverview.scaCounters.severityCounters.Where(x => x.Severity.ToUpper() == "HIGH").Sum(x => x.Counter);
+        //                model.Medium = resultOverview.scaCounters.severityCounters.Where(x => x.Severity.ToUpper() == "MEDIUM").Sum(x => x.Counter);
+        //                model.Low = resultOverview.scaCounters.severityCounters.Where(x => x.Severity.ToUpper() == "LOW").Sum(x => x.Counter);
+        //                model.Info = resultOverview.scaCounters.severityCounters.Where(x => x.Severity.ToUpper() == "INFO").Sum(x => x.Counter);
+        //            }
+        //            else
+        //            {
+        //                model.High = 0;
+        //                model.Medium = 0;
+        //                model.Low = 0;
+        //                model.Info = 0;
+        //            }
+
+        //            if (resultOverview.scaCounters.state != null && resultOverview.scaCounters.state.Any())
+        //                model.ToVerify = resultOverview.scaCounters.state.Where(x => x.state.ToUpper() == "TO_VERIFY").Sum(x => x.counter);
+        //            else
+        //                model.ToVerify = 0;
+
+        //            model.Total = resultOverview.scaCounters.totalCounter;
+        //        }
+        //    }
+
+        //    return model;
+        //}
+
+        //private ScanResultDetails getScaScanResultDetails(ScanResultDetails model, ResultsSummary resultsSummary)
+        //{
+        //    if (resultsSummary != null)
+        //    {
+        //        var scaCounters = resultsSummary.ScaCounters;
+
+        //        model.Id = new Guid(resultsSummary.ScanId);
+        //        model.High = scaCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.HIGH).Sum(x => x.Counter);
+        //        model.Medium = scaCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.MEDIUM).Sum(x => x.Counter);
+        //        model.Low = scaCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.LOW).Sum(x => x.Counter);
+        //        model.Info = scaCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.INFO).Sum(x => x.Counter);
+        //        model.ToVerify = scaCounters.StateCounters.Where(x => x.State == ResultsSummaryState.TO_VERIFY).Sum(x => x.Counter);
+        //        model.Total = scaCounters.TotalCounter;
+        //    }
+
+        //    return model;
+        //}
 
         public ReportResults GetCxOneScanJsonReport(Guid projectId, Guid scanId, double secondsBetweenPolls = 0.5)
         {
-            checkConnection();
-
             TimeSpan poolInverval = TimeSpan.FromSeconds(secondsBetweenPolls);
 
             ScanReportCreateInput sc = new ScanReportCreateInput
@@ -1380,27 +1383,7 @@ namespace Checkmarx.API.AST
                 }
             };
 
-            ReportCreateOutput createReportOutut = null;
-            //createReportOutut = Reports.CreateReportAsync(sc).Result;
-            int createNumberOfAttempts = 0;
-            while (createNumberOfAttempts < 3)
-            {
-                try
-                {
-                    createReportOutut = Reports.CreateReportAsync(sc).Result;
-                }
-                catch
-                {
-                    System.Threading.Thread.Sleep(poolInverval);
-                    createNumberOfAttempts++;
-
-                    if (createNumberOfAttempts < 3)
-                        continue;
-                    else
-                        throw;
-                }
-                break;
-            }
+            ReportCreateOutput createReportOutut = Reports.CreateReportAsync(sc).Result;
 
             if (createReportOutut == null)
                 throw new NotSupportedException();
@@ -1410,39 +1393,20 @@ namespace Checkmarx.API.AST
             if (createReportId == Guid.Empty)
                 throw new Exception($"Error getting Report of Scan {scanId}");
 
-            string downloadUrl = null;
             Guid reportId = createReportId;
             string reportStatus = "Requested";
             string pastReportStatus = reportStatus;
             double aprox_seconds_passed = 0.0;
-            while (reportStatus != "Completed")
+            Report statusResponse = null;
+
+            do
             {
                 System.Threading.Thread.Sleep(poolInverval);
                 aprox_seconds_passed += 1.020;
 
-                int numberOfAttempts = 0;
-                do
-                {
-                    try
-                    {
-                        var statusResponse = Reports.GetReportAsync(reportId, true).Result;
-                        reportId = statusResponse.ReportId;
-                        reportStatus = statusResponse.Status.ToString();
-                        downloadUrl = statusResponse.Url;
-                    }
-                    catch
-                    {
-                        System.Threading.Thread.Sleep(500);
-                        numberOfAttempts++;
-
-                        if (numberOfAttempts < 3)
-                            continue;
-                        else
-                            throw;
-                    }
-                    break;
-                }
-                while (numberOfAttempts < 3);
+                statusResponse = Reports.GetReportAsync(reportId, true).Result;
+                reportId = statusResponse.ReportId;
+                reportStatus = statusResponse.Status.ToString();
 
                 if (pastReportStatus != reportStatus)
                 {
@@ -1459,9 +1423,10 @@ namespace Checkmarx.API.AST
 
                     throw new Exception("AST Scan API says it could not generate a json report for project {0}. You may want to try again later.");
                 }
-            }
 
-            var reportString = Reports.DownloadScanReportJsonUrl(downloadUrl).Result;
+            } while (reportStatus != "Completed");
+
+            var reportString = Reports.DownloadScanReportJsonUrl(statusResponse.Url).Result;
 
             return JsonConvert.DeserializeObject<ReportResults>(reportString);
         }
@@ -1477,29 +1442,7 @@ namespace Checkmarx.API.AST
 
             while (true)
             {
-                Services.SASTResults.SASTResultsResponse response = null;
-                int numTries = 0;
-                bool retry = true;
-                // Sometimes the call is throwing a 502 Bad Gateway. That is the reason there is this while loop - retries 3 times
-                while (retry)
-                {
-                    try
-                    {
-                        response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, limit).Result;
-                        retry = false;
-                    }
-                    catch
-                    {
-                        retry = numTries < 3;
-
-                        if (!retry)
-                            throw;
-
-                        numTries++;
-
-                        System.Threading.Thread.Sleep(500);
-                    }
-                }
+                Services.SASTResults.SASTResultsResponse response = SASTResults.GetSASTResultsByScanAsync(scanId, startAt, limit).Result;
 
                 if (response.Results != null)
                 {
