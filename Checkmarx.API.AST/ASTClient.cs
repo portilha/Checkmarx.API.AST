@@ -121,8 +121,6 @@ namespace Checkmarx.API.AST
                 if (_scans == null && Connected)
                     _scans = new Scans($"{ASTServer.AbsoluteUri}api/scans", _httpClient);
 
-
-
                 return _scans;
             }
         }
@@ -577,20 +575,20 @@ namespace Checkmarx.API.AST
             }
         }
 
-        private Services.Applications.ApplicationsCollection getAllApplications(int getLimit = 20)
+        private Services.Applications.ApplicationsCollection getAllApplications(int limit = 20)
         {
-            var listApplications = Applications.GetListOfApplicationsAsync(getLimit).Result;
-            if (listApplications.TotalCount > getLimit)
+            var listApplications = Applications.GetListOfApplicationsAsync(limit).Result;
+            if (listApplications.TotalCount > limit)
             {
-                var offset = getLimit;
+                var offset = limit;
                 bool cont = true;
                 do
                 {
-                    var next = Applications.GetListOfApplicationsAsync(getLimit, offset).Result;
+                    var next = Applications.GetListOfApplicationsAsync(limit, offset).Result;
                     if (next.Applications.Any())
                     {
                         next.Applications.ToList().ForEach(o => listApplications.Applications.Add(o));
-                        offset += getLimit;
+                        offset += limit;
 
                         if (listApplications.Applications.Count == listApplications.TotalCount) cont = false;
                     }
@@ -628,7 +626,7 @@ namespace Checkmarx.API.AST
 
                 startAt += limit;
 
-                if (resultPage.TotalCount == 0 || resultPage.TotalCount < limit)
+                if (resultPage.TotalCount == 0 || resultPage.TotalCount == result.Count)
                     return result;
             }
         }
