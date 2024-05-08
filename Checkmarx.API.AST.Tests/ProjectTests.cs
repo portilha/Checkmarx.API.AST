@@ -153,13 +153,15 @@ namespace Checkmarx.API.AST.Tests
             Assert.IsNotNull(astclient.Projects);
 
             var projectsList = astclient.GetAllProjectsDetails();
-            
-            var project = projectsList.SingleOrDefault(x => x.Name == "JohnDeere-JDF/jdf-r2-proc-databricks-client");
-            Trace.WriteLine(project.Id);
 
-            var scan = astclient.GetLastScan(project.Id);
+            Assert.AreEqual(1276, projectsList.Count);
 
-            var scandetails = astclient.GetScanDetails(scan.Id);
+            //var project = projectsList.SingleOrDefault(x => x.Name == "JohnDeere-JDF/jdf-r2-proc-databricks-client");
+            //Trace.WriteLine(project.Id);
+
+            //var scan = astclient.GetLastScan(project.Id);
+
+            //var scandetails = astclient.GetScanDetails(scan.Id);
         }
 
         [TestMethod]

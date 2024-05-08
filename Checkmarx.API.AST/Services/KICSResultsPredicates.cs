@@ -482,7 +482,7 @@ namespace Checkmarx.API.AST.Services
         /// <summary>
         /// comment that describe why the state has predicated. max length is 1024. can be empty.
         /// </summary>
-        [Newtonsoft.Json.JsonProperty("comment", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("comment", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Include)]
         public string Comment { get; set; }
 
         /// <summary>
@@ -606,7 +606,7 @@ namespace Checkmarx.API.AST.Services
         /// <summary>
         /// comment that describe why the state has predicated
         /// </summary>
-        [Newtonsoft.Json.JsonProperty("comment", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("comment", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Include)]
         public string Comment { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;

@@ -423,7 +423,7 @@ namespace Checkmarx.API.AST.Services.KicsResults
         /// <summary>
         /// Query group name
         /// </summary>
-        [Newtonsoft.Json.JsonProperty("comments", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("comments", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Include)]
         public string Comments { get; set; }
 
         /// <summary>

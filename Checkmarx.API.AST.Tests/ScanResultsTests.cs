@@ -146,10 +146,26 @@ namespace Checkmarx.API.AST.Tests
         }
 
         [TestMethod]
+        public void MarkSASTResultTest()
+        {
+            astClient.MarkSASTResult(ProjectId,
+                                     -203301157,
+                                     ResultsSeverity.HIGH,
+                                     ResultsState.TO_VERIFY,
+                                     null);
+        }
+
+
+        [TestMethod]
         public void RandomMarkingTheSASTFindingsTest()
         {
-            var results = astClient.GetSASTScanResultsById(
-                astClient.GetLastScan(ProjectId, fullScanOnly: false, completed: true, scanType: ScanTypeEnum.sast).Id);
+ 
+
+            var lastScan = astClient.GetLastScan(ProjectId, fullScanOnly: false, completed: true, scanType: ScanTypeEnum.sast);
+
+            Trace.WriteLine(lastScan.Id);
+
+            var results = astClient.GetSASTScanResultsById(lastScan.Id);
 
             Assert.IsNotNull(results);
 
@@ -159,7 +175,7 @@ namespace Checkmarx.API.AST.Tests
                     vuln.SimilarityID,
                     vuln.Severity,
                     GetRandomEnumMember<ResultsState>(),
-                    GetRandomJoke());
+                    null);
             }
         }
 

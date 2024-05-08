@@ -57,7 +57,7 @@ namespace Checkmarx.API.AST.Services
         [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
         public VulnerabilityStatus Value { get; set; }
 
-        [JsonProperty("comment")]
+        [Newtonsoft.Json.JsonProperty("comment", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Include)]
         public string Comment { get; set; }
     }
 
