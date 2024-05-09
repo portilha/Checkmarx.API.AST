@@ -101,14 +101,13 @@ namespace Checkmarx.API.AST.Models
             catch (Exception ex)
             {
                 Trace.WriteLine($"Error fetching project {_scan.ProjectId} Preset and LoC. Reason {ex.Message.Replace("\n", " ")}");
+                LoC = -1;
             }
 
             if (string.IsNullOrWhiteSpace(preset))
             {
                 Preset = _client.GetScanPresetFromConfigurations(_scan.ProjectId, Id);
             }
-
-            LoC = -1;
         }
 
         private ResultsSummary _resultsSummary = null;
