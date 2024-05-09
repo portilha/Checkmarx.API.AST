@@ -103,7 +103,7 @@ namespace Checkmarx.API.AST.Models
                 Trace.WriteLine($"Error fetching project {_scan.ProjectId} Preset and LoC. Reason {ex.Message.Replace("\n", " ")}");
             }
 
-            if (string.IsNullOrWhiteSpace(Preset))
+            if (string.IsNullOrWhiteSpace(preset))
             {
                 Preset = _client.GetScanPresetFromConfigurations(_scan.ProjectId, Id);
             }
