@@ -152,7 +152,7 @@ namespace Checkmarx.API.AST.Models
                 {
                     try
                     {
-                        UpdateSASTScanResultDetailsBasedOnResultsSummary(_sastResults, ResultsSummary);
+                        updateSASTScanResultDetailsBasedOnResultsSummary(_sastResults, ResultsSummary);
                     }
                     catch (Exception)
                     {
@@ -231,7 +231,7 @@ namespace Checkmarx.API.AST.Models
         /// <param name="scanDetails"></param>
         /// <param name="resultsSummary"></param>
         /// <returns></returns>
-        private void UpdateSASTScanResultDetailsBasedOnResultsSummary(ScanResultDetails model, ResultsSummary resultsSummary)
+        private void updateSASTScanResultDetailsBasedOnResultsSummary(ScanResultDetails model, ResultsSummary resultsSummary)
         {
             if (resultsSummary == null)
                 return;

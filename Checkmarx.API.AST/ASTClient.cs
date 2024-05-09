@@ -1017,10 +1017,16 @@ namespace Checkmarx.API.AST
         {
             checkConnection();
 
-            ScanInput scanInput = new ScanInput();
-            scanInput.Project = new Services.Scans.Project() { Id = projectId.ToString() };
-            scanInput.Type = ScanInputType.Git;
-            scanInput.Handler = new Git() { Branch = branch, RepoUrl = repoUrl };
+            ScanInput scanInput = new ScanInput
+            {
+                Project = new Services.Scans.Project() { Id = projectId },
+                Type = ScanInputType.Git,
+                Handler = new Git() 
+                { 
+                    Branch = branch, 
+                    RepoUrl = repoUrl 
+                }
+            };
 
             if (!string.IsNullOrWhiteSpace(configuration))
             {
@@ -1093,7 +1099,7 @@ namespace Checkmarx.API.AST
             {
                 Project = new Services.Scans.Project()
                 {
-                    Id = projectId.ToString()
+                    Id = projectId
                 },
                 Type = ScanInputType.Upload,
                 Handler = new Upload()
@@ -1149,11 +1155,6 @@ namespace Checkmarx.API.AST
             {
                 if (scan.Status == Status.Running || scan.Status == Status.Queued)
                     CancelScan(scanId);
-
-                ////if(scan.SourceType == "Upload")
-                ////{
-                //    var test = Scans.RecalculateAsync(new RecalculateInput() { Project_id = scan.ProjectId, Id = scanId.ToString(), Branch = scan.Branch, Status = "Queued" }).Result;
-                ////}
 
                 Scans.DeleteScanAsync(scanId).Wait();
             }

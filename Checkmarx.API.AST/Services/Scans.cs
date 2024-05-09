@@ -1830,7 +1830,7 @@ namespace Checkmarx.API.AST.Services.Scans
         /// A unique identifier for the project. For 'upload' projects, a value must be entered. For 'git' projects, this field can be empty and the repository URL will be designated as the project ID.
         /// </summary>
         [Newtonsoft.Json.JsonProperty("id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string Id { get; set; }
+        public Guid Id { get; set; }
 
         /// <summary>
         /// A JSON object specifying the project tags, in key-value format. Note: Whatever tags you include here, even an empty field, will overwrite the tags currently assigned to the project.
