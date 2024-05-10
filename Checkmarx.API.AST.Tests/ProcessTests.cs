@@ -77,7 +77,6 @@ namespace Checkmarx.API.AST.Tests
                     Trace.WriteLine($"{property.Name} = {property.GetValue(item)?.ToString()}");
                 }
 
-
                 Trace.WriteLine("---");
             }
         }

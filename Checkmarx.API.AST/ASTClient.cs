@@ -153,8 +153,6 @@ namespace Checkmarx.API.AST
                 if (Connected && _SASTMetadata  == null)
                     _SASTMetadata = new SASTMetadata($"{ASTServer.AbsoluteUri}api/sast-metadata", _httpClient);
 
-
-
                 return _SASTMetadata;
             }
         }
@@ -793,7 +791,7 @@ namespace Checkmarx.API.AST
             {
                 var scanStatus = completed ? CompletedStage : null;
 
-                var scans = this.Projects.GetProjectLastScan(new List<Guid>() { projectId }, scan_status: scanStatus, branch: branch, engine: scanType.ToString()).Result;
+                var scans = this.Projects.GetProjectLastScan([projectId], scan_status: scanStatus, branch: branch, engine: scanType.ToString()).Result;
 
                 if (scans.ContainsKey(projectId.ToString()))
                     return this.Scans.GetScanAsync(new Guid(scans[projectId.ToString()].Id)).Result;
@@ -1021,10 +1019,10 @@ namespace Checkmarx.API.AST
             {
                 Project = new Services.Scans.Project() { Id = projectId },
                 Type = ScanInputType.Git,
-                Handler = new Git() 
-                { 
-                    Branch = branch, 
-                    RepoUrl = repoUrl 
+                Handler = new Git()
+                {
+                    Branch = branch,
+                    RepoUrl = repoUrl
                 }
             };
 
@@ -1307,6 +1305,14 @@ namespace Checkmarx.API.AST
                 throw new ArgumentException(nameof(projectId));
 
             return Configuration.ProjectAllAsync(projectId).Result?.ToDictionary(x => x.Key, y => y);
+        }
+
+        public Dictionary<string, ScanParameter> GetScanConfigurations(Scan scan)
+        {
+            if(scan == null)
+                throw new ArgumentNullException(nameof(scan));
+
+            return GetScanConfigurations(scan.ProjectId, scan.Id);
         }
 
         public Dictionary<string, ScanParameter> GetScanConfigurations(Guid projectId, Guid scanId)

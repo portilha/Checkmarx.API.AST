@@ -1,10 +1,13 @@
 using Checkmarx.API.AST.Models;
 using Checkmarx.API.AST.Models.Report;
+using Checkmarx.API.AST.Services.Configuration;
 using Checkmarx.API.AST.Services.GroupsResult;
 using Checkmarx.API.AST.Services.KicsResults;
 using Checkmarx.API.AST.Services.Reports;
 using Checkmarx.API.AST.Services.SASTMetadata;
+using Checkmarx.API.AST.Services.SASTQueriesAudit;
 using Checkmarx.API.AST.Services.Scans;
+using Flurl.Util;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -277,7 +280,105 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void ScanInfoTest()
         {
-            var teste = astclient.GetScanDetails(new Guid("154fe347-d237-49e4-80af-77dfd37fdc9c"));
+            var scanID = new Guid("24ab41bc-0ac8-43cb-88a9-de2bf8b6303b");
+
+            var lastScan = astclient.Scans.GetScanAsync(scanID).Result;
+
+            string log = astclient.GetScanLog(lastScan.Id, ASTClient.SAST_Engine);
+
+            var duration = (lastScan.UpdatedAt.DateTime - lastScan.CreatedAt.DateTime);
+
+            Trace.WriteLine("Duration of the Total Scan (seconds): " + duration.Minutes + ":" + duration.Seconds);
+
+            var scaProperties = typeof(Scan).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
+
+            foreach (var property in scaProperties)
+            {
+                if (property.Name == "AdditionalProperties")
+                    continue;
+
+                Trace.WriteLine($"{property.Name} = {property.GetValue(lastScan)?.ToString()}");
+            }
+
+            Trace.WriteLine("Status Details: ");
+
+            foreach (var status in lastScan.StatusDetails)
+            {
+                foreach (var property in typeof(Services.Scans.StatusDetails).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty))
+                {
+                    Trace.WriteLine($"\t+ {property.Name} = {property.GetValue(status)?.ToString()}");
+                } 
+            }
+
+            Trace.WriteLine("Metadata: ");
+
+            foreach (var property in typeof(Services.Scans.Metadata).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty))
+            {
+                if (property.Name == "AdditionalProperties")
+                    continue;
+
+                Trace.WriteLine($"\t+ {property.Name} = {property.GetValue(lastScan.Metadata)?.ToString()}");
+            }
+
+            Trace.WriteLine("Metadata.Configs: ");
+
+            foreach (var property in lastScan.Metadata.Configs)
+            {
+                Trace.WriteLine($"\t+ {property.Type} = {property.Value?.Incremental}");
+            }
+
+            Trace.WriteLine("---");
+
+
+            Trace.WriteLine("WorkflowAsync: ");
+
+            var properties = typeof(TaskInfo).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
+
+            Trace.WriteLine(string.Join(";", properties.Select(x => $"\"{x.Name}\"")));
+
+            foreach (TaskInfo item in astclient.Scans.WorkflowAsync(scanID).Result)
+            {
+                foreach (var property in properties)
+                {
+                    if (property.Name == "AdditionalProperties")
+                        continue;
+
+                    Trace.WriteLine($"{property.Name} = {property.GetValue(item)?.ToString()}");
+                }
+
+                foreach (var keyValuePair in item.AdditionalProperties)
+                {
+                    Trace.WriteLine($"\t + {keyValuePair.Key} = {keyValuePair.Value}");
+                }
+
+                Trace.WriteLine("---");
+            }
+
+            Trace.WriteLine($"Scan Configurations: Project {lastScan.ProjectId} Scan {lastScan.Id}");
+
+            foreach (var scanConfiguration in astclient.GetScanConfigurations(lastScan))
+            {
+                Trace.WriteLine($"\t + {scanConfiguration.Key}");
+
+                foreach (var property in typeof(ScanParameter).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty))
+                {
+                    Trace.WriteLine($"\t\t- {property.Name} = {property.GetValue(scanConfiguration.Value)?.ToString()}");
+                }
+            }
+
+            var teste = astclient.GetScanDetails(lastScan.Id);
+
+            Trace.WriteLine("ScanDetails: ");
+
+            foreach (var property in typeof(ScanDetails).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty))
+            {
+                Trace.WriteLine($"\t+ {property.Name} = {property.GetValue(teste)?.ToString()}");
+            }
+
+            Assert.IsTrue(teste.LoC > 0);
+
+
+
         }
 
         [TestMethod]

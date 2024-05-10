@@ -44,10 +44,7 @@ namespace Checkmarx.API.AST.Tests
                 Configuration["ClientId"],
                 Configuration["ClientSecret"]);
             }
-
         }
-
-
 
         [TestMethod]
         public void GetReportTest()
@@ -71,8 +68,6 @@ namespace Checkmarx.API.AST.Tests
                 }
 
             }
-
-            // astclient.MarkSCAResult(new Guid())
         }
 
     }

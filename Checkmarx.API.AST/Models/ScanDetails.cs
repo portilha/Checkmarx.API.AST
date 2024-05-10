@@ -1,4 +1,5 @@
-﻿using Checkmarx.API.AST.Services.KicsResults;
+﻿using Checkmarx.API.AST.Enums;
+using Checkmarx.API.AST.Services.KicsResults;
 using Checkmarx.API.AST.Services.ResultsOverview;
 using Checkmarx.API.AST.Services.ResultsSummary;
 using Checkmarx.API.AST.Services.SASTMetadata;
@@ -76,6 +77,7 @@ namespace Checkmarx.API.AST.Models
         {
             get
             {
+                // TODO: Fix this... this is wrong...
                 if (SASTResults != null && SASTResults.LanguagesDetected != null)
                 {
                     return string.Join(";", SASTResults.LanguagesDetected.Where(x => x != "Common").Select(x => x).ToList());
@@ -87,15 +89,27 @@ namespace Checkmarx.API.AST.Models
 
         private void loadPresetAndLoc()
         {
-            // Get sast metadata
             try
             {
-                // TODO: Refactor this to avoid throwing exceptions all the time regarding a known situation.
-                ScanInfo metadata = _client.SASTMetadata.GetMetadataAsync(Id).Result;
-                if (metadata != null)
+                if (loC == null)
                 {
-                    Preset = metadata.QueryPreset;
-                    LoC = metadata.Loc;
+                    var sast = _scan.StatusDetails.SingleOrDefault(x => x.Name == ASTClient.SAST_Engine);
+                    if (sast != null)
+                        loC = sast.Loc; 
+                }
+                
+                if (string.IsNullOrWhiteSpace(preset))
+                    Preset = _client.GetScanPresetFromConfigurations(_scan.ProjectId, Id);
+
+                if (loC == null || string.IsNullOrWhiteSpace(preset))
+                {
+                    // Get sast metadata
+                    ScanInfo metadata = _client.SASTMetadata.GetMetadataAsync(Id).Result;
+                    if (metadata != null)
+                    {
+                        Preset = metadata.QueryPreset;
+                        LoC = metadata.Loc;
+                    }
                 }
             }
             catch (Exception ex)
@@ -103,25 +117,25 @@ namespace Checkmarx.API.AST.Models
                 Trace.WriteLine($"Error fetching project {_scan.ProjectId} Preset and LoC. Reason {ex.Message.Replace("\n", " ")}");
                 LoC = -1;
             }
-
-            if (string.IsNullOrWhiteSpace(preset))
-            {
-                Preset = _client.GetScanPresetFromConfigurations(_scan.ProjectId, Id);
-            }
         }
 
         private ResultsSummary _resultsSummary = null;
+        private bool _resultsSummaryInitialized = false;
         private ResultsSummary ResultsSummary
         {
             get
             {
-                if (_resultsSummary == null)
+                if (!_resultsSummaryInitialized && _resultsSummary == null)
+                {
+                    _resultsSummaryInitialized = true;
                     _resultsSummary = _client.GetResultsSummaryById(Id).FirstOrDefault();
+                }
 
                 return _resultsSummary;
             }
         }
 
+        #region SAST
         public ScanResultDetails _sastResults;
 
         public ScanResultDetails SASTResults
@@ -149,14 +163,7 @@ namespace Checkmarx.API.AST.Models
 
                 if (_sastResults.Successful)
                 {
-                    try
-                    {
-                        updateSASTScanResultDetailsBasedOnResultsSummary(_sastResults, ResultsSummary);
-                    }
-                    catch (Exception)
-                    {
-                        updateSASTScanResultDetailsBasedOnScanVulnerabilities(_sastResults, Id);
-                    }
+                    updateSASTScanResultDetailsBasedOnScanVulnerabilities(_sastResults, Id);
                 }
 
                 return _sastResults;
@@ -224,73 +231,21 @@ namespace Checkmarx.API.AST.Models
             }
         }
 
-        /// <summary>
-        /// Very performance intensive.
-        /// </summary>
-        /// <param name="scanDetails"></param>
-        /// <param name="resultsSummary"></param>
-        /// <returns></returns>
-        private void updateSASTScanResultDetailsBasedOnResultsSummary(ScanResultDetails model, ResultsSummary resultsSummary)
+        private List<SASTResult> _sastVulnerabilities;
+        public List<SASTResult> SASTVulnerabilities
         {
-            if (resultsSummary == null)
-                return;
-
-            var sastCounters = resultsSummary.SastCounters;
-
-            model.Id = new Guid(resultsSummary.ScanId);
-            model.High = sastCounters.SeverityCounters
-                .Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.HIGH).Sum(x => x.Counter);
-            model.Medium = sastCounters.SeverityCounters
-                .Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.MEDIUM).Sum(x => x.Counter);
-            model.Low = sastCounters.SeverityCounters
-                .Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.LOW).Sum(x => x.Counter);
-            model.Info = sastCounters.SeverityCounters
-                .Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.INFO).Sum(x => x.Counter);
-
-            // ToVerify -> we dont want to include the info vulns
-            model.ToVerify = sastCounters.StateCounters.Where(x => x.State == ResultsSummaryState.TO_VERIFY).Sum(x => x.Counter) - model.Info;
-
-            model.Total = sastCounters.TotalCounter;
-
-            model.LanguagesDetected = sastCounters.LanguageCounters.Select(x => x.Language).Distinct().ToList();
-            model.Queries = sastCounters.QueriesCounters.Count;
-
-            // Number of queries
-            try
+            get
             {
-                // Scan query categories
-                var scanResults = SASTVulnerabilities;
+                if (_sastVulnerabilities == null)
+                    _sastVulnerabilities = _client.GetSASTScanResultsById(Id).ToList();
 
-                var scanResultsHigh = scanResults.Where(x => x.Severity == ResultsSeverity.HIGH);
-                var scanResultsMedium = scanResults.Where(x => x.Severity == ResultsSeverity.MEDIUM);
-                var scanResultsLow = scanResults.Where(x => x.Severity == ResultsSeverity.LOW);
-
-                var scanQueriesHigh = scanResultsHigh.Select(x => x.QueryID).Distinct().ToList();
-                var scanQueriesMedium = scanResultsMedium.Select(x => x.QueryID).Distinct().ToList();
-                var scanQueriesLow = scanResultsLow.Select(x => x.QueryID).Distinct().ToList();
-
-                model.QueriesHigh = scanQueriesHigh.Count();
-                model.QueriesMedium = scanQueriesMedium.Count();
-                model.QueriesLow = scanQueriesLow.Count();
-                model.Queries = model.QueriesHigh + model.QueriesMedium + model.QueriesLow;
-
-                model.HighToVerify = scanResults.Where(x => x.Severity == ResultsSeverity.HIGH && x.State == ResultsState.TO_VERIFY).Count();
-                model.MediumToVerify = scanResults.Where(x => x.Severity == ResultsSeverity.MEDIUM && x.State == ResultsState.TO_VERIFY).Count();
-                model.LowToVerify = scanResults.Where(x => x.Severity == ResultsSeverity.LOW && x.State == ResultsState.TO_VERIFY).Count();
-
-                model.ToVerify = scanResults.Where(x => x.State == ResultsState.TO_VERIFY).Count();
-                model.NotExploitableMarked = scanResults.Where(x => x.State == ResultsState.NOT_EXPLOITABLE).Count();
-                model.PNEMarked = scanResults.Where(x => x.State == ResultsState.PROPOSED_NOT_EXPLOITABLE).Count();
-                model.OtherStates = scanResults.Where(x => x.State != ResultsState.CONFIRMED && x.State != ResultsState.URGENT && x.State != ResultsState.NOT_EXPLOITABLE && x.State != ResultsState.PROPOSED_NOT_EXPLOITABLE && x.State != ResultsState.TO_VERIFY).Count();
-            }
-            catch
-            {
-                model.QueriesHigh = null;
-                model.QueriesMedium = null;
-                model.QueriesLow = null;
+                return _sastVulnerabilities;
             }
         }
 
+        #endregion
+
+        #region SCA
 
         public ScanResultDetails _scaResults = null;
         public ScanResultDetails ScaResults
@@ -385,7 +340,9 @@ namespace Checkmarx.API.AST.Models
             model.Total = scaCounters.TotalCounter;
         }
 
+        #endregion
 
+        #region KICS
         public ScanResultDetails _kicsResults = null;
         public ScanResultDetails KicsResults
         {
@@ -463,19 +420,15 @@ namespace Checkmarx.API.AST.Models
             model.Total = kicsCounters.TotalCounter;
         }
 
+        #endregion
 
-        private List<Checkmarx.API.AST.Services.SASTResults.SASTResult> _sastVulnerabilities;
-        public List<Checkmarx.API.AST.Services.SASTResults.SASTResult> SASTVulnerabilities
+        public TimeSpan GetTimeDurationPerEngine(ScanTypeEnum scanType)
         {
-            get
-            {
-                if (_sastVulnerabilities == null)
-                    _sastVulnerabilities = _client.GetSASTScanResultsById(Id).ToList();
+            if (_scan.Engines.Contains(scanType.ToString()))
+                throw new ArgumentException($"{scanType} did not ran in this Scan");
 
-                return _sastVulnerabilities;
-            }
+            return _scan.StatusDetails.Single(x => x.Name == scanType.ToString()).Duration;
         }
-
     }
 
     public class ScanResultDetails

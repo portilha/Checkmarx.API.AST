@@ -20,6 +20,7 @@ namespace Checkmarx.API.AST.Services.Scans
     using System;
     using System.Collections.Generic;
     using System.Net.Http.Headers;
+    using System.Threading;
     using System = global::System;
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "13.15.10.0 (NJsonSchema v10.6.10.0 (Newtonsoft.Json v12.0.0.0))")]
@@ -66,7 +67,7 @@ namespace Checkmarx.API.AST.Services.Scans
         /// <param name="correlationId">This ID is used to keep track of a flow if many APIs are involved</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<Scan> CreateScanAsync(ScanInput body, string authorization = null, string accept = null, System.Guid? correlationId = null,  System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<Scan> CreateScanAsync(ScanInput body, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (body == null)
                 throw new System.ArgumentNullException("body");
@@ -194,7 +195,7 @@ namespace Checkmarx.API.AST.Services.Scans
                         request_.Headers.TryAddWithoutValidation("CorrelationId", ConvertToString(correlationId, System.Globalization.CultureInfo.InvariantCulture));
                     var content_ = new System.Net.Http.StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(body, _settings.Value));
                     content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json; version=1.0");
-                    
+
                     request_.Headers.UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue("ASAProgramTracker", "1.0"));
 
                     request_.Content = content_;
@@ -301,10 +302,10 @@ namespace Checkmarx.API.AST.Services.Scans
         /// <param name="branches">Filter results by the name of the Git branches</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        internal virtual async System.Threading.Tasks.Task<ScansCollection> GetListOfScansAsync(Guid? project_id = null, string project_ids = null, string authorization = null, string accept = null, System.Guid? correlationId = null, int? offset = null, int? limit = null, System.Collections.Generic.IEnumerable<string> scan_ids = null, 
-                                                                                                System.Collections.Generic.IEnumerable<string> groups = null, System.Collections.Generic.IEnumerable<string> tags_keys = null, System.Collections.Generic.IEnumerable<string> tags_values = null, System.Collections.Generic.IEnumerable<Status> statuses = null, 
-                                                                                                string source_type = null, string source_origin = null, System.DateTimeOffset? from_date = null, System.Collections.Generic.IEnumerable<Anonymous> sort = null, System.Collections.Generic.IEnumerable<Anonymous2> field = null, string search = null, 
-                                                                                                System.DateTimeOffset? to_date = null, System.Collections.Generic.IEnumerable<string> project_names = null, System.Collections.Generic.IEnumerable<string> initiators = null, string branch = null, System.Collections.Generic.IEnumerable<string> branches = null, 
+        internal virtual async System.Threading.Tasks.Task<ScansCollection> GetListOfScansAsync(Guid? project_id = null, string project_ids = null, string authorization = null, string accept = null, System.Guid? correlationId = null, int? offset = null, int? limit = null, System.Collections.Generic.IEnumerable<string> scan_ids = null,
+                                                                                                System.Collections.Generic.IEnumerable<string> groups = null, System.Collections.Generic.IEnumerable<string> tags_keys = null, System.Collections.Generic.IEnumerable<string> tags_values = null, System.Collections.Generic.IEnumerable<Status> statuses = null,
+                                                                                                string source_type = null, string source_origin = null, System.DateTimeOffset? from_date = null, System.Collections.Generic.IEnumerable<Anonymous> sort = null, System.Collections.Generic.IEnumerable<FieldFilter> field = null, string search = null,
+                                                                                                System.DateTimeOffset? to_date = null, System.Collections.Generic.IEnumerable<string> project_names = null, System.Collections.Generic.IEnumerable<string> initiators = null, string branch = null, System.Collections.Generic.IEnumerable<string> branches = null,
                                                                                                 System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var urlBuilder_ = new System.Text.StringBuilder();
@@ -886,7 +887,7 @@ namespace Checkmarx.API.AST.Services.Scans
         /// <param name="id">The scan ID</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<Scan> GetScanAsync(System.Guid id, string authorization = null, string accept = null, System.Guid? correlationId = null,  System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<Scan> GetScanAsync(System.Guid id, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (id == null)
                 throw new System.ArgumentNullException("id");
@@ -994,7 +995,7 @@ namespace Checkmarx.API.AST.Services.Scans
         /// <param name="id">The scan ID</param>
         /// <returns>No Content</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task CancelScanAsync(System.Guid id, Body body, string authorization = null, string accept = null, System.Guid? correlationId = null,  System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task CancelScanAsync(System.Guid id, Body body, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (id == null)
                 throw new System.ArgumentNullException("id");
@@ -1315,7 +1316,7 @@ namespace Checkmarx.API.AST.Services.Scans
         /// <param name="id">The scan ID</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<TaskInfo>> WorkflowAsync(string authorization, string accept, System.Guid? correlationId, System.Guid id, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<TaskInfo>> WorkflowAsync(System.Guid id, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (id == null)
                 throw new System.ArgumentNullException("id");
@@ -2000,6 +2001,20 @@ namespace Checkmarx.API.AST.Services.Scans
 
         [Newtonsoft.Json.JsonProperty("details", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Details { get; set; }
+
+        [JsonProperty("loc", NullValueHandling = NullValueHandling.Ignore)]
+        public long? Loc { get; set; }
+
+        [JsonProperty("startDate", NullValueHandling = NullValueHandling.Ignore)]
+        public DateTimeOffset? StartDate { get; set; }
+
+        [JsonProperty("endDate", NullValueHandling = NullValueHandling.Ignore)]
+        public DateTimeOffset? EndDate { get; set; }
+
+        /// <summary>
+        /// Returns the time it took on this specific engine.
+        /// </summary>
+        public TimeSpan Duration { get { return (EndDate.Value - StartDate.Value); } }
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.15.10.0 (NJsonSchema v10.6.10.0 (Newtonsoft.Json v12.0.0.0))")]
@@ -2153,7 +2168,7 @@ namespace Checkmarx.API.AST.Services.Scans
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.15.10.0 (NJsonSchema v10.6.10.0 (Newtonsoft.Json v12.0.0.0))")]
-    public enum Anonymous2
+    public enum FieldFilter
     {
 
         [System.Runtime.Serialization.EnumMember(Value = @"project-names")]

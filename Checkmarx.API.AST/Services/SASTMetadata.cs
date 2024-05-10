@@ -473,7 +473,7 @@ namespace Checkmarx.API.AST.Services.SASTMetadata
         public System.Guid ScanId { get; set; }
 
         [Newtonsoft.Json.JsonProperty("projectId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string ProjectId { get; set; }
+        public System.Guid ProjectId { get; set; }
 
         /// <summary>
         /// Total lines of code in a project
