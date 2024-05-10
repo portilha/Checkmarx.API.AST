@@ -94,7 +94,13 @@ namespace Checkmarx.API.AST.Models
             get
             {
                 if (_languages == null)
-                    _languages = string.Join(";", _client.SASTMetadata.MetricsAsync(Id).Result.ScannedFilesPerLanguage?.Select(x => x.Key));
+                {
+                    var scannedLanguages = _client.SASTMetadata.MetricsAsync(Id).Result.ScannedFilesPerLanguage?.Select(x => x.Key);
+                    if (scannedLanguages != null)
+                        _languages = string.Join(";", scannedLanguages);
+                    else
+                        _languages = string.Empty;
+                }
 
                 return _languages;
             }
