@@ -15,6 +15,8 @@
 
 namespace Checkmarx.API.AST.Services.SASTMetadata
 {
+    using System;
+    using System.Diagnostics;
     using System = global::System;
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "13.15.10.0 (NJsonSchema v10.6.10.0 (Newtonsoft.Json v12.0.0.0))")]
@@ -310,6 +312,12 @@ namespace Checkmarx.API.AST.Services.SASTMetadata
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
+#if DEBUG
+                            var content = await response_.Content.ReadAsStringAsync();
+
+                            Trace.WriteLine(content);
+#endif
+
                             var objectResponse_ = await ReadObjectResponseAsync<Metrics>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
@@ -561,33 +569,33 @@ namespace Checkmarx.API.AST.Services.SASTMetadata
     public partial class Metrics
     {
         [Newtonsoft.Json.JsonProperty("scanId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string ScanId { get; set; }
+        public Guid ScanId { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("memoryPeak", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("memoryPeak", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public double MemoryPeak { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("virtualMemoryPeak", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("virtualMemoryPeak", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public double VirtualMemoryPeak { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("totalScannedFilesCount", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("totalScannedFilesCount", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public double TotalScannedFilesCount { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("totalScannedLoc", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("totalScannedLoc", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public double TotalScannedLoc { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("domObjectsPerLanguage", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("domObjectsPerLanguage", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.Collections.Generic.IDictionary<string, double> DomObjectsPerLanguage { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("successfullLocPerLanguage", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("successfullLocPerLanguage", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.Collections.Generic.IDictionary<string, double> SuccessfullLocPerLanguage { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("failedLocPerLanguage", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("failedLocPerLanguage", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.Collections.Generic.IDictionary<string, double> FailedLocPerLanguage { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("fileCountOfDetectedButNotScannedLanguages", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("fileCountOfDetectedButNotScannedLanguages", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.Collections.Generic.IDictionary<string, double> FileCountOfDetectedButNotScannedLanguages { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("scannedFilesPerLanguage", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("scannedFilesPerLanguage", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.Collections.Generic.IDictionary<string, Anonymous> ScannedFilesPerLanguage { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties = new System.Collections.Generic.Dictionary<string, object>();

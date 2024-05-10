@@ -88,17 +88,15 @@ namespace Checkmarx.API.AST.Models
             private set => loC=value;
         }
 
+        private string _languages;
         public string Languages
         {
             get
             {
-                // TODO: Fix this... this is wrong...
-                if (SASTResults != null && SASTResults.LanguagesDetected != null)
-                {
-                    return string.Join(";", SASTResults.LanguagesDetected.Where(x => x != "Common").Select(x => x).ToList());
-                }
+                if (_languages == null)
+                    _languages = string.Join(";", _client.SASTMetadata.MetricsAsync(Id).Result.ScannedFilesPerLanguage.Select(x => x.Key));
 
-                return null;
+                return _languages;
             }
         }
 
