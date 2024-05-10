@@ -290,9 +290,12 @@ namespace Checkmarx.API.AST.Tests
 
             Trace.WriteLine("Duration of the Total Scan (seconds): " + duration.Minutes + ":" + duration.Seconds);
 
-            var scaProperties = typeof(Scan).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
+            var scanProperties = typeof(Scan).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
 
-            foreach (var property in scaProperties)
+            Trace.WriteLine(string.Join(";", scanProperties.Select(x => "\"" + x.Name + "\"")));
+
+
+            foreach (var property in scanProperties)
             {
                 if (property.Name == "AdditionalProperties")
                     continue;
@@ -376,9 +379,6 @@ namespace Checkmarx.API.AST.Tests
             }
 
             Assert.IsTrue(teste.LoC > 0);
-
-
-
         }
 
         [TestMethod]
@@ -459,6 +459,25 @@ namespace Checkmarx.API.AST.Tests
             }
         }
 
+
+        [TestMethod]
+        public void ListAllSASTScanTimesTest()
+        {
+
+            foreach (var project in astclient.GetAllProjectsDetails())
+            {
+                foreach (var branch in astclient.GetProjectBranches(project.Id))
+                {
+                    var lastSASTScan = astclient.GetLastScan(project.Id, false, true, branch, Enums.ScanTypeEnum.sast);
+                    if(lastSASTScan != null)
+                    {
+                        var sastStatus = lastSASTScan.StatusDetails.Single(x => x.Name == Enums.ScanTypeEnum.sast.ToString());
+                        Trace.WriteLine($"{project.Name} :: {branch} - LoC {sastStatus.Loc}   |   Duration(s) : {sastStatus.Duration.TotalSeconds}");
+                    }
+                }
+            }
+        }
+
         [TestMethod]
         public void SASTResultsTest()
         {
@@ -476,7 +495,7 @@ namespace Checkmarx.API.AST.Tests
 
             var gitReScanResult = astclient.ReRunGitScan(gitProj.Id, gitProjScanDetails.RepoUrl, new List<ConfigType>() { ConfigType.Sast }, gitProjbranch, gitProjScanDetails.Preset);
 
-            astclient.DeleteScan(gitReScanResult.Id);
+            //astclient.DeleteScan(gitReScanResult.Id);
         }
 
         [TestMethod]

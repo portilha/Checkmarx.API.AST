@@ -1,4 +1,5 @@
 ﻿using Checkmarx.API.AST.Enums;
+using Checkmarx.API.AST.Services.Configuration;
 using Checkmarx.API.AST.Services.KicsResults;
 using Checkmarx.API.AST.Services.ResultsOverview;
 using Checkmarx.API.AST.Services.ResultsSummary;
@@ -31,6 +32,20 @@ namespace Checkmarx.API.AST.Models
             _client = client;
             _scan = scan;
         }
+
+        private Dictionary<string, ScanParameter> _scanConfigurations;
+
+        public Dictionary<string, ScanParameter> ScanConfigurations
+        {
+            get
+            {
+                if (_scanConfigurations == null)
+                    _scanConfigurations = _client.GetScanConfigurations(_scan.ProjectId, Id);
+
+                return _scanConfigurations;
+            }
+        }
+
 
         public Guid Id => _scan.Id;
 
@@ -87,6 +102,19 @@ namespace Checkmarx.API.AST.Models
             }
         }
 
+        public bool IsIncremental
+        {
+            get { return ScanConfigurations[ASTClient.IsIncrementalConfiguration].Value == "true"; }
+        }
+
+        public bool FastConfigurationEnabled
+        {
+            get
+            {
+                return ScanConfigurations.ContainsKey(ASTClient.FastScanConfiguration) ? ScanConfigurations[ASTClient.FastScanConfiguration].Value == "true" : false;
+            }
+        }
+
         private void loadPresetAndLoc()
         {
             try
@@ -95,11 +123,11 @@ namespace Checkmarx.API.AST.Models
                 {
                     var sast = _scan.StatusDetails.SingleOrDefault(x => x.Name == ASTClient.SAST_Engine);
                     if (sast != null)
-                        loC = sast.Loc; 
+                        loC = sast.Loc;
                 }
-                
+
                 if (string.IsNullOrWhiteSpace(preset))
-                    Preset = _client.GetScanPresetFromConfigurations(_scan.ProjectId, Id);
+                    Preset = ScanConfigurations[ASTClient.SettingsProjectPreset].Value;
 
                 if (loC == null || string.IsNullOrWhiteSpace(preset))
                 {
@@ -383,6 +411,7 @@ namespace Checkmarx.API.AST.Models
             }
         }
 
+
         private void updateKicsScanResultDetailsBasedOnKicsVulnerabilities(ScanResultDetails model, Guid scanId)
         {
             var kicsResults = _client.GetKicsScanResultsById(scanId);
@@ -424,7 +453,7 @@ namespace Checkmarx.API.AST.Models
 
         public TimeSpan GetTimeDurationPerEngine(ScanTypeEnum scanType)
         {
-            if (_scan.Engines.Contains(scanType.ToString()))
+            if (!_scan.Engines.Contains(scanType.ToString()))
                 throw new ArgumentException($"{scanType} did not ran in this Scan");
 
             return _scan.StatusDetails.Single(x => x.Name == scanType.ToString()).Duration;
