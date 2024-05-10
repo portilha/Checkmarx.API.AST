@@ -121,7 +121,7 @@ namespace Checkmarx.API.AST.Models
             {
                 if (loC == null)
                 {
-                    var sast = _scan.StatusDetails.SingleOrDefault(x => x.Name == ASTClient.SAST_Engine);
+                    var sast = _scan.StatusDetails?.SingleOrDefault(x => x.Name == ASTClient.SAST_Engine);
                     if (sast != null)
                         loC = sast.Loc;
                 }
@@ -176,7 +176,7 @@ namespace Checkmarx.API.AST.Models
                 if (!Successful)
                     return null;
 
-                var sastStatusDetails = _scan.StatusDetails.SingleOrDefault(x => x.Name == ASTClient.SAST_Engine);
+                var sastStatusDetails = _scan.StatusDetails?.SingleOrDefault(x => x.Name == ASTClient.SAST_Engine);
                 if (sastStatusDetails == null)
                 {
                     return null;
