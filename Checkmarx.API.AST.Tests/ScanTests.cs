@@ -568,16 +568,20 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void GetAllScanTriggerByMeTest()
         {
-            var search = astclient.SearchScans("test@checkmarx.com", "perfomance_test");
+            var search = astclient.SearchScans("cxservice_pedro.portilha@checkmarx.com", "perfomance_test", "ASAProgramTracker");
 
             Trace.WriteLine(string.Join(";", search.Select(x => x.Id)));
 
             foreach (var item in search)
             {
-                Trace.WriteLine(item.Id + " " + item.CreatedAt.DateTime.ToShortDateString());
+                Trace.WriteLine(item.Id + " "+ item.Branch + " " + item.CreatedAt.DateTime.ToString());
+
+                var previousScan = astclient.GetLastScan(item.ProjectId, branch: item.Branch, maxScanDate: item.CreatedAt.DateTime.Add(TimeSpan.FromSeconds(-1)));
+
+                Assert.AreNotEqual(item.Id, previousScan.Id);
             }
 
-            Assert.AreEqual(47, search.Count());
+            Assert.AreEqual(77, search.Count());
         }
 
 

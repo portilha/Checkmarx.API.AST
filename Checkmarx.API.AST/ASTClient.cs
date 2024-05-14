@@ -788,7 +788,7 @@ namespace Checkmarx.API.AST
             }
         }
 
-        public IEnumerable<Scan> SearchScans(string initiator = null, string tagKey = null, int itemsPerPage = 1000, int startAt = 0)
+        public IEnumerable<Scan> SearchScans(string initiator = null, string tagKey = null, string sourceOrigin = null, int itemsPerPage = 1000, int startAt = 0)
         {
             string[] tagKeys = null;
             if(!string.IsNullOrWhiteSpace(tagKey))
@@ -800,7 +800,7 @@ namespace Checkmarx.API.AST
 
             while (true)
             {
-                var result = Scans.GetListOfScansAsync(limit: itemsPerPage, offset: startAt, initiators: initiators, tags_keys: tagKeys).Result;
+                var result = Scans.GetListOfScansAsync(limit: itemsPerPage, offset: startAt, initiators: initiators, tags_keys: tagKeys, source_origin: sourceOrigin).Result;
 
                 foreach (var scan in result.Scans)
                 {
@@ -878,20 +878,17 @@ namespace Checkmarx.API.AST
         /// <returns></returns>
         public IEnumerable<Scan> GetScans(Guid projectId, string engine = null, bool completed = true, string branch = null, ScanRetrieveKind scanKind = ScanRetrieveKind.All, DateTime? maxScanDate = null)
         {
-            List<Scan> list = new List<Scan>();
+            List<Scan> list = new();
 
             var scans = getAllScans(projectId, branch);
 
             if (scans.Any())
             {
-                if (completed)
-                    scans = scans.Where(x => x.Status == Status.Completed || x.Status == Status.Partial);
-
-                if (!string.IsNullOrEmpty(branch))
-                    scans = scans.Where(x => x.Branch == branch);
-
-                if (maxScanDate != null)
-                    scans = scans.Where(x => x.CreatedAt <= maxScanDate);
+                    scans = scans.Where(x =>
+                        (!completed || x.Status == Status.Completed || x.Status == Status.Partial) &&
+                        (string.IsNullOrEmpty(branch) || x.Branch == branch) && 
+                        (maxScanDate == null || x.CreatedAt.DateTime <= maxScanDate)
+                    );
 
                 switch (scanKind)
                 {
