@@ -250,7 +250,7 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void ClearConfigTest()
         {
-            astclient.SetProjectConfig(new Guid("4bceceba-3be8-4ef6-b822-c7fee658fbf8"), ASTClient.FastScanConfiguration, string.Empty);
+            astclient.SetProjectConfig(new Guid("4bceceba-3be8-4ef6-b822-c7fee658fbf8"), ASTClient.FastScanConfiguration, null);
         }
     }
 }

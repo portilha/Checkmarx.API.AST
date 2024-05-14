@@ -34,6 +34,7 @@ using Checkmarx.API.AST.Services.ResultsOverview;
 using Checkmarx.API.AST.Services.PresetManagement;
 using Checkmarx.API.AST.Services.SASTResultsPredicates;
 using System.Data;
+using System.Threading;
 
 namespace Checkmarx.API.AST
 {
@@ -1026,7 +1027,7 @@ namespace Checkmarx.API.AST
                 if (enableFastScanConfiguration && GetConfigValue(projectId, FastScanConfiguration) != "true")
                 {
                     previousValue = GetProjectConfig(projectId, FastScanConfiguration);
-                    SetProjectConfig(projectId, FastScanConfiguration, "true");
+                    SetProjectConfig(projectId, FastScanConfiguration, true);
                     enableFastScanConfiguraitonChanged = true;
                 }
 
@@ -1050,7 +1051,10 @@ namespace Checkmarx.API.AST
             finally
             {
                 if (enableFastScanConfiguraitonChanged)
+                {
+                    Thread.Sleep(TimeSpan.FromSeconds(15)); // so that the scan takes the project configuration before undo it
                     SetProjectConfig(projectId, FastScanConfiguration, previousValue);
+                }
             }
         }
 
@@ -1311,7 +1315,7 @@ namespace Checkmarx.API.AST
 
         #region Configurations
 
-        public void SetProjectConfig(Guid projectId, string key, string value)
+        public void SetProjectConfig(Guid projectId, string key, object value)
         {
             if (projectId == Guid.Empty)
                 throw new ArgumentException(nameof(projectId));
@@ -1319,14 +1323,20 @@ namespace Checkmarx.API.AST
             if (string.IsNullOrWhiteSpace(key))
                 throw new ArgumentException(nameof(key));
 
-            List<ScanParameter> body = new List<ScanParameter>()
+            if (value == null)
             {
+                Configuration.ProjectDELETEParameterAsync(projectId, key).Wait();
+                return;
+            }
+
+            List<ScanParameter> body =
+            [
                 new ScanParameter()
                 {
                     Key = key,
-                    Value = value
+                    Value = value.ToString()
                 }
-            };
+            ];
 
             Configuration.UpdateProjectConfigurationAsync(projectId.ToString(), body).Wait();
         }
