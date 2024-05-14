@@ -1102,7 +1102,7 @@ namespace Checkmarx.API.AST
                 if (enableFastScanConfiguration && GetConfigValue(projectId, FastScanConfiguration) != "true")
                 {
                     previousValue = GetProjectConfig(projectId, FastScanConfiguration);
-                    SetProjectConfig(projectId, FastScanConfiguration, "true");
+                    SetProjectConfig(projectId, FastScanConfiguration, true);
                     enableFastScanConfiguraitonChanged = true;
                 }
 
@@ -1130,7 +1130,12 @@ namespace Checkmarx.API.AST
             finally
             {
                 if (enableFastScanConfiguraitonChanged)
+                {
+                    Thread.Sleep(TimeSpan.FromSeconds(15)); // so that the scan takes the project configuration before undo it
+
                     SetProjectConfig(projectId, FastScanConfiguration, previousValue);
+                }
+                   
             }
         }
 
