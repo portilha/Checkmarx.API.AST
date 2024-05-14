@@ -568,7 +568,7 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void GetAllScanTriggerByMeTest()
         {
-            var search = astclient.SearchScans("cxservice_pedro.portilha@checkmarx.com", "perfomance_test");
+            var search = astclient.SearchScans("test@checkmarx.com", "perfomance_test");
 
             Trace.WriteLine(string.Join(";", search.Select(x => x.Id)));
 
