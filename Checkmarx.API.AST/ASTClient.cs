@@ -788,6 +788,32 @@ namespace Checkmarx.API.AST
             }
         }
 
+        public IEnumerable<Scan> SearchScans(string initiator = null, string tagKey = null, int itemsPerPage = 1000, int startAt = 0)
+        {
+            string[] tagKeys = null;
+            if(!string.IsNullOrWhiteSpace(tagKey))
+                tagKeys = [tagKey];
+
+            string[] initiators = null;
+            if (!string.IsNullOrWhiteSpace(initiator))
+                initiators = [initiator];
+
+            while (true)
+            {
+                var result = Scans.GetListOfScansAsync(limit: itemsPerPage, offset: startAt, initiators: initiators, tags_keys: tagKeys).Result;
+
+                foreach (var scan in result.Scans)
+                {
+                    yield return scan;
+                }
+
+                startAt += itemsPerPage;
+
+                if (result.Scans.Count == 0)
+                    yield break;
+            }
+        }
+
         public Scan GetLastScan(Guid projectId, bool fullScanOnly = false, bool completed = true, string branch = null, ScanTypeEnum scanType = ScanTypeEnum.sast, DateTime? maxScanDate = null)
         {
             if (!fullScanOnly && !maxScanDate.HasValue)
@@ -1015,6 +1041,7 @@ namespace Checkmarx.API.AST
         }
 
         #region ReRun Scans
+        
         public Scan ReRunGitScan(Guid projectId, string repoUrl, IEnumerable<ConfigType> scanTypes, string branch, string preset,
                 string configuration = null,
                 bool incremental = false,
@@ -1094,6 +1121,7 @@ namespace Checkmarx.API.AST
             return Scans.CreateScanUploadAsync(scanInput).Result;
 
         }
+        
         #endregion
 
         #region Scan Configuration

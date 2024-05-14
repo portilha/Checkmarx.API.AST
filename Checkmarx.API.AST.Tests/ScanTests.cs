@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -541,15 +542,15 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void ReRunScanZipTest()
         {
-            var uploadProj = astclient.Projects.GetProjectAsync(new Guid("604e406d-c186-43ff-8694-ab295c39ea78")).Result;
-            var uploadProjLastScan = astclient.GetLastScan(uploadProj.Id, true);
-            //var uploadProjLastScan = astclient.Scans.GetScanAsync(new Guid("8f252210-cd6f-4d68-b158-9d7cece265ca")).Result;
+            var uploadProj = astclient.Projects.GetProjectAsync(new Guid("4bceceba-3be8-4ef6-b822-c7fee658fbf8")).Result;
+
+            var uploadProjLastScan = astclient.GetLastScan(uploadProj.Id);
+
             var uploadProjScanDetails = astclient.GetScanDetails(uploadProjLastScan.Id);
+
             string uploadProjBranch = uploadProjLastScan.Branch;
 
-            var uploadReScanResult = astclient.ReRunUploadScan(uploadProj.Id, uploadProjLastScan.Id, new List<ConfigType>() { ConfigType.Sast }, uploadProjBranch, uploadProjScanDetails.Preset);
-
-            //astclient.DeleteScan(new Guid("fb20eb3c-29aa-461d-ac29-12d238d7e976"));
+            var uploadReScanResult = astclient.ReRunUploadScan(uploadProj.Id, uploadProjLastScan.Id, [ConfigType.Sast], uploadProjBranch, uploadProjScanDetails.Preset);
         }
 
         [TestMethod]
@@ -561,6 +562,22 @@ namespace Checkmarx.API.AST.Tests
 
             Assert.IsTrue(scanConfigs.FastConfigurationEnabled);
 
+        }
+
+
+        [TestMethod]
+        public void GetAllScanTriggerByMeTest()
+        {
+            var search = astclient.SearchScans("cxservice_pedro.portilha@checkmarx.com", "perfomance_test");
+
+            Trace.WriteLine(string.Join(";", search.Select(x => x.Id)));
+
+            foreach (var item in search)
+            {
+                Trace.WriteLine(item.Id + " " + item.CreatedAt.DateTime.ToShortDateString());
+            }
+
+            Assert.AreEqual(47, search.Count());
         }
 
 
