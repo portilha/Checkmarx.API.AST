@@ -1014,61 +1014,62 @@ namespace Checkmarx.API.AST
             }
         }
 
-        public Scan ReRunGitScan(Guid projectId, string repoUrl, IEnumerable<ConfigType> scanTypes, string branch, string preset, string configuration = null)
+        public Scan ReRunGitScan(Guid projectId, string repoUrl, IEnumerable<ConfigType> scanTypes, string branch, string preset,
+            string configuration = null,
+            bool incremental = false,
+            bool enableFastScanConfiguration = false)
         {
-            checkConnection();
-
-            ScanInput scanInput = new ScanInput
+            bool enableFastScanConfiguraitonChanged = false;
+            string previousValue = null;
+            try
             {
-                Project = new Services.Scans.Project() { Id = projectId },
-                Type = ScanInputType.Git,
-                Handler = new Git()
+                if (enableFastScanConfiguration && GetConfigValue(projectId, FastScanConfiguration) != "true")
                 {
-                    Branch = branch,
-                    RepoUrl = repoUrl
-                }
-            };
-
-            if (!string.IsNullOrWhiteSpace(configuration))
-            {
-                var configs = new List<Config>();
-                foreach (var scanType in scanTypes)
-                {
-                    configs.Add(new Config()
-                    {
-                        Type = scanType,
-                        Value = new Dictionary<string, string>()
-                        {
-                            ["incremental"] = "false",
-                            ["presetName"] = preset,
-                            ["defaultConfig"] = configuration
-                        }
-                    });
+                    previousValue = GetProjectConfig(projectId, FastScanConfiguration);
+                    SetProjectConfig(projectId, FastScanConfiguration, "true");
+                    enableFastScanConfiguraitonChanged = true;
                 }
 
-                scanInput.Config = configs;
-            }
-            else
-            {
-                var configs = new List<Config>();
-                foreach (var scanType in scanTypes)
-                    configs.Add(new Config()
+                ScanInput scanInput = new()
+                {
+                    Project = new Services.Scans.Project()
                     {
-                        Type = scanType,
-                        Value = new Dictionary<string, string>()
-                        {
-                            ["incremental"] = "false",
-                            ["presetName"] = preset
-                        }
-                    });
+                        Id = projectId
+                    },
+                    Type = ScanInputType.Git,
+                    Handler = new Git()
+                    {
+                        Branch = branch,
+                        RepoUrl = repoUrl
+                    },
+                    Config = getConfig(scanTypes, preset, configuration, incremental)
+                };
 
-                scanInput.Config = configs;
+                return Scans.CreateScanAsync(scanInput).Result;
             }
-
-            return Scans.CreateScanAsync(scanInput).Result;
+            finally
+            {
+                if (enableFastScanConfiguraitonChanged)
+                    SetProjectConfig(projectId, FastScanConfiguration, previousValue);
+            }
         }
 
-        public Scan ReRunUploadScan(Guid projectId, Guid lastScanId, IEnumerable<ConfigType> scanTypes, string branch, string preset, string configuration = null)
+        private Dictionary<string, string> getSASTScanConfiguration(string preset, string configuration, bool incremental)
+        {
+            var result = new Dictionary<string, string>()
+            {
+                ["incremental"] = incremental.ToString(),
+                ["presetName"] = preset,
+            };
+
+            if (!string.IsNullOrEmpty(configuration))
+                result.Add("defaultConfig", configuration);
+
+            return result;
+        }
+
+        public Scan ReRunUploadScan(Guid projectId, Guid lastScanId, IEnumerable<ConfigType> scanTypes, string branch, string preset, string configuration = null,
+            bool enableFastScanConfiguration = false)
         {
             if (projectId == Guid.Empty)
                 throw new ArgumentNullException(nameof(projectId));
@@ -1076,14 +1077,13 @@ namespace Checkmarx.API.AST
             if (lastScanId == Guid.Empty)
                 throw new ArgumentNullException(nameof(lastScanId));
 
-            checkConnection();
-
             byte[] source = Repostore.GetSourceCode(lastScanId).Result;
 
-            return RunUploadScan(projectId, source, scanTypes, branch, preset, configuration);
+            return RunUploadScan(projectId, source, scanTypes, branch, preset, configuration, enableFastScanConfiguration);
         }
 
-        public Scan RunUploadScan(Guid projectId, byte[] source, IEnumerable<ConfigType> scanTypes, string branch, string preset, string configuration = null)
+        public Scan RunUploadScan(Guid projectId, byte[] source, IEnumerable<ConfigType> scanTypes, string branch, string preset, string configuration = null,
+            bool enableFastScanConfiguration = false)
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
@@ -1091,62 +1091,76 @@ namespace Checkmarx.API.AST
             if (scanTypes == null || !scanTypes.Any())
                 throw new ArgumentNullException(nameof(scanTypes));
 
-            checkConnection();
-
-            string uploadUrl = Uploads.GetPresignedURLForUploading().Result;
-            Uploads.SendHTTPRequestByFullURL(uploadUrl, source).Wait();
-
-            ScanUploadInput scanInput = new()
+            bool enableFastScanConfiguraitonChanged = false;
+            string previousValue = null;
+            try
             {
-                Project = new Services.Scans.Project()
+                if (enableFastScanConfiguration && GetConfigValue(projectId, FastScanConfiguration) != "true")
                 {
-                    Id = projectId
-                },
-                Type = ScanInputType.Upload,
-                Handler = new Upload()
-                {
-                    Branch = branch,
-                    UploadUrl = uploadUrl
-                }
-            };
-
-            if (!string.IsNullOrWhiteSpace(configuration))
-            {
-                var configs = new List<Config>();
-                foreach (var scanType in scanTypes)
-                {
-                    configs.Add(new Config()
-                    {
-                        Type = scanType,
-                        Value = new Dictionary<string, string>()
-                        {
-                            ["incremental"] = "false",
-                            ["presetName"] = preset,
-                            ["defaultConfig"] = configuration
-                        }
-                    });
+                    previousValue = GetProjectConfig(projectId, FastScanConfiguration);
+                    SetProjectConfig(projectId, FastScanConfiguration, "true");
+                    enableFastScanConfiguraitonChanged = true;
                 }
 
-                scanInput.Config = configs;
-            }
-            else
-            {
-                var configs = new List<Config>();
-                foreach (var scanType in scanTypes)
-                    configs.Add(new Config()
+                string uploadUrl = Uploads.GetPresignedURLForUploading().Result;
+
+                Uploads.SendHTTPRequestByFullURL(uploadUrl, source).Wait();
+
+                ScanUploadInput scanInput = new()
+                {
+                    Project = new Services.Scans.Project()
                     {
-                        Type = scanType,
-                        Value = new Dictionary<string, string>()
-                        {
-                            ["incremental"] = "false",
-                            ["presetName"] = preset
-                        }
-                    });
+                        Id = projectId
+                    },
+                    Type = ScanInputType.Upload,
+                    Handler = new Upload()
+                    {
+                        Branch = branch,
+                        UploadUrl = uploadUrl
+                    },
+                    Config = getConfig(scanTypes, preset, configuration)
+                };
 
-                scanInput.Config = configs;
+                return Scans.CreateScanUploadAsync(scanInput).Result;
+            }
+            finally
+            {
+                if (enableFastScanConfiguraitonChanged)
+                    SetProjectConfig(projectId, FastScanConfiguration, previousValue);
+            }
+        }
+
+        private ICollection<Config> getConfig(IEnumerable<ConfigType> scanTypes, string preset, string configuration, bool incremental = false)
+        {
+            var configs = new List<Config>();
+
+            foreach (var scanType in scanTypes)
+            {
+                var engineConfig = new Config { Type = scanType };
+
+                switch (scanType)
+                {
+                    case ConfigType.Sca:
+                        break;
+                    case ConfigType.Sast:
+                        engineConfig.Value = getSASTScanConfiguration(preset, configuration, incremental);
+                        break;
+                    case ConfigType.Kics:
+                        break;
+                    case ConfigType.Microengines:
+                        break;
+                    case ConfigType.ApiSec:
+                        break;
+                    case ConfigType.System:
+                        break;
+                    default:
+                        throw new NotSupportedException($"{scanType}");
+                }
+
+                configs.Add(engineConfig);
             }
 
-            return Scans.CreateScanUploadAsync(scanInput).Result;
+            return configs;
         }
 
         public void DeleteScan(Guid scanId)
@@ -1297,6 +1311,55 @@ namespace Checkmarx.API.AST
 
         #region Configurations
 
+        public void SetProjectConfig(Guid projectId, string key, string value)
+        {
+            if (projectId == Guid.Empty)
+                throw new ArgumentException(nameof(projectId));
+
+            if (string.IsNullOrWhiteSpace(key))
+                throw new ArgumentException(nameof(key));
+
+            List<ScanParameter> body = new List<ScanParameter>()
+            {
+                new ScanParameter()
+                {
+                    Key = key,
+                    Value = value
+                }
+            };
+
+            Configuration.UpdateProjectConfigurationAsync(projectId.ToString(), body).Wait();
+        }
+
+        public string GetProjectConfig(Guid projectId, string configKey)
+        {
+            if (projectId == Guid.Empty)
+                throw new ArgumentException(nameof(projectId));
+
+            var configuration = GetProjectConfigurations(projectId);
+            if (configuration.ContainsKey(configKey))
+            {
+                var config = configuration[configKey];
+
+                if (config != null && !string.IsNullOrWhiteSpace(config.Value))
+                    return config.Value;
+            }
+
+            return null;
+        }
+
+        public string GetConfigValue(Guid projectId, string configKey)
+        {
+            string projectConfigValue = GetProjectConfig(projectId, configKey);
+            if (string.IsNullOrEmpty(projectConfigValue))
+            {
+                var tenant_config = GetTenantConfigurations();
+                return tenant_config.ContainsKey(configKey) ? tenant_config[configKey].Value : null;
+            }
+
+            return projectConfigValue;
+        }
+        
         public Dictionary<string, ScanParameter> GetTenantConfigurations()
         {
             return Configuration.TenantAllAsync().Result?.ToDictionary(x => x.Key, y => y);
@@ -1312,7 +1375,7 @@ namespace Checkmarx.API.AST
 
         public Dictionary<string, ScanParameter> GetScanConfigurations(Scan scan)
         {
-            if(scan == null)
+            if (scan == null)
                 throw new ArgumentNullException(nameof(scan));
 
             return GetScanConfigurations(scan.ProjectId, scan.Id);
@@ -1373,55 +1436,15 @@ namespace Checkmarx.API.AST
             return GetTenantConfigurations().Where(x => x.Value.Key == SettingsProjectConfiguration).Select(x => x.Value);
         }
 
-        public string GetProjectRepoUrl(Guid projectId) => getConfig(projectId, SettingsProjectRepoUrl);
+        public string GetProjectRepoUrl(Guid projectId) => GetProjectConfig(projectId, SettingsProjectRepoUrl);
 
-        public string GetProjectConfiguration(Guid projectId) => getConfig(projectId, SettingsProjectConfiguration);
+        public string GetProjectConfiguration(Guid projectId) => GetProjectConfig(projectId, SettingsProjectConfiguration);
 
-        public string GetProjectExclusions(Guid projectId) => getConfig(projectId, SettingsProjectExclusions);
+        public string GetProjectExclusions(Guid projectId) => GetProjectConfig(projectId, SettingsProjectExclusions);
 
-        public string GetProjectAPISecuritySwaggerFolderFileFilter(Guid projectId) => getConfig(projectId, SettingsAPISecuritySwaggerFolderFileFilter);
+        public string GetProjectAPISecuritySwaggerFolderFileFilter(Guid projectId) => GetProjectConfig(projectId, SettingsAPISecuritySwaggerFolderFileFilter);
 
-        public void SetProjectExclusions(Guid projectId, string exclusions) => setConfig(projectId, SettingsProjectExclusions, exclusions);
-
-        private string getConfig(Guid projectId, string configKey)
-        {
-            if (projectId == Guid.Empty)
-                throw new ArgumentException(nameof(projectId));
-
-            var configuration = GetProjectConfigurations(projectId);
-            if (configuration.ContainsKey(configKey))
-            {
-                var config = configuration[configKey];
-
-                if (config != null && !string.IsNullOrWhiteSpace(config.Value))
-                    return config.Value;
-            }
-
-            return null;
-        }
-
-        private void setConfig(Guid projectId, string key, string value)
-        {
-            if (projectId == Guid.Empty)
-                throw new ArgumentException(nameof(projectId));
-
-            if (string.IsNullOrWhiteSpace(value))
-                throw new ArgumentException(nameof(value));
-
-            if (string.IsNullOrWhiteSpace(key))
-                throw new ArgumentException(nameof(key));
-
-            List<ScanParameter> body = new List<ScanParameter>() {
-                new ScanParameter()
-                {
-                    Key = key,
-                    Value = value
-                }
-            };
-
-            Configuration.UpdateProjectConfigurationAsync(projectId.ToString(), body).Wait();
-        }
-
+        public void SetProjectExclusions(Guid projectId, string exclusions) => SetProjectConfig(projectId, SettingsProjectExclusions, exclusions);
 
         public Tuple<string, string> GetProjectFilesAndFoldersExclusions(Guid projectId)
         {

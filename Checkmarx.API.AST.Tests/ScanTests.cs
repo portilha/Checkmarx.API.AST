@@ -1,3 +1,4 @@
+using Checkmarx.API.AST.Enums;
 using Checkmarx.API.AST.Models;
 using Checkmarx.API.AST.Models.Report;
 using Checkmarx.API.AST.Services.Configuration;
@@ -486,16 +487,54 @@ namespace Checkmarx.API.AST.Tests
 
         #region ReRun Scans
 
+
+        [TestMethod]
+        public void GetScanLogsTest()
+        {
+            Trace.WriteLine(astclient.GetScanLog(new Guid("537c5a1c-44c8-41f8-8111-28dbe0dc6a0c"), ASTClient.SAST_Engine));
+        }
+
+
+        [TestMethod]
+        public void GetWorkFlowTest()
+        {
+            Trace.WriteLine("WorkflowAsync: ");
+
+            var properties = typeof(TaskInfo).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
+
+            Trace.WriteLine(string.Join(";", properties.Select(x => $"\"{x.Name}\"")));
+
+            foreach (TaskInfo item in astclient.Scans.WorkflowAsync(new Guid("537c5a1c-44c8-41f8-8111-28dbe0dc6a0c")).Result)
+            {
+                foreach (var property in properties)
+                {
+                    if (property.Name == "AdditionalProperties")
+                        continue;
+
+                    Trace.WriteLine($"{property.Name} = {property.GetValue(item)?.ToString()}");
+                }
+
+                foreach (var keyValuePair in item.AdditionalProperties)
+                {
+                    Trace.WriteLine($"\t + {keyValuePair.Key} = {keyValuePair.Value}");
+                }
+
+                Trace.WriteLine("---");
+            }
+        }
+
+        [TestMethod]
         public void ReRunScanGitTest()
         {
-            var gitProj = astclient.Projects.GetProjectAsync(new Guid("fd71de0b-b3db-40a8-a885-8c2d0eb481b6")).Result;
+            var gitProj = astclient.Projects.GetProjectAsync(new Guid("4bceceba-3be8-4ef6-b822-c7fee658fbf8")).Result;
+            
+            
             var gitProjLastScan = astclient.GetLastScan(gitProj.Id, true);
+            
             var gitProjScanDetails = astclient.GetScanDetails(gitProjLastScan.Id);
-            string gitProjbranch = gitProjLastScan.Branch;
 
-            var gitReScanResult = astclient.ReRunGitScan(gitProj.Id, gitProjScanDetails.RepoUrl, new List<ConfigType>() { ConfigType.Sast }, gitProjbranch, gitProjScanDetails.Preset);
+            var gitReScanResult = astclient.ReRunGitScan(gitProj.Id, gitProjScanDetails.RepoUrl, new ConfigType[] { ConfigType.Sast }, "master", "Empty" , enableFastScanConfiguration: true);
 
-            //astclient.DeleteScan(gitReScanResult.Id);
         }
 
         [TestMethod]
