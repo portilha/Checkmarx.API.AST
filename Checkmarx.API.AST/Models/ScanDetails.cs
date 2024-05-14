@@ -108,14 +108,14 @@ namespace Checkmarx.API.AST.Models
 
         public bool IsIncremental
         {
-            get { return ScanConfigurations[ASTClient.IsIncrementalConfiguration].Value == "true"; }
+            get { return string.Compare(ScanConfigurations[ASTClient.IsIncrementalConfiguration].Value, "true", true) == 0; }
         }
 
         public bool FastConfigurationEnabled
         {
             get
             {
-                return ScanConfigurations.ContainsKey(ASTClient.FastScanConfiguration) ? ScanConfigurations[ASTClient.FastScanConfiguration].Value == "true" : false;
+                return ScanConfigurations.ContainsKey(ASTClient.FastScanConfiguration) ? string.Compare(ScanConfigurations[ASTClient.FastScanConfiguration].Value, "true", true) == 0 : false;
             }
         }
 

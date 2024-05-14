@@ -311,7 +311,7 @@ namespace Checkmarx.API.AST.Tests
                 foreach (var property in typeof(Services.Scans.StatusDetails).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty))
                 {
                     Trace.WriteLine($"\t+ {property.Name} = {property.GetValue(status)?.ToString()}");
-                } 
+                }
             }
 
             Trace.WriteLine("Metadata: ");
@@ -470,7 +470,7 @@ namespace Checkmarx.API.AST.Tests
                 foreach (var branch in astclient.GetProjectBranches(project.Id))
                 {
                     var lastSASTScan = astclient.GetLastScan(project.Id, false, true, branch, Enums.ScanTypeEnum.sast);
-                    if(lastSASTScan != null)
+                    if (lastSASTScan != null)
                     {
                         var sastStatus = lastSASTScan.StatusDetails.Single(x => x.Name == Enums.ScanTypeEnum.sast.ToString());
                         Trace.WriteLine($"{project.Name} :: {branch} - LoC {sastStatus.Loc}   |   Duration(s) : {sastStatus.Duration.TotalSeconds}");
@@ -527,14 +527,15 @@ namespace Checkmarx.API.AST.Tests
         public void ReRunScanGitTest()
         {
             var gitProj = astclient.Projects.GetProjectAsync(new Guid("4bceceba-3be8-4ef6-b822-c7fee658fbf8")).Result;
-            
-            
+
             var gitProjLastScan = astclient.GetLastScan(gitProj.Id, true);
-            
+
             var gitProjScanDetails = astclient.GetScanDetails(gitProjLastScan.Id);
 
-            var gitReScanResult = astclient.ReRunGitScan(gitProj.Id, gitProjScanDetails.RepoUrl, new ConfigType[] { ConfigType.Sast }, "master", "Empty" , enableFastScanConfiguration: true);
+            var gitReScanResult = astclient.ReRunGitScan(gitProj.Id, gitProjScanDetails.RepoUrl, new ConfigType[] { ConfigType.Sast }, "master", "Empty", enableFastScan: true,
+                tags: new Dictionary<string, string> { { "Test", null } });
 
+            Trace.WriteLine(gitReScanResult.Id);
         }
 
         [TestMethod]
@@ -549,6 +550,17 @@ namespace Checkmarx.API.AST.Tests
             var uploadReScanResult = astclient.ReRunUploadScan(uploadProj.Id, uploadProjLastScan.Id, new List<ConfigType>() { ConfigType.Sast }, uploadProjBranch, uploadProjScanDetails.Preset);
 
             //astclient.DeleteScan(new Guid("fb20eb3c-29aa-461d-ac29-12d238d7e976"));
+        }
+
+        [TestMethod]
+        public void GetFastScanConfigurationValueTest()
+        {
+            var scan = astclient.Scans.GetScanAsync(new Guid("e850169c-0363-4f04-9e03-96ac37b149c2")).Result;
+
+            var scanConfigs = astclient.GetScanDetails(scan);
+
+            Assert.IsFalse(scanConfigs.FastConfigurationEnabled);
+
         }
 
 

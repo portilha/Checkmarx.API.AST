@@ -65,7 +65,6 @@ namespace Checkmarx.API.AST
         public const string FastScanConfiguration = "scan.config.sast.fastScanMode";
         public const string IsIncrementalConfiguration = "scan.config.sast.incremental";
 
-
         public const string SAST_Engine = "sast";
         public const string SCA_Engine = "sca";
         public const string KICS_Engine = "kics";
@@ -1015,65 +1014,38 @@ namespace Checkmarx.API.AST
             }
         }
 
+        #region ReRun Scans
         public Scan ReRunGitScan(Guid projectId, string repoUrl, IEnumerable<ConfigType> scanTypes, string branch, string preset,
-            string configuration = null,
-            bool incremental = false,
-            bool enableFastScanConfiguration = false)
+    string configuration = null,
+    bool incremental = false,
+    Dictionary<string, string> tags = null,
+    bool enableFastScan = false)
         {
-            bool enableFastScanConfiguraitonChanged = false;
-            string previousValue = null;
-            try
+            ScanInput scanInput = new()
             {
-                if (enableFastScanConfiguration && GetConfigValue(projectId, FastScanConfiguration) != "true")
+                Project = new Services.Scans.Project()
                 {
-                    previousValue = GetProjectConfig(projectId, FastScanConfiguration);
-                    SetProjectConfig(projectId, FastScanConfiguration, true);
-                    enableFastScanConfiguraitonChanged = true;
-                }
-
-                ScanInput scanInput = new()
+                    Id = projectId
+                },
+                Type = ScanInputType.Git,
+                Handler = new Git()
                 {
-                    Project = new Services.Scans.Project()
-                    {
-                        Id = projectId
-                    },
-                    Type = ScanInputType.Git,
-                    Handler = new Git()
-                    {
-                        Branch = branch,
-                        RepoUrl = repoUrl
-                    },
-                    Config = getConfig(scanTypes, preset, configuration, incremental)
-                };
-
-                return Scans.CreateScanAsync(scanInput).Result;
-            }
-            finally
-            {
-                if (enableFastScanConfiguraitonChanged)
-                {
-                    Thread.Sleep(TimeSpan.FromSeconds(15)); // so that the scan takes the project configuration before undo it
-                    SetProjectConfig(projectId, FastScanConfiguration, previousValue);
-                }
-            }
-        }
-
-        private Dictionary<string, string> getSASTScanConfiguration(string preset, string configuration, bool incremental)
-        {
-            var result = new Dictionary<string, string>()
-            {
-                ["incremental"] = incremental.ToString(),
-                ["presetName"] = preset,
+                    Branch = branch,
+                    RepoUrl = repoUrl
+                },
+                Config = createScanConfigForAllEngines(scanTypes, preset, configuration, incremental, enableFastScan: enableFastScan)
             };
 
-            if (!string.IsNullOrEmpty(configuration))
-                result.Add("defaultConfig", configuration);
+            if (tags != null)
+                scanInput.Tags = tags;
 
-            return result;
+            return Scans.CreateScanAsync(scanInput).Result;
+
         }
 
         public Scan ReRunUploadScan(Guid projectId, Guid lastScanId, IEnumerable<ConfigType> scanTypes, string branch, string preset, string configuration = null,
-            bool enableFastScanConfiguration = false)
+            Dictionary<string, string> tags = null,
+            bool enableFastScan = false)
         {
             if (projectId == Guid.Empty)
                 throw new ArgumentNullException(nameof(projectId));
@@ -1083,11 +1055,13 @@ namespace Checkmarx.API.AST
 
             byte[] source = Repostore.GetSourceCode(lastScanId).Result;
 
-            return RunUploadScan(projectId, source, scanTypes, branch, preset, configuration, enableFastScanConfiguration);
+            return RunUploadScan(projectId, source, scanTypes, branch, preset, configuration, tags: tags, enableFastScan: enableFastScan);
         }
 
-        public Scan RunUploadScan(Guid projectId, byte[] source, IEnumerable<ConfigType> scanTypes, string branch, string preset, string configuration = null,
-            bool enableFastScanConfiguration = false)
+        public Scan RunUploadScan(Guid projectId, byte[] source, IEnumerable<ConfigType> scanTypes, string branch, string preset,
+            string configuration = null,
+            Dictionary<string, string> tags = null,
+            bool enableFastScan = false)
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
@@ -1095,51 +1069,36 @@ namespace Checkmarx.API.AST
             if (scanTypes == null || !scanTypes.Any())
                 throw new ArgumentNullException(nameof(scanTypes));
 
-            bool enableFastScanConfiguraitonChanged = false;
-            string previousValue = null;
-            try
+            string uploadUrl = Uploads.GetPresignedURLForUploading().Result;
+
+            Uploads.SendHTTPRequestByFullURL(uploadUrl, source).Wait();
+
+            ScanUploadInput scanInput = new()
             {
-                if (enableFastScanConfiguration && GetConfigValue(projectId, FastScanConfiguration) != "true")
+                Project = new Services.Scans.Project()
                 {
-                    previousValue = GetProjectConfig(projectId, FastScanConfiguration);
-                    SetProjectConfig(projectId, FastScanConfiguration, true);
-                    enableFastScanConfiguraitonChanged = true;
-                }
-
-                string uploadUrl = Uploads.GetPresignedURLForUploading().Result;
-
-                Uploads.SendHTTPRequestByFullURL(uploadUrl, source).Wait();
-
-                ScanUploadInput scanInput = new()
+                    Id = projectId
+                },
+                Type = ScanInputType.Upload,
+                Handler = new Upload()
                 {
-                    Project = new Services.Scans.Project()
-                    {
-                        Id = projectId
-                    },
-                    Type = ScanInputType.Upload,
-                    Handler = new Upload()
-                    {
-                        Branch = branch,
-                        UploadUrl = uploadUrl
-                    },
-                    Config = getConfig(scanTypes, preset, configuration)
-                };
+                    Branch = branch,
+                    UploadUrl = uploadUrl
+                },
+                Config = createScanConfigForAllEngines(scanTypes, preset, configuration, enableFastScan: enableFastScan)
+            };
 
-                return Scans.CreateScanUploadAsync(scanInput).Result;
-            }
-            finally
-            {
-                if (enableFastScanConfiguraitonChanged)
-                {
-                    Thread.Sleep(TimeSpan.FromSeconds(15)); // so that the scan takes the project configuration before undo it
+            if (tags != null)
+                scanInput.Tags = tags;
 
-                    SetProjectConfig(projectId, FastScanConfiguration, previousValue);
-                }
-                   
-            }
-        }
+            return Scans.CreateScanUploadAsync(scanInput).Result;
 
-        private ICollection<Config> getConfig(IEnumerable<ConfigType> scanTypes, string preset, string configuration, bool incremental = false)
+        } 
+        #endregion
+
+        #region Scan Configuration
+
+        private ICollection<Config> createScanConfigForAllEngines(IEnumerable<ConfigType> scanTypes, string preset, string configuration, bool incremental = false, bool enableFastScan = false)
         {
             var configs = new List<Config>();
 
@@ -1150,15 +1109,18 @@ namespace Checkmarx.API.AST
                 switch (scanType)
                 {
                     case ConfigType.Sca:
+                        // engineConfig.Value = getSCAConfiguration();
                         break;
                     case ConfigType.Sast:
-                        engineConfig.Value = getSASTScanConfiguration(preset, configuration, incremental);
+                        engineConfig.Value = getSASTScanConfiguration(preset, configuration, incremental, enableFastScan);
                         break;
                     case ConfigType.Kics:
+                        // Swagger
                         break;
                     case ConfigType.Microengines:
                         break;
                     case ConfigType.ApiSec:
+                        // Swagger File/Folders
                         break;
                     case ConfigType.System:
                         break;
@@ -1171,6 +1133,36 @@ namespace Checkmarx.API.AST
 
             return configs;
         }
+
+        private IDictionary<string, string> getSCAConfiguration(bool exploitablePath = false)
+        {
+            var result = new Dictionary<string, string>()
+            {
+                ["ExploitablePath"] = exploitablePath.ToString()
+            };
+
+            return result;
+        }
+
+        private IDictionary<string, string> getSASTScanConfiguration(string preset, string configuration, bool incremental, bool enableFastScan = false, bool engineVerbose = false)
+        {
+            var result = new Dictionary<string, string>()
+            {
+                ["incremental"] = incremental.ToString(),
+                ["presetName"] = preset,
+                ["engineVerbose"] = engineVerbose.ToString()
+            };
+
+            if (!string.IsNullOrEmpty(configuration))
+                result.Add("defaultConfig", configuration);
+
+            if (enableFastScan)
+                result.Add("fastScanMode", enableFastScan.ToString());
+
+            return result;
+        }
+
+        #endregion
 
         public void DeleteScan(Guid scanId)
         {
@@ -1374,7 +1366,7 @@ namespace Checkmarx.API.AST
 
             return projectConfigValue;
         }
-        
+
         public Dictionary<string, ScanParameter> GetTenantConfigurations()
         {
             return Configuration.TenantAllAsync().Result?.ToDictionary(x => x.Key, y => y);
