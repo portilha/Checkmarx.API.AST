@@ -555,11 +555,11 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void GetFastScanConfigurationValueTest()
         {
-            var scan = astclient.Scans.GetScanAsync(new Guid("e850169c-0363-4f04-9e03-96ac37b149c2")).Result;
+            var scan = astclient.Scans.GetScanAsync(new Guid("ed2ad5ac-0aa4-494b-8a95-ef7b27505099")).Result;
 
             var scanConfigs = astclient.GetScanDetails(scan);
 
-            Assert.IsFalse(scanConfigs.FastConfigurationEnabled);
+            Assert.IsTrue(scanConfigs.FastConfigurationEnabled);
 
         }
 

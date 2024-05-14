@@ -1016,10 +1016,10 @@ namespace Checkmarx.API.AST
 
         #region ReRun Scans
         public Scan ReRunGitScan(Guid projectId, string repoUrl, IEnumerable<ConfigType> scanTypes, string branch, string preset,
-    string configuration = null,
-    bool incremental = false,
-    Dictionary<string, string> tags = null,
-    bool enableFastScan = false)
+                string configuration = null,
+                bool incremental = false,
+                Dictionary<string, string> tags = null,
+                bool enableFastScan = false)
         {
             ScanInput scanInput = new()
             {
@@ -1093,7 +1093,7 @@ namespace Checkmarx.API.AST
 
             return Scans.CreateScanUploadAsync(scanInput).Result;
 
-        } 
+        }
         #endregion
 
         #region Scan Configuration
