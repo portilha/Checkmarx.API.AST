@@ -576,12 +576,32 @@ namespace Checkmarx.API.AST.Tests
             {
                 Trace.WriteLine(item.Id + " "+ item.Branch + " " + item.CreatedAt.DateTime.ToString());
 
-                var previousScan = astclient.GetLastScan(item.ProjectId, branch: item.Branch, maxScanDate: item.CreatedAt.DateTime.Add(TimeSpan.FromSeconds(-1)));
+                var previousScan = astclient.GetLastScan(item.ProjectId, branch: item.Branch, completed: true, maxScanDate: item.CreatedAt.DateTime.Add(TimeSpan.FromSeconds(-1)));
 
                 Assert.AreNotEqual(item.Id, previousScan.Id);
             }
 
             Assert.AreEqual(77, search.Count());
+        }
+
+
+        [TestMethod]
+        public void GetScanState()
+        {
+            var scan = astclient.Scans.GetScanAsync(new Guid("422597dc-90fd-44de-bbd4-058a8335727b")).Result;
+
+            Trace.WriteLine(astclient.GetScanDetails(scan).GetTimeDurationPerEngine(ScanTypeEnum.sast).TotalSeconds);
+        }
+
+
+        [TestMethod]
+        public void GetLastFullScanTest()
+        {
+            var scan = astclient.GetLastScan(new Guid("d0800124-64ba-4ed6-b9b2-9b91f925f761"), true, true, branch: "develop", scanType: ScanTypeEnum.sast, DateTime.Parse("2024-05-14T17:47:27.112387Z"));
+
+            Trace.WriteLine(astclient.GetScanDetails(scan).IsIncremental);
+
+
         }
 
 

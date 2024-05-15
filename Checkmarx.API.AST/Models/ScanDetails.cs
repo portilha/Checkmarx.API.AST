@@ -269,7 +269,7 @@ namespace Checkmarx.API.AST.Models
             get
             {
                 if (_sastVulnerabilities == null)
-                    _sastVulnerabilities = _client.GetSASTScanResultsById(Id).ToList();
+                    _sastVulnerabilities = _client.GetSASTScanResultsById(Id, limit: 5000).ToList();
 
                 return _sastVulnerabilities;
             }
@@ -460,7 +460,14 @@ namespace Checkmarx.API.AST.Models
             if (!_scan.Engines.Contains(scanType.ToString()))
                 throw new ArgumentException($"{scanType} did not ran in this Scan");
 
-            return _scan.StatusDetails.Single(x => x.Name == scanType.ToString()).Duration;
+            var value = _scan.StatusDetails.Single(x => x.Name == scanType.ToString()).Duration;
+
+            if (value == TimeSpan.Zero)
+                _scan = _client.Scans.GetScanAsync(Id).Result;
+
+            value = _scan.StatusDetails.Single(x => x.Name == scanType.ToString()).Duration;
+
+            return value;
         }
     }
 

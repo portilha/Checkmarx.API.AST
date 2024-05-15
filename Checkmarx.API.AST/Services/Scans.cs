@@ -19,6 +19,7 @@ namespace Checkmarx.API.AST.Services.Scans
     using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Net.Http.Headers;
     using System.Threading;
     using System = global::System;
@@ -445,6 +446,11 @@ namespace Checkmarx.API.AST.Services.Scans
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
+#if DEBUG
+                            var content = await response_.Content.ReadAsStringAsync();
+                            Trace.WriteLine(content);
+#endif
+
                             var objectResponse_ = await ReadObjectResponseAsync<ScansCollection>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
