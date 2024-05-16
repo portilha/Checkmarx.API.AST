@@ -760,6 +760,35 @@ namespace Checkmarx.API.AST
 
         #region Scans
 
+        #region Source Code 
+
+        public byte[] GetSourceCode(Guid scanId)
+        {
+            if (scanId == Guid.Empty)
+                throw new ArgumentNullException(nameof(scanId));
+
+            return Repostore.GetSourceCode(scanId).Result;
+        }
+
+        /// <summary>
+        /// Exports the source code to a zip file defined by the file path
+        /// </summary>
+        /// <param name="scanId"></param>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public string GetSourceCode(Guid scanId, string filePath)
+        {
+            if (string.IsNullOrWhiteSpace(filePath))
+                throw new ArgumentNullException(nameof(filePath));
+
+            System.IO.File.WriteAllBytes(filePath, GetSourceCode(scanId));
+
+            return Path.GetFullPath(filePath);
+        }
+
+        #endregion
+
         /// <summary>
         /// Get all completed scans from project
         /// </summary>
@@ -791,7 +820,7 @@ namespace Checkmarx.API.AST
         public IEnumerable<Scan> SearchScans(string initiator = null, string tagKey = null, string sourceOrigin = null, int itemsPerPage = 1000, int startAt = 0)
         {
             string[] tagKeys = null;
-            if(!string.IsNullOrWhiteSpace(tagKey))
+            if (!string.IsNullOrWhiteSpace(tagKey))
                 tagKeys = [tagKey];
 
             string[] initiators = null;
@@ -884,11 +913,11 @@ namespace Checkmarx.API.AST
 
             if (scans.Any())
             {
-                    scans = scans.Where(x =>
-                        (!completed || x.Status == Status.Completed || x.Status == Status.Partial) &&
-                        (string.IsNullOrEmpty(branch) || x.Branch == branch) && 
-                        (maxScanDate == null || x.CreatedAt.DateTime <= maxScanDate)
-                    );
+                scans = scans.Where(x =>
+                    (!completed || x.Status == Status.Completed || x.Status == Status.Partial) &&
+                    (string.IsNullOrEmpty(branch) || x.Branch == branch) &&
+                    (maxScanDate == null || x.CreatedAt.DateTime <= maxScanDate)
+                );
 
                 switch (scanKind)
                 {
@@ -1038,7 +1067,7 @@ namespace Checkmarx.API.AST
         }
 
         #region ReRun Scans
-        
+
         public Scan ReRunGitScan(Guid projectId, string repoUrl, IEnumerable<ConfigType> scanTypes, string branch, string preset,
                 string configuration = null,
                 bool incremental = false,
@@ -1118,7 +1147,7 @@ namespace Checkmarx.API.AST
             return Scans.CreateScanUploadAsync(scanInput).Result;
 
         }
-        
+
         #endregion
 
         #region Scan Configuration
@@ -1182,7 +1211,10 @@ namespace Checkmarx.API.AST
                 result.Add("defaultConfig", configuration);
 
             if (enableFastScan)
+            {
                 result.Add("fastScanMode", enableFastScan.ToString());
+                result.Add("languageMode", 5.ToString()); // force to 5...
+            }
 
             return result;
         }
@@ -1654,6 +1686,7 @@ namespace Checkmarx.API.AST
         #endregion
 
         #region Logs
+
 
         public string GetSASTScanLog(Guid scanId)
         {

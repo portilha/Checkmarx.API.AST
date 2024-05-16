@@ -46,9 +46,7 @@ namespace Checkmarx.API.AST.Models
             }
         }
 
-
         public Guid Id => _scan.Id;
-
         public Status Status => _scan.Status;
         public bool Successful => Status ==  Status.Completed || Status == Status.Partial;
         public string InitiatorName => _scan.Initiator;
@@ -108,7 +106,10 @@ namespace Checkmarx.API.AST.Models
 
         public bool IsIncremental
         {
-            get { return string.Compare(ScanConfigurations[ASTClient.IsIncrementalConfiguration].Value, "true", true) == 0; }
+            get 
+            { 
+                return string.Compare(ScanConfigurations[ASTClient.IsIncrementalConfiguration].Value, "true", true) == 0; 
+            }
         }
 
         public bool FastConfigurationEnabled
