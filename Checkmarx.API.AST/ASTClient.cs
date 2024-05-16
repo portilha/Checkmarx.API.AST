@@ -294,8 +294,6 @@ namespace Checkmarx.API.AST
                 if (Connected && _resultsSummary  == null)
                     _resultsSummary = new ResultsSummary($"{ASTServer.AbsoluteUri}api/scan-summary", _httpClient);
 
-
-
                 return _resultsSummary;
             }
         }
@@ -733,7 +731,10 @@ namespace Checkmarx.API.AST
 
         public IEnumerable<ResultsSummary> GetResultsSummaryById(Guid scanId)
         {
-            return ResultsSummary.SummaryByScansIdsAsync(new Guid[] { scanId }).Result.ScansSummaries;
+            return ResultsSummary.SummaryByScansIdsAsync(new Guid[] { scanId }, include_files: false, 
+               include_queries: false, 
+               include_severity_status: false, 
+               include_status_counters: false).Result.ScansSummaries;
         }
 
         public Checkmarx.API.AST.Services.Projects.Project CreateProject(string name, Dictionary<string, string> tags)

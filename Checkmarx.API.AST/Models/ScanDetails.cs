@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using ApiException = Checkmarx.API.AST.Services.Configuration.ApiException;
 
 namespace Checkmarx.API.AST.Models
 {
@@ -93,11 +94,17 @@ namespace Checkmarx.API.AST.Models
             {
                 if (_languages == null)
                 {
-                    var scannedLanguages = _client.SASTMetadata.MetricsAsync(Id).Result.ScannedFilesPerLanguage?.Select(x => x.Key);
-                    if (scannedLanguages != null)
-                        _languages = string.Join(";", scannedLanguages);
-                    else
+                    try
+                    {
+                        // The CxOne API gives 404 when the engines doesn't do anything.
+                        var scannedLanguages = _client.SASTMetadata.MetricsAsync(Id).Result.ScannedFilesPerLanguage?.Select(x => x.Key);
+                        if (scannedLanguages != null)
+                            _languages = string.Join(";", scannedLanguages);   
+                    }
+                    catch (Exception)
+                    {
                         _languages = string.Empty;
+                    }
                 }
 
                 return _languages;
