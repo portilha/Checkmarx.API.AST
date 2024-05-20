@@ -392,7 +392,19 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void ScanMetricsTest()
         {
-            var teste = astclient.SASTMetadata.MetricsAsync(new Guid("b0e11442-2694-4102-ae4f-e3a3dcb3559e")).Result;
+            var project = astclient.GetAllProjectsDetails().Single(x => x.Name == "Teste Thibaud");
+
+            Trace.WriteLine(string.Join(";", astclient.GetScans(project.Id, ASTClient.SAST_Engine).Select(x => x.Id)));
+
+            foreach (var scan in astclient.GetScans(project.Id))
+            {
+                var scanDetails = astclient.GetScanDetails(scan);
+
+                Trace.WriteLine(scanDetails.Languages);
+            }
+
+
+            // var teste = astclient.SASTMetadata.MetricsAsync(new Guid("b0e11442-2694-4102-ae4f-e3a3dcb3559e")).Result;
         }
 
         [TestMethod]
@@ -492,9 +504,16 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void GetScanLogsTest()
         {
-            Trace.WriteLine(astclient.GetScanLog(new Guid("537c5a1c-44c8-41f8-8111-28dbe0dc6a0c"), ASTClient.SAST_Engine));
+            string log = astclient.GetScanLog(new Guid("dfb72c6a-ed37-40de-ad25-a75fa4694cd1"), ASTClient.SAST_Engine);
+            
+            Assert.IsNotNull(log);
         }
 
+        [TestMethod]
+        public void GetSASTEngineLanguageModeTest()
+        {
+            Trace.WriteLine(astclient.GetSASTEngineLanguageMode(new Guid("dfb72c6a-ed37-40de-ad25-a75fa4694cd1")));
+        }
 
         [TestMethod]
         public void GetWorkFlowTest()
@@ -533,8 +552,14 @@ namespace Checkmarx.API.AST.Tests
 
             var gitProjScanDetails = astclient.GetScanDetails(gitProjLastScan.Id);
 
-            var gitReScanResult = astclient.ReRunGitScan(gitProj.Id, gitProjScanDetails.RepoUrl, new ConfigType[] { ConfigType.Sast }, "master", "Empty", enableFastScan: true,
-                tags: new Dictionary<string, string> { { "Test", null } });
+            var gitReScanResult = astclient.ReRunGitScan(
+                                            gitProj.Id,
+                                            gitProjScanDetails.RepoUrl,
+                                            new ConfigType[] { ConfigType.Sast }, 
+                                            "master", 
+                                            "ASA Premium", 
+                                            enableFastScan: true, 
+                                            tags: new Dictionary<string, string> { { "Test", null } });
 
             Trace.WriteLine(gitReScanResult.Id);
         }
@@ -542,15 +567,13 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void ReRunScanZipTest()
         {
-            var uploadProj = astclient.Projects.GetProjectAsync(new Guid("4bceceba-3be8-4ef6-b822-c7fee658fbf8")).Result;
+            var scan = astclient.Scans.GetScanAsync(new Guid("1e50230f-232b-4717-b496-724119883d8e")).Result;
 
-            var uploadProjLastScan = astclient.GetLastScan(uploadProj.Id);
+            var uploadProjScanDetails = astclient.GetScanDetails(scan);
 
-            var uploadProjScanDetails = astclient.GetScanDetails(uploadProjLastScan.Id);
+            string uploadProjBranch = uploadProjScanDetails.Branch;
 
-            string uploadProjBranch = uploadProjLastScan.Branch;
-
-            var uploadReScanResult = astclient.ReRunUploadScan(uploadProj.Id, uploadProjLastScan.Id, [ConfigType.Sast], uploadProjBranch, uploadProjScanDetails.Preset);
+            var uploadReScanResult = astclient.ReRunUploadScan(scan.ProjectId, scan.Id, [ConfigType.Sast], uploadProjBranch, uploadProjScanDetails.Preset, enableFastScan: false);
         }
 
         [TestMethod]
@@ -600,9 +623,53 @@ namespace Checkmarx.API.AST.Tests
             var scan = astclient.GetLastScan(new Guid("d0800124-64ba-4ed6-b9b2-9b91f925f761"), true, true, branch: "develop", scanType: ScanTypeEnum.sast, DateTime.Parse("2024-05-14T17:47:27.112387Z"));
 
             Trace.WriteLine(astclient.GetScanDetails(scan).IsIncremental);
-
-
         }
+
+
+        [TestMethod]
+        public void ScanParametersCompareTest()
+        {
+            Guid previousScanId = new Guid("c8b49478-f580-4ecb-9277-0a97fb71ab3c");
+            Guid lastScanId = new Guid("2428f0b6-286a-445e-a7f9-6954fe0ef4a7");
+
+            var previousScanDetails = astclient.GetScanDetails(astclient.Scans.GetScanAsync(previousScanId).Result);
+            var lastScanDetails = astclient.GetScanDetails(astclient.Scans.GetScanAsync(lastScanId).Result);
+
+            foreach (var configKey in previousScanDetails.ScanConfigurations.Keys)
+            {
+                var previousValue = previousScanDetails.ScanConfigurations[configKey].Value;
+                var lastValue = lastScanDetails.ScanConfigurations[configKey].Value;
+
+                if (string.Compare(previousValue, lastValue, true) != 0)
+                {
+                    Trace.WriteLine($"Key {configKey} = Left: \"{previousValue}\" | Right: \"{lastValue}\"");
+                }
+            }
+        }
+
+        [TestMethod]
+        public void GetLanguagesTest()
+        {
+            var scan = astclient.Scans.GetScanAsync(new Guid("7912dbc0-e01c-42ae-868c-95006f0dd3c0")).Result;
+
+            var details = astclient.GetScanDetails(scan);
+
+
+            Trace.WriteLine(details.Languages);
+
+
+            Trace.WriteLine("Summary");
+
+            var summary = astclient.ResultsSummary.SummaryByScansIdsAsync([scan.Id]).Result;
+
+            foreach (var item in summary.ScansSummaries.Single().SastCounters.LanguageCounters.Select(x => x.Language))
+            {
+                Trace.WriteLine(item);
+            }
+        }
+
+
+        
 
 
         #endregion

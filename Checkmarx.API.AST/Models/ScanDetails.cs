@@ -111,6 +111,9 @@ namespace Checkmarx.API.AST.Models
             }
         }
 
+        /// <summary>
+        /// Fix this, even if they ask to run as an Incremental it doesn't mean that it ran as incremental...
+        /// </summary>
         public bool IsIncremental
         {
             get 

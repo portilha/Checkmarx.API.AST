@@ -731,9 +731,9 @@ namespace Checkmarx.API.AST
 
         public IEnumerable<ResultsSummary> GetResultsSummaryById(Guid scanId)
         {
-            return ResultsSummary.SummaryByScansIdsAsync(new Guid[] { scanId }, include_files: false, 
-               include_queries: false, 
-               include_severity_status: false, 
+            return ResultsSummary.SummaryByScansIdsAsync(new Guid[] { scanId }, include_files: false,
+               include_queries: false,
+               include_severity_status: false,
                include_status_counters: false).Result.ScansSummaries;
         }
 
@@ -1099,7 +1099,7 @@ namespace Checkmarx.API.AST
 
         public Scan ReRunUploadScan(Guid projectId, Guid lastScanId, IEnumerable<ConfigType> scanTypes, string branch, string preset, string configuration = null,
             Dictionary<string, string> tags = null,
-            bool enableFastScan = false)
+            bool? enableFastScan = null)
         {
             if (projectId == Guid.Empty)
                 throw new ArgumentNullException(nameof(projectId));
@@ -1115,7 +1115,7 @@ namespace Checkmarx.API.AST
         public Scan RunUploadScan(Guid projectId, byte[] source, IEnumerable<ConfigType> scanTypes, string branch, string preset,
             string configuration = null,
             Dictionary<string, string> tags = null,
-            bool enableFastScan = false)
+            bool? enableFastScan = null)
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
@@ -1153,7 +1153,7 @@ namespace Checkmarx.API.AST
 
         #region Scan Configuration
 
-        private ICollection<Config> createScanConfigForAllEngines(IEnumerable<ConfigType> scanTypes, string preset, string configuration, bool incremental = false, bool enableFastScan = false)
+        private ICollection<Config> createScanConfigForAllEngines(IEnumerable<ConfigType> scanTypes, string preset, string configuration, bool incremental = false, bool? enableFastScan = null)
         {
             var configs = new List<Config>();
 
@@ -1199,7 +1199,7 @@ namespace Checkmarx.API.AST
             return result;
         }
 
-        private IDictionary<string, string> getSASTScanConfiguration(string preset, string configuration, bool incremental, bool enableFastScan = false, bool engineVerbose = false)
+        private IDictionary<string, string> getSASTScanConfiguration(string preset, string configuration, bool incremental, bool? enableFastScan = null, bool engineVerbose = false)
         {
             var result = new Dictionary<string, string>()
             {
@@ -1211,10 +1211,12 @@ namespace Checkmarx.API.AST
             if (!string.IsNullOrEmpty(configuration))
                 result.Add("defaultConfig", configuration);
 
-            if (enableFastScan)
+            if (enableFastScan != null)
             {
-                result.Add("fastScanMode", enableFastScan.ToString());
-                result.Add("languageMode", 5.ToString()); // force to 5...
+                result.Add("fastScanMode", enableFastScan.Value.ToString());
+
+                if (enableFastScan.Value)
+                    result.Add("languageMode", 5.ToString()); // force to 5...
             }
 
             return result;
@@ -1688,6 +1690,19 @@ namespace Checkmarx.API.AST
 
         #region Logs
 
+        const string MULTI_LANGUAGE_MODE = "MULTI_LANGUAGE_MODE";
+
+        public int GetSASTEngineLanguageMode(Guid scanId)
+        {
+            string log = GetScanLog(scanId, SAST_Engine);
+            foreach (var item in log.Split("\n"))
+            {
+                if (item.Contains($"{MULTI_LANGUAGE_MODE}="))
+                    return int.Parse(item.Replace($"{MULTI_LANGUAGE_MODE}=", ""));
+            }
+
+            throw new NotSupportedException($"{MULTI_LANGUAGE_MODE} not found");
+        }
 
         public string GetSASTScanLog(Guid scanId)
         {
