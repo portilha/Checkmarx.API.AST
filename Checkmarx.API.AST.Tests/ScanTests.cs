@@ -505,7 +505,7 @@ namespace Checkmarx.API.AST.Tests
         public void GetScanLogsTest()
         {
             string log = astclient.GetScanLog(new Guid("dfb72c6a-ed37-40de-ad25-a75fa4694cd1"), ASTClient.SAST_Engine);
-            
+
             Assert.IsNotNull(log);
         }
 
@@ -555,10 +555,10 @@ namespace Checkmarx.API.AST.Tests
             var gitReScanResult = astclient.ReRunGitScan(
                                             gitProj.Id,
                                             gitProjScanDetails.RepoUrl,
-                                            new ConfigType[] { ConfigType.Sast }, 
-                                            "master", 
-                                            "ASA Premium", 
-                                            enableFastScan: true, 
+                                            new ConfigType[] { ConfigType.Sast },
+                                            "master",
+                                            "ASA Premium",
+                                            enableFastScan: true,
                                             tags: new Dictionary<string, string> { { "Test", null } });
 
             Trace.WriteLine(gitReScanResult.Id);
@@ -654,9 +654,7 @@ namespace Checkmarx.API.AST.Tests
 
             var details = astclient.GetScanDetails(scan);
 
-
             Trace.WriteLine(details.Languages);
-
 
             Trace.WriteLine("Summary");
 
@@ -669,7 +667,26 @@ namespace Checkmarx.API.AST.Tests
         }
 
 
-        
+        [TestMethod]
+        public void GetLastScanTest()
+        {
+            var projectID = new Guid("7dfa5653-79d6-490f-8369-99dae0429834");
+
+            var result = astclient.GetLastScan(projectID, true);
+
+            Assert.IsNotNull(result);
+
+            foreach (var item in astclient.GetScans(projectID, branch: "master", engine: ASTClient.SAST_Engine))
+            {
+                var scanInfo = astclient.GetSASTScanInfo(item.Id);
+
+                var isincmrenetal = astclient.IsScanIncremental(item.Id);
+
+                Trace.WriteLine(item.Id + "::" + isincmrenetal + " -> " + (scanInfo != null ? scanInfo.IncrementalCancelReason : string.Empty));
+            }
+        }
+
+
 
 
         #endregion

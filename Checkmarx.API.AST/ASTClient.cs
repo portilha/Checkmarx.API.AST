@@ -862,7 +862,8 @@ namespace Checkmarx.API.AST
                 var scans = GetScans(projectId, scanType.ToString(), completed, branch, ScanRetrieveKind.All, maxScanDate);
                 if (fullScanOnly)
                 {
-                    var fullScans = scans.Where(x => x.Metadata.Configs.Any(x => x.Value != null && !x.Value.Incremental)).OrderByDescending(x => x.CreatedAt);
+                    var fullScans = scans.Where(x => IsScanIncremental(x.Id)).OrderByDescending(x => x.CreatedAt);
+
                     if (fullScans.Any())
                         return fullScans.FirstOrDefault();
                     else
@@ -878,7 +879,7 @@ namespace Checkmarx.API.AST
             var scans = GetScans(projectId, SAST_Engine, true, branch, ScanRetrieveKind.All);
             if (scans.Any())
             {
-                var fullScans = scans.Where(x => x.Metadata.Configs.Any(x => x.Value != null && !x.Value.Incremental)).OrderBy(x => x.CreatedAt);
+                var fullScans = scans.Where(x => IsScanIncremental(x.Id)).OrderBy(x => x.CreatedAt);
                 if (fullScans.Any())
                     return fullScans.FirstOrDefault();
                 else
@@ -898,6 +899,9 @@ namespace Checkmarx.API.AST
             return GetScans(projectId, SAST_Engine, true, branch, ScanRetrieveKind.Locked).FirstOrDefault();
         }
 
+
+        private Dictionary<Guid, ScanInfo> _sastScansMetada = new Dictionary<Guid, ScanInfo>();
+
         /// <summary>
         /// Get list of scans, filtered by engine, completion  and scankind
         /// </summary>
@@ -908,10 +912,9 @@ namespace Checkmarx.API.AST
         /// <returns></returns>
         public IEnumerable<Scan> GetScans(Guid projectId, string engine = null, bool completed = true, string branch = null, ScanRetrieveKind scanKind = ScanRetrieveKind.All, DateTime? maxScanDate = null)
         {
-            List<Scan> list = new();
-
             var scans = getAllScans(projectId, branch);
 
+            List<Scan> list = [];
             if (scans.Any())
             {
                 scans = scans.Where(x =>
@@ -919,6 +922,9 @@ namespace Checkmarx.API.AST
                     (string.IsNullOrEmpty(branch) || x.Branch == branch) &&
                     (maxScanDate == null || x.CreatedAt.DateTime <= maxScanDate)
                 );
+
+                if (engine == null || engine ==  SAST_Engine)
+                    loadSASTMetadataInfoForScans(scans.Select(x => x.Id).ToArray());
 
                 switch (scanKind)
                 {
@@ -1766,6 +1772,58 @@ namespace Checkmarx.API.AST
 
             var lastState = SASTResultsPredicates.GetLatestPredicatesBySimilarityIDAsync(similarityID, projects_ids).Result;
             return lastState.LatestPredicatePerProject?.FirstOrDefault()?.Comment;
+        }
+
+        private void loadSASTMetadataInfoForScans(params Guid[] projects_ids)
+        {
+            var scansToRequest = projects_ids.Where(x => !_sastScansMetada.ContainsKey(x));
+
+            if (scansToRequest.Any())
+            {
+                foreach (var array in SplitArray<Guid>(scansToRequest.ToArray(), 50))
+                {
+                    var results = SASTMetadata.GetMetadataFromMultipleScansAsync(array).Result;
+                    if (results.Scans != null)
+                    {
+                        foreach (var item in results.Scans)
+                            _sastScansMetada.Add(item.ScanId, item); 
+                    }
+
+                    if (results.Missing != null)
+                    {
+                        foreach (var item in results.Missing)
+                            _sastScansMetada.Add(item, null);
+                    }
+                }
+            }
+        }
+
+        public static IEnumerable<T[]> SplitArray<T>(T[] array, int chunkSize)
+        {
+            for (int i = 0; i < array.Length; i += chunkSize)
+            {
+                yield return array.Skip(i).Take(chunkSize).ToArray();
+            }
+        }
+
+        public ScanInfo GetSASTScanInfo(Guid scanId)
+        {
+            if (scanId == Guid.Empty)
+                throw new ArgumentNullException(nameof(scanId));
+
+            loadSASTMetadataInfoForScans(scanId);
+
+            return _sastScansMetada[scanId];
+        }
+
+        public bool IsScanIncremental(Guid scanId)
+        {
+            var sastMetadata = GetSASTScanInfo(scanId);
+
+            if (sastMetadata == null)
+                return false;
+
+            return sastMetadata.IsIncremental && !sastMetadata.IsIncrementalCanceled;
         }
 
         #endregion

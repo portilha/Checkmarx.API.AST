@@ -117,8 +117,8 @@ namespace Checkmarx.API.AST.Models
         public bool IsIncremental
         {
             get 
-            { 
-                return string.Compare(ScanConfigurations[ASTClient.IsIncrementalConfiguration].Value, "true", true) == 0; 
+            {
+                return _client.IsScanIncremental(Id);
             }
         }
 
