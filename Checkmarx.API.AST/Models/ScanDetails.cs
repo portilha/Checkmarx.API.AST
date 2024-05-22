@@ -35,7 +35,6 @@ namespace Checkmarx.API.AST.Models
         }
 
         private Dictionary<string, ScanParameter> _scanConfigurations;
-
         public Dictionary<string, ScanParameter> ScanConfigurations
         {
             get
@@ -60,6 +59,8 @@ namespace Checkmarx.API.AST.Models
         public string RepoUrl => _scan.Metadata?.Handler?.GitHandler?.RepoUrl;
         public string UploadUrl => _scan.Metadata?.Handler?.UploadHandler?.UploadUrl;
 
+        #region SAST
+
         private string preset;
         public string Preset
         {
@@ -72,6 +73,8 @@ namespace Checkmarx.API.AST.Models
             }
             private set { preset=value; }
         }
+
+   
 
         private long? loC = null;
 
@@ -140,11 +143,9 @@ namespace Checkmarx.API.AST.Models
             {
                 if (loC == null)
                 {
-                    var sast = _client.GetSASTScanInfo(_scan.Id);
+                    var sast = _scan.StatusDetails?.SingleOrDefault(x => x.Name == ASTClient.SAST_Engine);
                     if (sast != null)
-                        loC = sast.Loc;
-                    else
-                        loC = -1;
+                        loC = sast.Loc;            
                 }
 
                 if (string.IsNullOrWhiteSpace(preset))
@@ -184,7 +185,6 @@ namespace Checkmarx.API.AST.Models
             }
         }
 
-        #region SAST
         public ScanResultDetails _sastResults;
 
         public ScanResultDetails SASTResults
@@ -392,6 +392,7 @@ namespace Checkmarx.API.AST.Models
         #endregion
 
         #region KICS
+
         public ScanResultDetails _kicsResults = null;
         public ScanResultDetails KicsResults
         {
@@ -431,7 +432,6 @@ namespace Checkmarx.API.AST.Models
                 return _kicsResults;
             }
         }
-
 
         private void updateKicsScanResultDetailsBasedOnKicsVulnerabilities(ScanResultDetails model, Guid scanId)
         {
