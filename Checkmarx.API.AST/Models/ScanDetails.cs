@@ -74,6 +74,10 @@ namespace Checkmarx.API.AST.Models
         }
 
         private long? loC = null;
+
+        /// <summary>
+        /// Returns the LoC of the SAST Engine.
+        /// </summary>
         public long LoC
         {
             get
