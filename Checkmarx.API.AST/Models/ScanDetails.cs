@@ -99,7 +99,7 @@ namespace Checkmarx.API.AST.Models
                         // The CxOne API gives 404 when the engines doesn't do anything.
                         var scannedLanguages = _client.SASTMetadata.MetricsAsync(Id).Result.ScannedFilesPerLanguage?.Select(x => x.Key);
                         if (scannedLanguages != null)
-                            _languages = string.Join(";", scannedLanguages);   
+                            _languages = string.Join(";", scannedLanguages);
                     }
                     catch (Exception)
                     {
@@ -116,7 +116,7 @@ namespace Checkmarx.API.AST.Models
         /// </summary>
         public bool IsIncremental
         {
-            get 
+            get
             {
                 return _client.IsScanIncremental(Id);
             }
@@ -136,9 +136,11 @@ namespace Checkmarx.API.AST.Models
             {
                 if (loC == null)
                 {
-                    var sast = _scan.StatusDetails?.SingleOrDefault(x => x.Name == ASTClient.SAST_Engine);
+                    var sast = _client.GetSASTScanInfo(_scan.Id);
                     if (sast != null)
                         loC = sast.Loc;
+                    else
+                        loC = -1;
                 }
 
                 if (string.IsNullOrWhiteSpace(preset))
