@@ -1516,8 +1516,8 @@ namespace Checkmarx.API.AST.Services.Configuration
         /// Describes the type of object this parameter represents
         /// </summary>
         [Newtonsoft.Json.JsonProperty("valueType", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [Newtonsoft.Json.JsonConverter(typeof(DefaultUnknownEnumConverter), 0)]
-        public ScanParameterValueType ValueType { get; set; } = ScanParameterValueType.String;
+        // [Newtonsoft.Json.JsonConverter(typeof(DefaultUnknownEnumConverter), 0)]
+        public string ValueType { get; set; } = null;
 
         /// <summary>
         /// Describes the possible list values of a list type parameter
@@ -1706,6 +1706,9 @@ namespace Checkmarx.API.AST.Services.Configuration
 
         [System.Runtime.Serialization.EnumMember(Value = @"Number")]
         Number = 6,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Multi")]
+        Multi = 7,
     }
 
 
