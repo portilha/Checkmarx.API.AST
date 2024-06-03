@@ -686,8 +686,27 @@ namespace Checkmarx.API.AST.Tests
             }
         }
 
+        [TestMethod]
+        public void GetMainBranchTest()
+        {
+            var project = astclient.GetProject(new Guid("2b63f9cc-448f-48a9-a4f8-9367f3ae9fba"));
+
+            foreach (var item in astclient.GetScans(project.Id, ASTClient.SAST_Engine))
+            {
+                var result = astclient.GetScanDetails(item);
+
+                Trace.WriteLine($"{result.Id} - {result.LoC}");
+            }
+        }
 
 
+        [TestMethod]
+        public void GetProjectByNameTest()
+        {
+            var project = astclient.GetAllProjectsDetails().Single(x => x.Name == "");
+
+            Assert.AreEqual(project.MainBranch, "master");
+        }
 
         #endregion
     }
