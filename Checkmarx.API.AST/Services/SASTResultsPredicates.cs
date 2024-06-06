@@ -21,6 +21,7 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
     using Checkmarx.API.AST.Services.SASTResults;
     using Microsoft.Extensions.Primitives;
     using System;
+    using System.Diagnostics;
     using System = global::System;
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.0.3.0 (NJsonSchema v11.0.0.0 (Newtonsoft.Json v13.0.0.0))")]
@@ -131,6 +132,11 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
                         }
 
                         ProcessResponse(client_, response_);
+
+#if DEBUG
+                        var content = await response_.Content.ReadAsStringAsync();
+                        Trace.WriteLine(content);
+#endif
 
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
@@ -955,7 +961,7 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
         [Newtonsoft.Json.JsonProperty("comment", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Include)]
         public string Comment { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("commentJSON", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Include)]
+        [Newtonsoft.Json.JsonProperty("commentJSON", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public CommentJSON CommentJSON { get; set; }
 
         /// <summary>
@@ -1234,7 +1240,7 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.0.3.0 (NJsonSchema v11.0.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class SASTPredicateWithComments 
+    public partial class SASTPredicateWithComments
     {
         [Newtonsoft.Json.JsonProperty("latestPredicatePerProject", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.Collections.Generic.ICollection<PredicateWithCommentsJSON> LatestPredicatePerProject { get; set; }
