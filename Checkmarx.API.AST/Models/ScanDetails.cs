@@ -185,9 +185,8 @@ namespace Checkmarx.API.AST.Models
             }
         }
 
-        public ScanResultDetails _sastResults;
-
-        public ScanResultDetails SASTResults
+        private SASTScanResultDetails _sastResults;
+        public SASTScanResultDetails SASTResults
         {
             get
             {
@@ -203,11 +202,10 @@ namespace Checkmarx.API.AST.Models
                     return null;
                 }
 
-                _sastResults = new ScanResultDetails
+                _sastResults = new SASTScanResultDetails
                 {
                     Id = Id,
-                    Status = sastStatusDetails.Status,
-                    Successful = sastStatusDetails.Status == CompletedStage
+                    Status = sastStatusDetails.Status
                 };
 
                 if (_sastResults.Successful)
@@ -225,7 +223,7 @@ namespace Checkmarx.API.AST.Models
         /// <param name="scanDetails"></param>
         /// <param name="scanId"></param>
         /// <returns></returns>
-        private void updateSASTScanResultDetailsBasedOnScanVulnerabilities(ScanResultDetails model, Guid scanId)
+        private void updateSASTScanResultDetailsBasedOnScanVulnerabilities(SASTScanResultDetails model, Guid scanId)
         {
             var sastResults = SASTVulnerabilities;
             if (sastResults == null)
@@ -316,8 +314,7 @@ namespace Checkmarx.API.AST.Models
                 _scaResults = new ScanResultDetails
                 {
                     Id = Id,
-                    Status = scaStatusDetails.Status,
-                    Successful = scaStatusDetails.Status == CompletedStage
+                    Status = scaStatusDetails.Status
                 };
 
                 if (_scaResults.Successful)
@@ -413,8 +410,7 @@ namespace Checkmarx.API.AST.Models
                 _kicsResults = new ScanResultDetails
                 {
                     Id = Id,
-                    Status = kicsStatusDetails.Status,
-                    Successful = kicsStatusDetails.Status == CompletedStage
+                    Status = kicsStatusDetails.Status
                 };
 
                 if (_kicsResults.Successful)
@@ -486,33 +482,5 @@ namespace Checkmarx.API.AST.Models
 
             return value;
         }
-    }
-
-    public class ScanResultDetails
-    {
-        public Guid Id { get; set; }
-        public bool Successful { get; set; }
-        public string Status { get; set; }
-        public string Details { get; set; }
-        public int? Total { get; set; }
-        public int? High { get; set; }
-        public int? Medium { get; set; }
-        public int? Low { get; set; }
-        public int? Info { get; set; }
-        public int? ToVerify { get; set; }
-        public int? NotExploitableMarked { get; set; }
-        public int? PNEMarked { get; set; }
-        public int? OtherStates { get; set; }
-
-        public int? HighToVerify { get; set; }
-        public int? MediumToVerify { get; set; }
-        public int? LowToVerify { get; set; }
-
-        public int? Queries { get; set; }
-        public ICollection<string> LanguagesDetected { get; set; }
-
-        public int? QueriesHigh { get; set; }
-        public int? QueriesMedium { get; set; }
-        public int? QueriesLow { get; set; }
     }
 }
