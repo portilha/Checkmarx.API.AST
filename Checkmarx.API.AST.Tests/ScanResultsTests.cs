@@ -82,7 +82,7 @@ namespace Checkmarx.API.AST.Tests
             Assert.AreEqual(1964, result.Count());
         }
 
-        private Guid ProjectId = new Guid("05076f46-0650-4562-9182-7287ba2c6221");
+        private Guid ProjectId = new Guid("ee601929-fdb8-449d-8ab7-ea44f4ee2f0c");
 
         [TestMethod]
         public void GetAllScansTest()
@@ -270,6 +270,8 @@ namespace Checkmarx.API.AST.Tests
         }
 
 
+
+
         [TestMethod]
         public void GetSCAReportTest()
         {
@@ -279,6 +281,19 @@ namespace Checkmarx.API.AST.Tests
             Trace.WriteLine(result);
 
             Assert.IsNotNull(result);
+        }
+
+
+        [TestMethod]
+        public void CalculateSCALegalRisksTest()
+        {
+            ScanReportJson result = astClient.Requests.GetScanReport(
+                astClient.GetLastScan(ProjectId, fullScanOnly: false, completed: true, scanType: ScanTypeEnum.sca).Id);
+
+            foreach (var item in result.Licenses.GroupBy(X => X.RiskLevel))
+            {
+                Trace.WriteLine(item.Key);
+            }
         }
 
 

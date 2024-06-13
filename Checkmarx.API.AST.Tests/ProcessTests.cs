@@ -61,6 +61,12 @@ namespace Checkmarx.API.AST.Tests
                 {
                     Trace.WriteLine($"{property.Name} = {property.GetValue(item)?.ToString()}");
                 }
+
+                foreach (var queryId in item.QueryIds)
+                {
+                    Trace.WriteLine($"\t{queryId}");
+                }
+
                 Trace.WriteLine("---");
             }
         }
@@ -124,7 +130,8 @@ namespace Checkmarx.API.AST.Tests
         {
             var properties = typeof(Predicate).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
 
-            foreach (KICSPredicateHistory item in astclient.KicsResultsPredicates.ReadAsync("ed440168d16f631592d46e6511d6db66ea1927402a550aa04c48a3709bf4023d", new[] { new Guid("1c724868-72fa-4bfe-aca5-6c9096b48408") }).Result.PredicateHistoryPerProject)
+            foreach (KICSPredicateHistory item in astclient.KicsResultsPredicates.ReadAsync("ed440168d16f631592d46e6511d6db66ea1927402a550aa04c48a3709bf4023d",
+                [new Guid("1c724868-72fa-4bfe-aca5-6c9096b48408")]).Result.PredicateHistoryPerProject)
             {
                 foreach (Predicate predicate in item.Predicates.Reverse())
                 {
@@ -140,11 +147,11 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void KicsPostHistoryTest()
         {
-            KICSPredicateHistory item = astclient.KicsResultsPredicates.ReadAsync("ed440168d16f631592d46e6511d6db66ea1927402a550aa04c48a3709bf4023d", new[] { new Guid("1c724868-72fa-4bfe-aca5-6c9096b48408") }).Result.PredicateHistoryPerProject.SingleOrDefault();
+            KICSPredicateHistory item = astclient.KicsResultsPredicates.ReadAsync("ed440168d16f631592d46e6511d6db66ea1927402a550aa04c48a3709bf4023d", [new Guid("1c724868-72fa-4bfe-aca5-6c9096b48408")]).Result.PredicateHistoryPerProject.SingleOrDefault();
 
             var newHistory = item.Predicates.Reverse();
             foreach (var property in newHistory)
-            { 
+            {
                 property.SimilarityId = "4816e8d3444a0b6e75ca263b7e6e2f7e867393a03848608efc028a86bd2cde13";
 
                 if (!string.IsNullOrWhiteSpace(property.Comment))
@@ -152,29 +159,19 @@ namespace Checkmarx.API.AST.Tests
             }
 
             astclient.KicsResultsPredicates.UpdateAsync(newHistory).Wait();
-
         }
 
 
         [TestMethod]
         public void SASTClearResultHistoryTest()
         {
-            var historyPerProject = astclient.SASTResultsPredicates.GetPredicatesBySimilarityIDAsync(-1317611858).Result.PredicateHistoryPerProject;
+            var historyPerProject = astclient.SASTResultsPredicates.GetPredicatesBySimilarityIDAsync(-717279067).Result.PredicateHistoryPerProject;
 
             Assert.IsTrue(historyPerProject.Any());
 
-            var singleHistoryPerProject = astclient.SASTResultsPredicates.GetPredicatesBySimilarityIDAsync(-1317611858, new Guid[]{ new Guid("e9b83bdc-bf8b-4f2e-af28-95aecd644f1a") }).Result.PredicateHistoryPerProject;
+            var singleHistoryPerProject = astclient.SASTResultsPredicates.GetPredicatesBySimilarityIDAsync(-717279067, [new Guid("439ab490-a491-4e81-b36d-fefdb5113e22")]).Result.PredicateHistoryPerProject;
 
             Assert.IsTrue(singleHistoryPerProject.SingleOrDefault() != null);
-
-            foreach (var predicate in singleHistoryPerProject.Single().Predicates)
-            {
-                astclient.SASTResultsPredicates.DeletePredicateHistoryAsync(predicate.SimilarityId, predicate.ProjectId, predicate.ID).Wait();
-            }
-
-            
-
-
         }
 
     }
