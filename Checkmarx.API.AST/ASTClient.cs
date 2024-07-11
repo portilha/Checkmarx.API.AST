@@ -1067,6 +1067,38 @@ namespace Checkmarx.API.AST
             }
         }
 
+        public IEnumerable<SastResultCompare> GetSASTScanCompareResultsByScans(Guid baseScanId, Guid scanId, int startAt = 0, int limit = 500)
+        {
+            if (startAt < 0)
+                throw new ArgumentOutOfRangeException(nameof(startAt));
+
+            if (limit <= 0)
+                throw new ArgumentOutOfRangeException(nameof(limit));
+
+            while (true)
+            {
+                SastResultCompareResponse response = SASTResults.GetSASTResultsCompareByScansAsync(baseScanId, scanId, offset: startAt, limit: limit).Result;
+
+                if (response.Results != null)
+                {
+                    foreach (var result in response.Results)
+                    {
+                        yield return result;
+                    }
+
+                    if (response.Results.Count() < limit)
+                        yield break;
+
+                    startAt += limit;
+                }
+                else
+                {
+                    yield break;
+                }
+            }
+        }
+
+
         #region ReRun Scans
 
         public Scan ReRunGitScan(Guid projectId, string repoUrl, IEnumerable<ConfigType> scanTypes, string branch, string preset,
@@ -1780,7 +1812,7 @@ namespace Checkmarx.API.AST
                     if (results.Scans != null)
                     {
                         foreach (var item in results.Scans)
-                            _sastScansMetada.Add(item.ScanId, item); 
+                            _sastScansMetada.Add(item.ScanId, item);
                     }
 
                     if (results.Missing != null)

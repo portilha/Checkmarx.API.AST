@@ -214,7 +214,7 @@ namespace Checkmarx.API.AST.Services.SASTResults
         /// <param name="sort">Sort results by the specified parameter. Enter '-/+/@' for ascending/descending/default order, followed by the parameter.</param>
         /// <returns>Successful operation</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<SASTResultsResponse> GetSASTResultsByScanAsync(string authorization, string accept, System.Guid? correlationId, string request_data, System.Collections.Generic.IEnumerable<VisibleColumnsEnum> visible_columns, Guid scan_id, System.Collections.Generic.IEnumerable<ResultsSeverity> severity, System.Collections.Generic.IEnumerable<ResultsState> state, System.Collections.Generic.IEnumerable<ResultsStatus> status, string group, string compliance, string query, System.Collections.Generic.IEnumerable<string> language, System.Collections.Generic.IEnumerable<double> query_ids, System.Collections.Generic.IEnumerable<string> node_ids, string source_file, OperationEnum? source_file_operation, string source_node, OperationEnum? source_node_operation, double? source_line, OperationIntEnum? source_line_operation, string sink_node, OperationEnum? sink_node_operation, string sink_file, OperationEnum? sink_file_operation, double? sink_line, OperationIntEnum? sink_line_operation, double? number_of_nodes, OperationIntEnum? number_of_nodes_operation, string notes, OperationJSONBArrayEnum? notes_operation, System.DateTimeOffset? first_found_at, OperationDateEnum? first_found_at_operation, string preset_id, System.Collections.Generic.IEnumerable<string> result_id, string category, string search, bool? include_nodes, bool? apply_predicates, int? offset, int? limit, string sort, System.Threading.CancellationToken cancellationToken)
+        internal virtual async System.Threading.Tasks.Task<SASTResultsResponse> GetSASTResultsByScanAsync(string authorization, string accept, System.Guid? correlationId, string request_data, System.Collections.Generic.IEnumerable<VisibleColumnsEnum> visible_columns, Guid scan_id, System.Collections.Generic.IEnumerable<ResultsSeverity> severity, System.Collections.Generic.IEnumerable<ResultsState> state, System.Collections.Generic.IEnumerable<ResultsStatus> status, string group, string compliance, string query, System.Collections.Generic.IEnumerable<string> language, System.Collections.Generic.IEnumerable<double> query_ids, System.Collections.Generic.IEnumerable<string> node_ids, string source_file, OperationEnum? source_file_operation, string source_node, OperationEnum? source_node_operation, double? source_line, OperationIntEnum? source_line_operation, string sink_node, OperationEnum? sink_node_operation, string sink_file, OperationEnum? sink_file_operation, double? sink_line, OperationIntEnum? sink_line_operation, double? number_of_nodes, OperationIntEnum? number_of_nodes_operation, string notes, OperationJSONBArrayEnum? notes_operation, System.DateTimeOffset? first_found_at, OperationDateEnum? first_found_at_operation, string preset_id, System.Collections.Generic.IEnumerable<string> result_id, string category, string search, bool? include_nodes, bool? apply_predicates, int? offset, int? limit, string sort, System.Threading.CancellationToken cancellationToken)
         {
             if (scan_id == null)
                 throw new System.ArgumentNullException("scan_id");
@@ -477,7 +477,18 @@ namespace Checkmarx.API.AST.Services.SASTResults
         /// <param name="sort">Sort results by the specified parameter. Enter '-/+' for ascending/descending order, followed by the parameter.</param>
         /// <returns>Successful operation</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<SastResultCompareResponse> GetSASTResultsCompareByScansAsync(string authorization, string accept, System.Guid? correlationId, string scan_id, string base_scan_id, System.Collections.Generic.IEnumerable<ResultsSeverity> severity, System.Collections.Generic.IEnumerable<ResultsStatus> status, string query, System.Collections.Generic.IEnumerable<string> language, System.Collections.Generic.IEnumerable<double> query_ids, int? offset, int? limit, System.Collections.Generic.IEnumerable<Anonymous> sort)
+        public virtual System.Threading.Tasks.Task<SastResultCompareResponse> GetSASTResultsCompareByScansAsync(Guid scan_id, Guid base_scan_id,
+            string authorization = null,
+            string accept = null,
+            System.Guid? correlationId = null,
+            System.Collections.Generic.IEnumerable<ResultsSeverity> severity = null,
+            System.Collections.Generic.IEnumerable<ResultsStatus> status = null,
+            string query = null,
+            System.Collections.Generic.IEnumerable<string> language = null,
+            System.Collections.Generic.IEnumerable<double> query_ids = null,
+            int? offset = null,
+            int? limit = null,
+            System.Collections.Generic.IEnumerable<Anonymous> sort = null)
         {
             return GetSASTResultsCompareByScansAsync(authorization, accept, correlationId, scan_id, base_scan_id, severity, status, query, language, query_ids, offset, limit, sort, System.Threading.CancellationToken.None);
         }
@@ -504,7 +515,7 @@ namespace Checkmarx.API.AST.Services.SASTResults
         /// <param name="sort">Sort results by the specified parameter. Enter '-/+' for ascending/descending order, followed by the parameter.</param>
         /// <returns>Successful operation</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<SastResultCompareResponse> GetSASTResultsCompareByScansAsync(string authorization, string accept, System.Guid? correlationId, string scan_id, string base_scan_id, System.Collections.Generic.IEnumerable<ResultsSeverity> severity, System.Collections.Generic.IEnumerable<ResultsStatus> status, string query, System.Collections.Generic.IEnumerable<string> language, System.Collections.Generic.IEnumerable<double> query_ids, int? offset, int? limit, System.Collections.Generic.IEnumerable<Anonymous> sort, System.Threading.CancellationToken cancellationToken)
+        internal virtual async System.Threading.Tasks.Task<SastResultCompareResponse> GetSASTResultsCompareByScansAsync(string authorization, string accept, System.Guid? correlationId, Guid scan_id, Guid base_scan_id, System.Collections.Generic.IEnumerable<ResultsSeverity> severity, System.Collections.Generic.IEnumerable<ResultsStatus> status, string query, System.Collections.Generic.IEnumerable<string> language, System.Collections.Generic.IEnumerable<double> query_ids, int? offset, int? limit, System.Collections.Generic.IEnumerable<Anonymous> sort, System.Threading.CancellationToken cancellationToken)
         {
             if (scan_id == null)
                 throw new System.ArgumentNullException("scan_id");
@@ -1098,7 +1109,7 @@ namespace Checkmarx.API.AST.Services.SASTResults
         /// A value assigned to a specific vulnerability instance in your scan, based on the first and last nodes.&lt;br&gt;This enables CxAST to track that particular instance in future scans.
         /// </summary>
         [Newtonsoft.Json.JsonProperty("similarityID", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public int SimilarityID { get; set; }
+        public string SimilarityID { get; set; }
 
         [Newtonsoft.Json.JsonProperty("uniqueID", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.Obsolete]
@@ -1120,7 +1131,7 @@ namespace Checkmarx.API.AST.Services.SASTResults
         /// The scanID of the scan in which the result (based on SimilarityID) was first identified in this project
         /// </summary>
         [Newtonsoft.Json.JsonProperty("firstScanID", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string FirstScanID { get; set; }
+        public Guid FirstScanID { get; set; }
 
         /// <summary>
         /// The date and time that this result (based on SimilarityID) was first identified in this tenant
