@@ -7,6 +7,7 @@ using Checkmarx.API.AST.Services.KicsResults;
 using Checkmarx.API.AST.Services.Reports;
 using Checkmarx.API.AST.Services.SASTMetadata;
 using Checkmarx.API.AST.Services.SASTQueriesAudit;
+using Checkmarx.API.AST.Services.SASTResults;
 using Checkmarx.API.AST.Services.Scans;
 using Flurl.Util;
 using Microsoft.Extensions.Configuration;
@@ -282,7 +283,7 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void ScanInfoTest()
         {
-            var scanID = new Guid("24ab41bc-0ac8-43cb-88a9-de2bf8b6303b");
+            var scanID = new Guid("e95da363-b7d9-48e5-9df4-662d76193312");
 
             var lastScan = astclient.Scans.GetScanAsync(scanID).Result;
 
@@ -544,6 +545,29 @@ namespace Checkmarx.API.AST.Tests
         }
 
         [TestMethod]
+        public void WorkFlowQueueTimeTest()
+        {
+            Trace.WriteLine("WorkflowAsync: ");
+
+            //foreach (var project in astclient.GetAllProjectsDetails())
+            //{
+            foreach (var scan in astclient.GetScans(new Guid("905bbcd2-8d40-416b-b237-0bbb99201c65")))
+                {
+                var tasks = astclient.Scans.WorkflowAsync(scan.Id).Result;
+
+                var scanStartedAt = tasks.Single(x => x.Info == "Scan Running").Timestamp;
+                // var scanCreatedAt = tasks.Single(x => x.Info == "Scan created").Timestamp;
+
+                // Assert.IsTrue(scanCreatedAt.CompareTo(scan.CreatedAt) == 0);
+
+                Trace.WriteLine($"{scan.Id} - Queue Time: {(scanStartedAt - scan.CreatedAt).TotalSeconds}s");
+                //}
+            }
+        }
+        
+
+
+        [TestMethod]
         public void ReRunScanGitTest()
         {
             var gitProj = astclient.Projects.GetProjectAsync(new Guid("4bceceba-3be8-4ef6-b822-c7fee658fbf8")).Result;
@@ -695,7 +719,26 @@ namespace Checkmarx.API.AST.Tests
             {
                 var result = astclient.GetScanDetails(item);
 
-                Trace.WriteLine($"{result.Id} - {result.LoC}");
+                Trace.WriteLine($"{result.Id} - {result.LoC} - {result.SASTVulnerabilities.Count()}");
+            }
+        }
+
+
+        [TestMethod]
+        public void GetScanCompareResultTest()
+        {
+            var results = astclient.GetSASTScanCompareResultsByScans(new Guid("5c28fc2c-41af-47c6-a338-3f5ec777baba"), new Guid("a957a8f4-8e10-4a82-8df1-b4a5ed8d8935"));
+
+            var properties = typeof(SastResultCompare).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty);
+
+            foreach (var scanCompare in results)
+            {
+                foreach (var property in properties)
+                {
+                    Trace.WriteLine($"{property.Name} = {property.GetValue(scanCompare)?.ToString()}");
+                }
+
+                Trace.WriteLine("--------------------");
             }
         }
 
