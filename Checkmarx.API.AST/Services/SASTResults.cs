@@ -20,6 +20,7 @@
 namespace Checkmarx.API.AST.Services.SASTResults
 {
     using System;
+    using System.Diagnostics;
     using System = global::System;
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.0.8.0 (NJsonSchema v11.0.1.0 (Newtonsoft.Json v13.0.0.0))")]
@@ -419,6 +420,11 @@ namespace Checkmarx.API.AST.Services.SASTResults
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
+#if DEBUG
+                            var content = await response_.Content.ReadAsStringAsync();
+                            Trace.WriteLine(content);
+#endif
+
                             var objectResponse_ = await ReadObjectResponseAsync<SASTResultsResponse>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
@@ -1452,7 +1458,7 @@ namespace Checkmarx.API.AST.Services.SASTResults
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.0.8.0 (NJsonSchema v11.0.1.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class SASTResultsResponse
     {
-        [Newtonsoft.Json.JsonProperty("results", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("results", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.Collections.Generic.ICollection<SASTResult> Results { get; set; }
 
         [Newtonsoft.Json.JsonProperty("totalCount", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
