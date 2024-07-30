@@ -74,7 +74,7 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
         /// <param name="include_comment_json">if true, will include the comment's JSON data in the response.</param>
         /// <returns>successful operation</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<Response> GetPredicatesBySimilarityIDAsync(long similarityID, System.Collections.Generic.IEnumerable<Guid> project_ids = null, string authorization = null, string accept = null, System.Guid? correlationId = null, bool? include_comment_json = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<Response> GetPredicatesBySimilarityIDAsync(string similarityID, System.Collections.Generic.IEnumerable<Guid> project_ids = null, string authorization = null, string accept = null, System.Guid? correlationId = null, bool? include_comment_json = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (similarityID == null)
                 throw new System.ArgumentNullException("similarityID");

@@ -983,7 +983,7 @@ namespace Checkmarx.API.AST.Services.SASTResults
         /// A value assigned to a specific vulnerability instance in your scan, based on the first and last nodes.&lt;br&gt;This enables CxAST to track that particular instance in future scans.
         /// </summary>
         [Newtonsoft.Json.JsonProperty("similarityID", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public int SimilarityID { get; set; }
+        public string SimilarityID { get; set; }
 
         [Newtonsoft.Json.JsonProperty("uniqueID", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.Obsolete]
