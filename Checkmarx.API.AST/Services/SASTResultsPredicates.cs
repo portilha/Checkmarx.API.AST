@@ -202,7 +202,7 @@ namespace Checkmarx.API.AST.Services.SASTResultsPredicates
         /// <param name="project_ids">filter by project-ids. OR operator between the items. if not set will return all projects.</param>
         /// <returns>successful operation</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<SASTPredicateWithComments> GetLatestPredicatesBySimilarityIDAsync(long similarityID, System.Collections.Generic.IEnumerable<Guid> project_ids = null, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<SASTPredicateWithComments> GetLatestPredicatesBySimilarityIDAsync(string similarityID, System.Collections.Generic.IEnumerable<Guid> project_ids = null, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (similarityID == null)
                 throw new System.ArgumentNullException("similarityID");

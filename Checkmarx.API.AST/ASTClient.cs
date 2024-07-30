@@ -1313,14 +1313,14 @@ namespace Checkmarx.API.AST
             return false;
         }
 
-        public void MarkSASTResult(Guid projectId, long similarityId, ResultsSeverity severity, ResultsState state, string comment = null)
+        public void MarkSASTResult(Guid projectId, string similarityId, ResultsSeverity severity, ResultsState state, string comment = null)
         {
             if (projectId == Guid.Empty)
                 throw new ArgumentException(nameof(projectId));
 
             PredicateBySimiliartyIdBody newBody = new PredicateBySimiliartyIdBody
             {
-                SimilarityId = similarityId.ToString(),
+                SimilarityId = similarityId,
                 ProjectId = projectId,
                 Severity = severity,
                 State = state
@@ -1791,7 +1791,7 @@ namespace Checkmarx.API.AST
         /// <param name="projects_ids"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public string GetLastSASTNote(long similarityID, params Guid[] projects_ids)
+        public string GetLastSASTNote(string similarityID, params Guid[] projects_ids)
         {
             if (!projects_ids.Any())
                 throw new ArgumentOutOfRangeException(nameof(projects_ids));

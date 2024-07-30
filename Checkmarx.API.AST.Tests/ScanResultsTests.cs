@@ -119,7 +119,7 @@ namespace Checkmarx.API.AST.Tests
         public void GetLastCommentNoteTest()
         {
  
-            long similarityId = -1661514465;
+            var similarityId = "-1661514465";
             Guid projectId = new Guid("1b6f5699-b459-40fa-9e12-b4c84436b5ab");
 
             var lastState = astClient.SASTResultsPredicates.GetLatestPredicatesBySimilarityIDAsync(similarityId, [projectId]).Result;
@@ -149,7 +149,7 @@ namespace Checkmarx.API.AST.Tests
         public void MarkSASTResultTest()
         {
             astClient.MarkSASTResult(ProjectId,
-                                     -203301157,
+                                     "-203301157",
                                      ResultsSeverity.HIGH,
                                      ResultsState.CONFIRMED,
                                      null);

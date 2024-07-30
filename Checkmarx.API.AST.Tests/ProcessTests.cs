@@ -165,11 +165,11 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void SASTClearResultHistoryTest()
         {
-            var historyPerProject = astclient.SASTResultsPredicates.GetPredicatesBySimilarityIDAsync(-717279067).Result.PredicateHistoryPerProject;
+            var historyPerProject = astclient.SASTResultsPredicates.GetPredicatesBySimilarityIDAsync("-717279067").Result.PredicateHistoryPerProject;
 
             Assert.IsTrue(historyPerProject.Any());
 
-            var singleHistoryPerProject = astclient.SASTResultsPredicates.GetPredicatesBySimilarityIDAsync(-717279067, [new Guid("439ab490-a491-4e81-b36d-fefdb5113e22")]).Result.PredicateHistoryPerProject;
+            var singleHistoryPerProject = astclient.SASTResultsPredicates.GetPredicatesBySimilarityIDAsync("-717279067", [new Guid("439ab490-a491-4e81-b36d-fefdb5113e22")]).Result.PredicateHistoryPerProject;
 
             Assert.IsTrue(singleHistoryPerProject.SingleOrDefault() != null);
         }
