@@ -62,6 +62,23 @@ namespace Checkmarx.API.AST.Tests
         }
 
         [TestMethod]
+        public void GetProjectConfigurationTest()
+        {
+            string presetName = "scan.config.sast.presetName";
+
+            var projects = astclient.GetAllProjectsDetails();
+
+            Trace.WriteLine(projects.Count());
+
+            foreach (var project in projects)
+            {
+                var presetConfiguration = astclient.GetProjectConfigurations(project.Id)[presetName];
+
+                Trace.WriteLine(project.Name + ";" + presetConfiguration.Value + ";" + presetConfiguration.OriginLevel);
+            }
+        }
+
+        [TestMethod]
         public void ProjectAndScanTest()
         {
             Guid projectId = new Guid("2c5f30fd-c02f-4fa9-9a3c-816ade9d0cb4");

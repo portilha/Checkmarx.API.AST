@@ -19,7 +19,7 @@
 
 namespace Checkmarx.API.AST.Services.Logs
 {
-    using Checkmarx.API.AST.Services.SASTQueriesAudit;
+    using static Checkmarx.API.AST.ASTClient;
     using System;
     using System = global::System;
 
@@ -105,7 +105,7 @@ namespace Checkmarx.API.AST.Services.Logs
 
                     PrepareRequest(client_, request_, url_);
 
-                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var response_ = await _retryPolicy.ExecuteAsync(() => client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken)).ConfigureAwait(false);
                     var disposeResponse_ = true;
                     try
                     {

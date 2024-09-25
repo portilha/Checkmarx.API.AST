@@ -7,9 +7,12 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Checkmarx.API.AST.Models.Report;
 using System.Threading;
+using static Checkmarx.API.AST.ASTClient;
 
 namespace Checkmarx.API.AST.Services
 {
+
+
     public enum ActionTypeEnum
     {
         [System.Runtime.Serialization.EnumMember(Value = @"ChangeState")]
@@ -209,7 +212,7 @@ namespace Checkmarx.API.AST.Services
 
                     PrepareRequest(client_, request_, url_);
 
-                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var response_ = await _retryPolicy.ExecuteAsync(() => client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken)).ConfigureAwait(false);
                     var disposeResponse_ = true;
                     try
                     {
@@ -283,7 +286,7 @@ namespace Checkmarx.API.AST.Services
 
                     PrepareRequest(client_, request_, url_);
 
-                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var response_ = await _retryPolicy.ExecuteAsync(() => client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken)).ConfigureAwait(false);
                     var disposeResponse_ = true;
                     try
                     {
@@ -433,7 +436,7 @@ namespace Checkmarx.API.AST.Services
 
                     PrepareRequest(client_, request_, url_);
 
-                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var response_ = await _retryPolicy.ExecuteAsync(() => client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken)).ConfigureAwait(false);
                     var disposeResponse_ = true;
                     try
                     {

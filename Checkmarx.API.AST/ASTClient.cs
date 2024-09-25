@@ -21,6 +21,8 @@ using Checkmarx.API.AST.Services.Scans;
 using Checkmarx.API.AST.Services.Uploads;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Polly;
+using Polly.Extensions.Http;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -40,6 +42,7 @@ namespace Checkmarx.API.AST
         public string ApiKey;
     }
 
+
     public class ASTClient
     {
         public Uri AccessControlServer { get; private set; }
@@ -50,6 +53,10 @@ namespace Checkmarx.API.AST
         public string ClientSecret { get; set; }
 
         private readonly HttpClient _httpClient = new HttpClient();
+
+        internal static readonly IAsyncPolicy<HttpResponseMessage> _retryPolicy = HttpPolicyExtensions
+                                .HandleTransientHttpError()
+                                .WaitAndRetryAsync(5, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
 
         public const string SettingsAPISecuritySwaggerFolderFileFilter = "scan.config.apisec.swaggerFilter";
         public const string SettingsProjectRepoUrl = "scan.handler.git.repository";
@@ -250,8 +257,6 @@ namespace Checkmarx.API.AST
             {
                 if (Connected && _cxOneSCA  == null)
                     _cxOneSCA = new CxOneSCA(ASTServer, _httpClient);
-
-
 
                 return _cxOneSCA;
             }
@@ -526,6 +531,7 @@ namespace Checkmarx.API.AST
             AccessControlServer = accessControlServer;
             Tenant = tenant;
             KeyApi = apiKey;
+
         }
 
         public ASTClient(Uri astServer, Uri accessControlServer, string tenant, string clientId, string clientSecret)
