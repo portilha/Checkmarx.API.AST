@@ -54,6 +54,35 @@ namespace Checkmarx.API.AST
 
         private readonly HttpClient _httpClient = new HttpClient();
 
+
+        // Helper method to clone HttpRequestMessage
+        public static HttpRequestMessage CloneHttpRequestMessage(HttpRequestMessage request)
+        {
+            var clone = new HttpRequestMessage(request.Method, request.RequestUri);
+
+            // Clone request content (if any)
+            if (request.Content != null)
+            {
+                clone.Content = new StringContent(request.Content.ReadAsStringAsync().Result);
+                clone.Content.Headers.Clear();
+                foreach (var header in request.Content.Headers)
+                {
+                    clone.Content.Headers.Add(header.Key, header.Value);
+                }
+            }
+
+            // Clone the request headers
+            foreach (var header in request.Headers)
+            {
+                clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
+            }
+
+            // Copy other properties (e.g., Version)
+            clone.Version = request.Version;
+
+            return clone;
+        }
+
         internal static readonly IAsyncPolicy<HttpResponseMessage> _retryPolicy = HttpPolicyExtensions
                                 .HandleTransientHttpError()
                                 .WaitAndRetryAsync(5, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));

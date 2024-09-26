@@ -212,7 +212,7 @@ namespace Checkmarx.API.AST.Services
 
                     PrepareRequest(client_, request_, url_);
 
-                    var response_ = await _retryPolicy.ExecuteAsync(() => client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken)).ConfigureAwait(false);
+                    var response_ = await _retryPolicy.ExecuteAsync(() => client_.SendAsync(CloneHttpRequestMessage(request_), System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken)).ConfigureAwait(false);
                     var disposeResponse_ = true;
                     try
                     {
@@ -286,7 +286,7 @@ namespace Checkmarx.API.AST.Services
 
                     PrepareRequest(client_, request_, url_);
 
-                    var response_ = await _retryPolicy.ExecuteAsync(() => client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken)).ConfigureAwait(false);
+                    var response_ = await _retryPolicy.ExecuteAsync(() => client_.SendAsync(CloneHttpRequestMessage(request_), System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken)).ConfigureAwait(false);
                     var disposeResponse_ = true;
                     try
                     {
@@ -358,7 +358,7 @@ namespace Checkmarx.API.AST.Services
                     var disposeResponse_ = true;
                     try
                     {
-                        response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                        response_ = await client_.SendAsync(CloneHttpRequestMessage(request_), System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
 
                         var headers_ = System.Linq.Enumerable.ToDictionary(response_.Headers, h_ => h_.Key, h_ => h_.Value);
                         if (response_.Content != null && response_.Content.Headers != null)
@@ -436,7 +436,7 @@ namespace Checkmarx.API.AST.Services
 
                     PrepareRequest(client_, request_, url_);
 
-                    var response_ = await _retryPolicy.ExecuteAsync(() => client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken)).ConfigureAwait(false);
+                    var response_ = await _retryPolicy.ExecuteAsync(() => client_.SendAsync(CloneHttpRequestMessage(request_), System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken)).ConfigureAwait(false);
                     var disposeResponse_ = true;
                     try
                     {
