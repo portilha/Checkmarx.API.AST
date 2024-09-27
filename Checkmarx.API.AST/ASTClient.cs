@@ -19,6 +19,7 @@ using Checkmarx.API.AST.Services.SASTResultsPredicates;
 using Checkmarx.API.AST.Services.ScannersResults;
 using Checkmarx.API.AST.Services.Scans;
 using Checkmarx.API.AST.Services.Uploads;
+using Checkmarx.API.AST.Services.SASTScanResultsCompare;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Polly;
@@ -235,6 +236,22 @@ namespace Checkmarx.API.AST
 
 
                 return _SASTResultsPredicates;
+            }
+        }
+
+        private SASTScanResultsCompare _SASTScanResultsCompare;
+
+        /// <summary>
+        /// SAST Scan Results Compare
+        /// </summary>
+        public SASTScanResultsCompare SASTScanResultsCompare
+        {
+            get
+            {
+                if (Connected && _SASTScanResultsCompare == null)
+                    _SASTScanResultsCompare = new SASTScanResultsCompare(ASTServer, _httpClient);
+
+                return _SASTScanResultsCompare;
             }
         }
 
@@ -1421,6 +1438,17 @@ namespace Checkmarx.API.AST
                 }
             ],
             }).Wait();
+        }
+
+        public StatsCompareResult GetScanResultsCompare(Guid baseScanId, Guid scanId)
+        {
+            if (scanId == Guid.Empty)
+                throw new ArgumentException(nameof(scanId));
+
+            if (baseScanId == Guid.Empty)
+                throw new ArgumentException(nameof(baseScanId));
+
+            return SASTScanResultsCompare.StatusAsync(baseScanId, scanId).Result;
         }
 
         #endregion

@@ -62,6 +62,22 @@ namespace Checkmarx.API.AST.Tests
         }
 
         [TestMethod]
+        public void GetScanResultsCompareTest()
+        {
+            Guid baseScanId = new Guid("5431ed22-8456-463f-8da6-3ddedf1ec34b");
+            Guid scanId = new Guid("41f28678-a654-4cda-a9ee-6206ab10dde9");
+
+            var compare = astclient.GetScanResultsCompare(baseScanId, scanId);
+
+            // Counters
+            var fixedResults = compare.GetResultCountByStatus(Services.SASTScanResultsCompare.StatusEnumCmp.FIXED);
+            var newResults = compare.GetResultCountByStatus(Services.SASTScanResultsCompare.StatusEnumCmp.NEW);
+            var recurentResults = compare.GetResultCountByStatus(Services.SASTScanResultsCompare.StatusEnumCmp.RECURRENT);
+
+            Trace.WriteLine($"Fixed: {fixedResults} | New: {newResults} | Recurrent: {recurentResults}");
+        }
+
+        [TestMethod]
         public void GetScanDetailsTest()
         {
             var projects = astclient.GetAllProjectsDetails();
