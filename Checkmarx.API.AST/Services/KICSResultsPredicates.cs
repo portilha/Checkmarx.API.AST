@@ -83,7 +83,7 @@ namespace Checkmarx.API.AST.Services
         /// <param name="project_ids">filter by project-ids. OR operator between the items. if not set will return all projects.</param>
         /// <returns>successful operation</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<Response> ReadAsync(string similarityID, System.Collections.Generic.IEnumerable<Guid> project_ids, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<PredicatesResponse> ReadAsync(string similarityID, System.Collections.Generic.IEnumerable<Guid> project_ids, string authorization = null, string accept = null, System.Guid? correlationId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (similarityID == null)
                 throw new System.ArgumentNullException("similarityID");
@@ -141,7 +141,7 @@ namespace Checkmarx.API.AST.Services
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<PredicatesResponse>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -622,7 +622,7 @@ namespace Checkmarx.API.AST.Services
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.0.7.0 (NJsonSchema v11.0.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class Response
+    public partial class PredicatesResponse
     {
         [Newtonsoft.Json.JsonProperty("predicateHistoryPerProject", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.Collections.Generic.ICollection<KICSPredicateHistory> PredicateHistoryPerProject { get; set; }

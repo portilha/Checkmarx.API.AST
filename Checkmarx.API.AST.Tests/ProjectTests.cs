@@ -186,7 +186,10 @@ namespace Checkmarx.API.AST.Tests
         {
             Assert.IsNotNull(astclient);
 
-            astclient.GetGroups();
+            foreach (var item in astclient.AccessManagement.GetGroupsAsync(1000, 0, null, null).Result)
+            {
+                Trace.WriteLine(item.Id + " -> " + item.Name); 
+            }
         }
 
         [TestMethod]

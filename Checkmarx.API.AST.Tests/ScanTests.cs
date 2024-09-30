@@ -2,7 +2,6 @@ using Checkmarx.API.AST.Enums;
 using Checkmarx.API.AST.Models;
 using Checkmarx.API.AST.Models.Report;
 using Checkmarx.API.AST.Services.Configuration;
-using Checkmarx.API.AST.Services.GroupsResult;
 using Checkmarx.API.AST.Services.KicsResults;
 using Checkmarx.API.AST.Services.Reports;
 using Checkmarx.API.AST.Services.SASTMetadata;

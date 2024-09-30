@@ -2,7 +2,6 @@ using Checkmarx.API.AST.Models;
 using Checkmarx.API.AST.Models.Report;
 using Checkmarx.API.AST.Services;
 using Checkmarx.API.AST.Services.Applications;
-using Checkmarx.API.AST.Services.PresetManagement;
 using Checkmarx.API.AST.Services.Reports;
 using Checkmarx.API.AST.Services.SASTMetadata;
 using Checkmarx.API.AST.Services.SASTQueriesAudit;

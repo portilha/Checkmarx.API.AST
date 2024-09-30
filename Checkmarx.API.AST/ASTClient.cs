@@ -6,7 +6,6 @@ using Checkmarx.API.AST.Services.Applications;
 using Checkmarx.API.AST.Services.Configuration;
 using Checkmarx.API.AST.Services.KicsResults;
 using Checkmarx.API.AST.Services.Logs;
-using Checkmarx.API.AST.Services.PresetManagement;
 using Checkmarx.API.AST.Services.Projects;
 using Checkmarx.API.AST.Services.Reports;
 using Checkmarx.API.AST.Services.Repostore;
@@ -175,6 +174,19 @@ namespace Checkmarx.API.AST
                     _requests = new Requests(ASTServer, _httpClient);
 
                 return _requests;
+            }
+        }
+
+
+        private AccessManagement _accessManagement;
+        public AccessManagement AccessManagement
+        {
+            get
+            {
+                if (Connected && _accessManagement  == null)
+                    _accessManagement = new AccessManagement(ASTServer, _httpClient);
+
+                return _accessManagement;
             }
         }
 
@@ -1453,17 +1465,6 @@ namespace Checkmarx.API.AST
 
         #endregion
 
-        #region Groups
-
-        public void GetGroups()
-        {
-            checkConnection();
-
-            var groupAPI = new Services.GroupsResult.GroupsResults($"{ASTServer.AbsoluteUri}auth/realms/{Tenant}/pip/groups", _httpClient);
-            var groups = groupAPI.GetGroupsAsync().Result;
-        }
-
-        #endregion
 
         #region Configurations
 
