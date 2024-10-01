@@ -963,10 +963,12 @@ namespace Checkmarx.API.AST
         /// <summary>
         /// Get list of scans, filtered by engine, completion  and scankind
         /// </summary>
-        /// <param name="projectId"></param>
-        /// <param name="engine"></param>
-        /// <param name="completed"></param>
-        /// <param name="scanKind"></param>
+        /// <param name="projectId">Project Id</param>
+        /// <param name="engine">Engine</param>
+        /// <param name="completed">Retrieves only completed scans</param>
+        /// <param name="scanKind">All scans or only the first or last </param>
+        /// <param name="maxScanDate">Max scan date, including the date</param>
+        /// <param name="minScanDate">Min scan date, including the date</param>
         /// <returns></returns>
         public IEnumerable<Scan> GetScans(Guid projectId, string engine = null, bool completed = true, string branch = null, ScanRetrieveKind scanKind = ScanRetrieveKind.All, DateTime? maxScanDate = null, DateTime? minScanDate = null)
         {
