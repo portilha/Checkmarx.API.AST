@@ -303,9 +303,13 @@ namespace Checkmarx.API.AST.Services.SASTScanResultsCompare
             set { _additionalProperties = value; }
         }
 
-        public double GetResultCountByStatus(Services.SASTScanResultsCompare.StatusEnumCmp status)
+        public double GetResultCountByStatus(Services.SASTScanResultsCompare.StatusEnumCmp status,
+                                             Services.SASTScanResultsCompare.SeverityEnum? severity = null)
         {
-            return SeverityStatusCounters.SelectMany(x => x.Results).Where(x => x.Status == status).Sum(x => x.Count);
+            return SeverityStatusCounters.Where(x => severity == null || x.Severity == severity)
+                                         .SelectMany(x => x.Results)
+                                         .Where(x => x.Status == status)
+                                         .Sum(x => x.Count);
         }
     }
 
