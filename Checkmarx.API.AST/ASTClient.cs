@@ -650,9 +650,14 @@ namespace Checkmarx.API.AST
             return listApplications;
         }
 
+        public IEnumerable<Services.Applications.Application> GetProjectApplications(Guid projectId)
+        {
+            return Apps.Applications?.Where(x => x.ProjectIds.Contains(projectId));
+        }
+
         public Services.Applications.Application GetProjectApplication(Guid projectId)
         {
-            return Apps.Applications?.Where(x => x.ProjectIds.Contains(projectId))?.FirstOrDefault();
+            return GetProjectApplications(projectId)?.FirstOrDefault();
         }
 
         #endregion
