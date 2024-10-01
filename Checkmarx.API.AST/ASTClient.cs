@@ -968,7 +968,7 @@ namespace Checkmarx.API.AST
         /// <param name="completed"></param>
         /// <param name="scanKind"></param>
         /// <returns></returns>
-        public IEnumerable<Scan> GetScans(Guid projectId, string engine = null, bool completed = true, string branch = null, ScanRetrieveKind scanKind = ScanRetrieveKind.All, DateTime? maxScanDate = null)
+        public IEnumerable<Scan> GetScans(Guid projectId, string engine = null, bool completed = true, string branch = null, ScanRetrieveKind scanKind = ScanRetrieveKind.All, DateTime? maxScanDate = null, DateTime? minScanDate = null)
         {
             var scans = getAllScans(projectId, branch);
 
@@ -978,10 +978,11 @@ namespace Checkmarx.API.AST
                 scans = scans.Where(x =>
                     (!completed || x.Status == Status.Completed || x.Status == Status.Partial) &&
                     (string.IsNullOrEmpty(branch) || x.Branch == branch) &&
-                    (maxScanDate == null || x.CreatedAt.DateTime <= maxScanDate)
+                    (maxScanDate == null || x.CreatedAt.DateTime <= maxScanDate) &&
+                    (minScanDate == null || x.CreatedAt.DateTime >= minScanDate)
                 );
 
-                if (engine == null || engine ==  SAST_Engine)
+                if (engine == null || engine == SAST_Engine)
                     loadSASTMetadataInfoForScans(scans.Select(x => x.Id).ToArray());
 
                 switch (scanKind)

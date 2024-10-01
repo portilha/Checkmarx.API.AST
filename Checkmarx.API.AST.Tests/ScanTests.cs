@@ -1,24 +1,15 @@
 using Checkmarx.API.AST.Enums;
 using Checkmarx.API.AST.Models;
-using Checkmarx.API.AST.Models.Report;
 using Checkmarx.API.AST.Services.Configuration;
-using Checkmarx.API.AST.Services.KicsResults;
-using Checkmarx.API.AST.Services.Reports;
-using Checkmarx.API.AST.Services.SASTMetadata;
-using Checkmarx.API.AST.Services.SASTQueriesAudit;
 using Checkmarx.API.AST.Services.SASTResults;
+using Checkmarx.API.AST.Services.SASTScanResultsCompare;
 using Checkmarx.API.AST.Services.Scans;
-using Flurl.Util;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 
 namespace Checkmarx.API.AST.Tests
@@ -69,9 +60,14 @@ namespace Checkmarx.API.AST.Tests
             var compare = astclient.GetScanResultsCompare(baseScanId, scanId);
 
             // Counters
-            var fixedResults = compare.GetResultCountByStatus(Services.SASTScanResultsCompare.StatusEnumCmp.FIXED);
-            var newResults = compare.GetResultCountByStatus(Services.SASTScanResultsCompare.StatusEnumCmp.NEW);
-            var recurentResults = compare.GetResultCountByStatus(Services.SASTScanResultsCompare.StatusEnumCmp.RECURRENT);
+            var criticalFixedResults = compare.GetResultCountByStatus(StatusEnumCmp.FIXED, SeverityEnum.CRITICAL);
+            var highFixedResults = compare.GetResultCountByStatus(StatusEnumCmp.FIXED, SeverityEnum.HIGH);
+            var mediumFixedResults = compare.GetResultCountByStatus(StatusEnumCmp.FIXED, SeverityEnum.MEDIUM);
+            var lowFixedResults = compare.GetResultCountByStatus(StatusEnumCmp.FIXED, SeverityEnum.MEDIUM);
+
+            var fixedResults = compare.GetResultCountByStatus(StatusEnumCmp.FIXED);
+            var newResults = compare.GetResultCountByStatus(StatusEnumCmp.NEW);
+            var recurentResults = compare.GetResultCountByStatus(StatusEnumCmp.RECURRENT);
 
             Trace.WriteLine($"Fixed: {fixedResults} | New: {newResults} | Recurrent: {recurentResults}");
         }
