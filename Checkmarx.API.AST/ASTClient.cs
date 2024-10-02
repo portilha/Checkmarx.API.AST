@@ -1602,6 +1602,26 @@ namespace Checkmarx.API.AST
             return null;
         }
 
+        public string GetScanExclusionsFromConfigurations(Guid projectId, Guid scanId)
+        {
+            if (projectId == Guid.Empty)
+                throw new ArgumentException(nameof(projectId));
+
+            if (scanId == Guid.Empty)
+                throw new ArgumentException(nameof(scanId));
+
+            var configuration = GetScanConfigurations(projectId, scanId);
+            if (configuration.ContainsKey(SettingsProjectExclusions))
+            {
+                var config = configuration[SettingsProjectExclusions];
+
+                if (config != null && !string.IsNullOrWhiteSpace(config.Value))
+                    return config.Value;
+            }
+
+            return null;
+        }
+
         public IEnumerable<ScanParameter> GetTenantProjectConfigurations()
         {
             return GetTenantConfigurations().Where(x => x.Value.Key == SettingsProjectConfiguration).Select(x => x.Value);
