@@ -373,7 +373,7 @@ namespace Checkmarx.API.AST.Tests
 
             Trace.WriteLine($"Scan Configurations: Project {lastScan.ProjectId} Scan {lastScan.Id}");
 
-            foreach (var scanConfiguration in astclient.GetScanConfigurations(lastScan))
+            foreach (var scanConfiguration in astclient.GetScanConfigurations(lastScan.ProjectId, lastScan.Id))
             {
                 Trace.WriteLine($"\t + {scanConfiguration.Key}");
 

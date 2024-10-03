@@ -1519,6 +1519,26 @@ namespace Checkmarx.API.AST
             return null;
         }
 
+        public string GetScanConfig(Guid projectId, Guid scanId, string configKey)
+        {
+            if (projectId == Guid.Empty)
+                throw new ArgumentException(nameof(projectId));
+
+            if (scanId == Guid.Empty)
+                throw new ArgumentException(nameof(scanId));
+
+            var configuration = GetScanConfigurations(projectId, scanId);
+            if (configuration.ContainsKey(configKey))
+            {
+                var config = configuration[configKey];
+
+                if (config != null && !string.IsNullOrWhiteSpace(config.Value))
+                    return config.Value;
+            }
+
+            return null;
+        }
+
         public string GetConfigValue(Guid projectId, string configKey)
         {
             string projectConfigValue = GetProjectConfig(projectId, configKey);
@@ -1542,14 +1562,6 @@ namespace Checkmarx.API.AST
                 throw new ArgumentException(nameof(projectId));
 
             return Configuration.ProjectAllAsync(projectId).Result?.ToDictionary(x => x.Key, y => y);
-        }
-
-        public Dictionary<string, ScanParameter> GetScanConfigurations(Scan scan)
-        {
-            if (scan == null)
-                throw new ArgumentNullException(nameof(scan));
-
-            return GetScanConfigurations(scan.ProjectId, scan.Id);
         }
 
         public Dictionary<string, ScanParameter> GetScanConfigurations(Guid projectId, Guid scanId)
@@ -1582,45 +1594,9 @@ namespace Checkmarx.API.AST
             Configuration.ProjectDELETEParameterAsync(projectId, config_keys).Wait();
         }
 
-        public string GetScanPresetFromConfigurations(Guid projectId, Guid scanId)
-        {
-            if (projectId == Guid.Empty)
-                throw new ArgumentException(nameof(projectId));
+        public string GetScanPresetFromConfigurations(Guid projectId, Guid scanId) => GetScanConfig(projectId, scanId, SettingsProjectPreset);
 
-            if (scanId == Guid.Empty)
-                throw new ArgumentException(nameof(scanId));
-
-            var configuration = GetScanConfigurations(projectId, scanId);
-            if (configuration.ContainsKey(SettingsProjectPreset))
-            {
-                var config = configuration[SettingsProjectPreset];
-
-                if (config != null && !string.IsNullOrWhiteSpace(config.Value))
-                    return config.Value;
-            }
-
-            return null;
-        }
-
-        public string GetScanExclusionsFromConfigurations(Guid projectId, Guid scanId)
-        {
-            if (projectId == Guid.Empty)
-                throw new ArgumentException(nameof(projectId));
-
-            if (scanId == Guid.Empty)
-                throw new ArgumentException(nameof(scanId));
-
-            var configuration = GetScanConfigurations(projectId, scanId);
-            if (configuration.ContainsKey(SettingsProjectExclusions))
-            {
-                var config = configuration[SettingsProjectExclusions];
-
-                if (config != null && !string.IsNullOrWhiteSpace(config.Value))
-                    return config.Value;
-            }
-
-            return null;
-        }
+        public string GetScanExclusionsFromConfigurations(Guid projectId, Guid scanId) => GetScanConfig(projectId, scanId, SettingsProjectExclusions);
 
         public IEnumerable<ScanParameter> GetTenantProjectConfigurations()
         {
@@ -1945,7 +1921,5 @@ namespace Checkmarx.API.AST
         }
 
         #endregion
-
-
     }
 }
