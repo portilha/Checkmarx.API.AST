@@ -974,21 +974,24 @@ namespace Checkmarx.API.AST.Services.ResultsSummary
     /// <summary>
     /// Severity enum of a vulnerability
     /// </summary>
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.16.1.0 (NJsonSchema v10.7.2.0 (Newtonsoft.Json v12.0.0.0))")]
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.1.0.0 (NJsonSchema v11.0.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public enum SeverityEnum
     {
 
+        [System.Runtime.Serialization.EnumMember(Value = @"CRITICAL")]
+        CRITICAL = 0,
+
         [System.Runtime.Serialization.EnumMember(Value = @"HIGH")]
-        HIGH = 0,
+        HIGH = 1,
 
         [System.Runtime.Serialization.EnumMember(Value = @"MEDIUM")]
-        MEDIUM = 1,
+        MEDIUM = 2,
 
         [System.Runtime.Serialization.EnumMember(Value = @"LOW")]
-        LOW = 2,
+        LOW = 3,
 
         [System.Runtime.Serialization.EnumMember(Value = @"INFO")]
-        INFO = 3,
+        INFO = 4,
 
     }
 
