@@ -31,6 +31,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection.Metadata;
 
 namespace Checkmarx.API.AST
 {
@@ -41,7 +42,6 @@ namespace Checkmarx.API.AST
         public string Tenant;
         public string ApiKey;
     }
-
 
     public class ASTClient
     {
@@ -54,7 +54,6 @@ namespace Checkmarx.API.AST
 
         private readonly HttpClient _httpClient = new HttpClient();
 
-
         // Helper method to clone HttpRequestMessage
         public static HttpRequestMessage CloneHttpRequestMessage(HttpRequestMessage request)
         {
@@ -63,41 +62,7 @@ namespace Checkmarx.API.AST
             // Clone request content (if any)
             if (request.Content != null)
             {
-                if (request.Content is StreamContent)
-                {
-                    clone.Content = new StreamContent(request.Content.ReadAsStreamAsync().Result);
-                }
-                else if (request.Content is StringContent)
-                {
-                    clone.Content = new StringContent(request.Content.ReadAsStringAsync().Result);
-                }
-                else if (request.Content is ByteArrayContent)
-                {
-                    clone.Content = new ByteArrayContent(request.Content.ReadAsByteArrayAsync().Result);
-                }
-                else if (request.Content is FormUrlEncodedContent)
-                {
-                    clone.Content = new FormUrlEncodedContent(request.Content.ReadAsStringAsync().Result.Split('&').Select(pair =>
-                    {
-                        var kv = pair.Split('=');
-                        return new KeyValuePair<string, string>(kv[0], kv.Length > 1 ? kv[1] : "");
-                    }));
-                }
-                else if (request.Content is MultipartFormDataContent)
-                {
-                    var multiPartContent = (MultipartFormDataContent)request.Content;
-                    var newMultipartContent = new MultipartFormDataContent();
-                    foreach (var content in multiPartContent)
-                    {
-                        newMultipartContent.Add(content, content.Headers.ContentDisposition.Name, content.Headers.ContentDisposition.FileName);
-                    }
-                    clone.Content = newMultipartContent;
-                }
-                else
-                {
-                    throw new NotSupportedException($"Unsupported content type: {request.Content.GetType()}");
-                }
-
+                clone.Content = getHttpContentClone(request.Content);
                 clone.Content.Headers.Clear();
                 foreach (var header in request.Content.Headers)
                     clone.Content.Headers.Add(header.Key, header.Value);
@@ -113,6 +78,44 @@ namespace Checkmarx.API.AST
             clone.Version = request.Version;
 
             return clone;
+        }
+
+        private static HttpContent getHttpContentClone(HttpContent content)
+        {
+            if (content is StreamContent)
+            {
+                return new StreamContent(content.ReadAsStreamAsync().Result);
+            }
+            else if (content is StringContent)
+            {
+                return new StringContent(content.ReadAsStringAsync().Result);
+            }
+            else if (content is ByteArrayContent)
+            {
+                return new ByteArrayContent(content.ReadAsByteArrayAsync().Result);
+            }
+            else if (content is FormUrlEncodedContent)
+            {
+                return new FormUrlEncodedContent(content.ReadAsStringAsync().Result.Split('&').Select(pair =>
+                {
+                    var kv = pair.Split('=');
+                    return new KeyValuePair<string, string>(kv[0], kv.Length > 1 ? kv[1] : "");
+                }));
+            }
+            else if (content is MultipartFormDataContent)
+            {
+                var multiPartContent = (MultipartFormDataContent)content;
+                var newMultipartContent = new MultipartFormDataContent();
+                foreach (var partContent in multiPartContent)
+                {
+                    newMultipartContent.Add(partContent, partContent.Headers.ContentDisposition.Name, partContent.Headers.ContentDisposition.FileName);
+                }
+                return newMultipartContent;
+            }
+            else
+            {
+                throw new NotSupportedException($"Unsupported content type: {content.GetType()}");
+            }
         }
 
         internal static readonly IAsyncPolicy<HttpResponseMessage> _retryPolicy = HttpPolicyExtensions
@@ -1505,7 +1508,6 @@ namespace Checkmarx.API.AST
 
         #endregion
 
-
         #region Configurations
 
         public void SetProjectConfig(Guid projectId, string key, object value)
@@ -1951,6 +1953,10 @@ namespace Checkmarx.API.AST
 
             return sastMetadata.IsIncremental && !sastMetadata.IsIncrementalCanceled;
         }
+
+        #endregion
+
+        #region Static Methods
 
         #endregion
     }
