@@ -63,12 +63,44 @@ namespace Checkmarx.API.AST
             // Clone request content (if any)
             if (request.Content != null)
             {
-                clone.Content = new StringContent(request.Content.ReadAsStringAsync().Result);
+                if (request.Content is StreamContent)
+                {
+                    clone.Content = new StreamContent(request.Content.ReadAsStreamAsync().Result);
+                }
+                else if (request.Content is StringContent)
+                {
+                    clone.Content = new StringContent(request.Content.ReadAsStringAsync().Result);
+                }
+                else if (request.Content is ByteArrayContent)
+                {
+                    clone.Content = new ByteArrayContent(request.Content.ReadAsByteArrayAsync().Result);
+                }
+                else if (request.Content is FormUrlEncodedContent)
+                {
+                    clone.Content = new FormUrlEncodedContent(request.Content.ReadAsStringAsync().Result.Split('&').Select(pair =>
+                    {
+                        var kv = pair.Split('=');
+                        return new KeyValuePair<string, string>(kv[0], kv.Length > 1 ? kv[1] : "");
+                    }));
+                }
+                else if (request.Content is MultipartFormDataContent)
+                {
+                    var multiPartContent = (MultipartFormDataContent)request.Content;
+                    var newMultipartContent = new MultipartFormDataContent();
+                    foreach (var content in multiPartContent)
+                    {
+                        newMultipartContent.Add(content, content.Headers.ContentDisposition.Name, content.Headers.ContentDisposition.FileName);
+                    }
+                    clone.Content = newMultipartContent;
+                }
+                else
+                {
+                    throw new NotSupportedException($"Unsupported content type: {request.Content.GetType()}");
+                }
+
                 clone.Content.Headers.Clear();
                 foreach (var header in request.Content.Headers)
-                {
                     clone.Content.Headers.Add(header.Key, header.Value);
-                }
             }
 
             // Clone the request headers
