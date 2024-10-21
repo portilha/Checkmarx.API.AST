@@ -82,6 +82,9 @@ namespace Checkmarx.API.AST
 
         private static HttpContent getHttpContentClone(HttpContent content)
         {
+            if (content == null)
+                throw new ArgumentNullException(nameof(content));
+
             if (content is StreamContent)
             {
                 return new StreamContent(content.ReadAsStreamAsync().Result);
