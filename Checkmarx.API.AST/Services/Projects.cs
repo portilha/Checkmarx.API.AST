@@ -1252,7 +1252,7 @@ namespace Checkmarx.API.AST.Services.Projects
         /// <summary>
         /// The groups authorized for this project
         /// </summary>
-        [Newtonsoft.Json.JsonProperty("groups", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("groups", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.Collections.Generic.ICollection<string> Groups { get; set; }
 
         /// <summary>

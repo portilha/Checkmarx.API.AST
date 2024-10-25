@@ -19,6 +19,7 @@ namespace Checkmarx.API.AST.Models
 
         public int? Total { get; set; }
 
+        public int? Critical { get; set; }
         public int? High { get; set; }
         public int? Medium { get; set; }
         public int? Low { get; set; }
@@ -32,6 +33,7 @@ namespace Checkmarx.API.AST.Models
         public int? Queries { get; set; }
         public ICollection<string> LanguagesDetected { get; set; }
 
+        public int? QueriesCritical { get; set; }
         public int? QueriesHigh { get; set; }
         public int? QueriesMedium { get; set; }
         public int? QueriesLow { get; set; }
@@ -40,6 +42,7 @@ namespace Checkmarx.API.AST.Models
         public int? PNEMarked { get; set; }
         public int? OtherStates { get; set; }
 
+        public int? CriticalToVerify { get; set; }
         public int? HighToVerify { get; set; }
         public int? MediumToVerify { get; set; }
         public int? LowToVerify { get; set; }

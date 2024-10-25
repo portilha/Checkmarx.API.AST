@@ -589,17 +589,20 @@ namespace Checkmarx.API.AST.Services.KicsResults
     public enum SeverityEnum
     {
 
+        [System.Runtime.Serialization.EnumMember(Value = @"CRITICAL")]
+        CRITICAL = 0,
+
         [System.Runtime.Serialization.EnumMember(Value = @"HIGH")]
-        HIGH = 0,
+        HIGH = 1,
 
         [System.Runtime.Serialization.EnumMember(Value = @"MEDIUM")]
-        MEDIUM = 1,
+        MEDIUM = 2,
 
         [System.Runtime.Serialization.EnumMember(Value = @"LOW")]
-        LOW = 2,
+        LOW = 3,
 
         [System.Runtime.Serialization.EnumMember(Value = @"INFO")]
-        INFO = 3,
+        INFO = 4,
 
     }
 
