@@ -1253,7 +1253,7 @@ namespace Checkmarx.API.AST.Services.Projects
         /// The groups authorized for this project
         /// </summary>
         [Newtonsoft.Json.JsonProperty("groups", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public System.Collections.Generic.ICollection<string> Groups { get; set; }
+        public System.Collections.Generic.ICollection<Guid> Groups { get; set; }
 
         /// <summary>
         /// The reprosentive repository URL
@@ -1321,7 +1321,7 @@ namespace Checkmarx.API.AST.Services.Projects
         /// The groups authorized for this project
         /// </summary>
         [Newtonsoft.Json.JsonProperty("groups", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public System.Collections.Generic.ICollection<string> Groups { get; set; }
+        public System.Collections.Generic.ICollection<Guid> Groups { get; set; }
 
         /// <summary>
         /// The reprosentive repository URL

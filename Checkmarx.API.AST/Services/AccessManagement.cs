@@ -22,6 +22,7 @@ namespace Checkmarx.API.AST.Services
 {
     using System = global::System;
     using static Checkmarx.API.AST.ASTClient;
+    using System;
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.1.0.0 (NJsonSchema v11.0.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class AccessManagement 
@@ -1586,7 +1587,7 @@ namespace Checkmarx.API.AST.Services
         /// <param name="ids">Filter by ids (comma separated)</param>
         /// <returns>Success</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Group>> GetGroupsAsync(double? limit, double? offset, string search, string ids)
+        public virtual System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Group>> GetGroupsAsync(double? limit = 50000, double? offset = 0, string search = null, string ids = null)
         {
             return GetGroupsAsync(limit, offset, search, ids, System.Threading.CancellationToken.None);
         }
@@ -5146,7 +5147,7 @@ namespace Checkmarx.API.AST.Services
     public partial class Group
     {
         [Newtonsoft.Json.JsonProperty("id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string Id { get; set; }
+        public Guid Id { get; set; }
 
         [Newtonsoft.Json.JsonProperty("name", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Name { get; set; }

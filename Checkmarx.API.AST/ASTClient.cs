@@ -1957,6 +1957,20 @@ namespace Checkmarx.API.AST
             return sastMetadata.IsIncremental && !sastMetadata.IsIncrementalCanceled;
         }
 
+
+        private IDictionary<Guid, Group> _groups = null;
+        public IDictionary<Guid,Group> Groups { 
+            get 
+            {
+                if (_groups == null)
+                {
+                    _groups = AccessManagement.GetGroupsAsync().Result.ToDictionary(x => x.Id); 
+                }
+
+                return _groups;
+            } 
+        }
+
         #endregion
 
         #region Static Methods
