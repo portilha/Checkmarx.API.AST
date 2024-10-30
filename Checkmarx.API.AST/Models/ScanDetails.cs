@@ -48,7 +48,7 @@ namespace Checkmarx.API.AST.Models
 
         public Guid Id => _scan.Id;
         public Status Status => _scan.Status;
-        public bool Successful => Status ==  Status.Completed || Status == Status.Partial;
+        public bool Successful => Status == Status.Completed || Status == Status.Partial;
         public string InitiatorName => _scan.Initiator;
         public string Branch => _scan.Branch;
         public string SourceType => _scan.SourceType;
@@ -71,10 +71,10 @@ namespace Checkmarx.API.AST.Models
 
                 return preset;
             }
-            private set { preset=value; }
+            private set { preset = value; }
         }
 
-   
+
 
         private long? loC = null;
 
@@ -91,7 +91,7 @@ namespace Checkmarx.API.AST.Models
                 }
                 return loC.Value;
             }
-            private set => loC=value;
+            private set => loC = value;
         }
 
         private string _languages;
@@ -145,7 +145,7 @@ namespace Checkmarx.API.AST.Models
                 {
                     var sast = _scan.StatusDetails?.SingleOrDefault(x => x.Name == ASTClient.SAST_Engine);
                     if (sast != null)
-                        loC = sast.Loc;            
+                        loC = sast.Loc;
                 }
 
                 if (string.IsNullOrWhiteSpace(preset))
@@ -233,11 +233,13 @@ namespace Checkmarx.API.AST.Models
 
             model.Id = scanId;
             model.Total = results.Count();
+            model.Critical = results.Where(x => x.Severity == ResultsSeverity.CRITICAL).Count();
             model.High = results.Where(x => x.Severity == ResultsSeverity.HIGH).Count();
             model.Medium = results.Where(x => x.Severity == ResultsSeverity.MEDIUM).Count();
             model.Low = results.Where(x => x.Severity == ResultsSeverity.LOW).Count();
             model.Info = results.Where(x => x.Severity == ResultsSeverity.INFO).Count();
 
+            model.CriticalToVerify = sastResults.Where(x => x.Severity == ResultsSeverity.CRITICAL && x.State == ResultsState.TO_VERIFY).Count();
             model.HighToVerify = sastResults.Where(x => x.Severity == ResultsSeverity.HIGH && x.State == ResultsState.TO_VERIFY).Count();
             model.MediumToVerify = sastResults.Where(x => x.Severity == ResultsSeverity.MEDIUM && x.State == ResultsState.TO_VERIFY).Count();
             model.LowToVerify = sastResults.Where(x => x.Severity == ResultsSeverity.LOW && x.State == ResultsState.TO_VERIFY).Count();
@@ -257,21 +259,25 @@ namespace Checkmarx.API.AST.Models
             try
             {
                 // Scan query categories
+                var scanResultsCritical = results.Where(x => x.Severity == ResultsSeverity.CRITICAL);
                 var scanResultsHigh = results.Where(x => x.Severity == ResultsSeverity.HIGH);
                 var scanResultsMedium = results.Where(x => x.Severity == ResultsSeverity.MEDIUM);
                 var scanResultsLow = results.Where(x => x.Severity == ResultsSeverity.LOW);
 
+                var scanQueriesCritical = scanResultsCritical.Select(x => x.QueryID).Distinct().ToList();
                 var scanQueriesHigh = scanResultsHigh.Select(x => x.QueryID).Distinct().ToList();
                 var scanQueriesMedium = scanResultsMedium.Select(x => x.QueryID).Distinct().ToList();
                 var scanQueriesLow = scanResultsLow.Select(x => x.QueryID).Distinct().ToList();
 
+                model.QueriesCritical = scanQueriesCritical.Count();
                 model.QueriesHigh = scanQueriesHigh.Count();
                 model.QueriesMedium = scanQueriesMedium.Count();
                 model.QueriesLow = scanQueriesLow.Count();
-                model.Queries = model.QueriesHigh + model.QueriesMedium + model.QueriesLow;
+                model.Queries = model.QueriesCritical + model.QueriesHigh + model.QueriesMedium + model.QueriesLow;
             }
             catch
             {
+                model.QueriesCritical = null;
                 model.QueriesHigh = null;
                 model.QueriesMedium = null;
                 model.QueriesLow = null;
@@ -345,6 +351,7 @@ namespace Checkmarx.API.AST.Models
                 {
                     if (resultOverview.scaCounters.severityCounters != null && resultOverview.scaCounters.severityCounters.Any())
                     {
+                        model.Critical = resultOverview.scaCounters.severityCounters.Where(x => x.Severity.ToUpper() == "CRITICAL").Sum(x => x.Counter);
                         model.High = resultOverview.scaCounters.severityCounters.Where(x => x.Severity.ToUpper() == "HIGH").Sum(x => x.Counter);
                         model.Medium = resultOverview.scaCounters.severityCounters.Where(x => x.Severity.ToUpper() == "MEDIUM").Sum(x => x.Counter);
                         model.Low = resultOverview.scaCounters.severityCounters.Where(x => x.Severity.ToUpper() == "LOW").Sum(x => x.Counter);
@@ -352,6 +359,7 @@ namespace Checkmarx.API.AST.Models
                     }
                     else
                     {
+                        model.Critical = 0;
                         model.High = 0;
                         model.Medium = 0;
                         model.Low = 0;
@@ -378,6 +386,7 @@ namespace Checkmarx.API.AST.Models
             var scaCounters = resultsSummary.ScaCounters;
 
             model.Id = new Guid(resultsSummary.ScanId);
+            model.Critical = scaCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.CRITICAL).Sum(x => x.Counter);
             model.High = scaCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.HIGH).Sum(x => x.Counter);
             model.Medium = scaCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.MEDIUM).Sum(x => x.Counter);
             model.Low = scaCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.LOW).Sum(x => x.Counter);
@@ -441,6 +450,7 @@ namespace Checkmarx.API.AST.Models
 
             model.Id = scanId;
             model.Total = results.Count();
+            model.Critical = results.Where(x => x.Severity == Services.KicsResults.SeverityEnum.CRITICAL).Count();
             model.High = results.Where(x => x.Severity == Services.KicsResults.SeverityEnum.HIGH).Count();
             model.Medium = results.Where(x => x.Severity == Services.KicsResults.SeverityEnum.MEDIUM).Count();
             model.Low = results.Where(x => x.Severity == Services.KicsResults.SeverityEnum.LOW).Count();
@@ -458,6 +468,7 @@ namespace Checkmarx.API.AST.Models
             var kicsCounters = resultsSummary.KicsCounters;
 
             model.Id = new Guid(resultsSummary.ScanId);
+            model.Critical = kicsCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.CRITICAL).Sum(x => x.Counter);
             model.High = kicsCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.HIGH).Sum(x => x.Counter);
             model.Medium = kicsCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.MEDIUM).Sum(x => x.Counter);
             model.Low = kicsCounters.SeverityCounters.Where(x => x.Severity == Services.ResultsSummary.SeverityEnum.LOW).Sum(x => x.Counter);
