@@ -1732,7 +1732,7 @@ namespace Checkmarx.API.AST.Services
         /// <param name="search">Search by user name, firstname, lastname or email</param>
         /// <returns>Success</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<System.Collections.Generic.ICollection<User>> GetUsersAsync(double? limit, double? offset, double? search)
+        public virtual System.Threading.Tasks.Task<System.Collections.Generic.ICollection<User>> GetUsersAsync(double? limit = 50000, double? offset = 0, double? search = null)
         {
             return GetUsersAsync(limit, offset, search, System.Threading.CancellationToken.None);
         }
@@ -5167,7 +5167,7 @@ namespace Checkmarx.API.AST.Services
     public partial class User
     {
         [Newtonsoft.Json.JsonProperty("id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string Id { get; set; }
+        public Guid Id { get; set; }
 
         [Newtonsoft.Json.JsonProperty("username", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Username { get; set; }

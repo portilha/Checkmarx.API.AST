@@ -1971,6 +1971,20 @@ namespace Checkmarx.API.AST
             } 
         }
 
+        private IDictionary<Guid, User> _users = null;
+        public IDictionary<Guid, User> Users
+        {
+            get
+            {
+                if (_users == null)
+                {
+                    _users = AccessManagement.GetUsersAsync().Result.ToDictionary(x => x.Id);
+                }
+
+                return _users;
+            }
+        }
+
         #endregion
 
         #region Static Methods
