@@ -143,6 +143,18 @@ namespace Checkmarx.API.AST
 
         #region Services
 
+        private GraphQLClient _graphql;
+        public GraphQLClient GraphQLClient
+        {
+            get
+            {
+                if (Connected && _graphql == null)
+                    _graphql = new GraphQLClient($"{ASTServer.AbsoluteUri}api/sca/graphql/graphql", _httpClient);
+
+                return _graphql;
+            }
+        }
+
         private Projects _projects;
         public Projects Projects
         {
@@ -1821,6 +1833,39 @@ namespace Checkmarx.API.AST
         public void DeleteProjectQuery(Guid projectId, string queryPath)
         {
             SASTQuery.DeleteProjectQuery(projectId, queryPath);
+        }
+
+        #endregion
+
+        #region GrphQL
+
+        public SCALegalRisks GetSCAScanLegalRisk(Guid scanId)
+        {
+            if (scanId == Guid.Empty)
+                throw new ArgumentNullException(nameof(scanId));
+
+            var query = @"
+                        query ($scanId: UUID!, $where: LegalRiskModelFilterInput) {
+                            legalRisksByScanId(scanId: $scanId, where: $where) {
+                                totalCount
+                                risksLevelCounts {
+                                    critical
+                                    high
+                                    medium
+                                    low
+                                    none
+                                    empty
+                                }
+                            }
+                        }";
+
+            // Define variables for the query
+            var variables = new
+            {
+                scanId = scanId
+            };
+
+            return GraphQLClient.GetSCAScanLegalRisks(query, variables);
         }
 
         #endregion
