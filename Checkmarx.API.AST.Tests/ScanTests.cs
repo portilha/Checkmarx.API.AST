@@ -52,6 +52,16 @@ namespace Checkmarx.API.AST.Tests
         }
 
         [TestMethod]
+        public void GetScanLegalRiskTest()
+        {
+            Guid scanId = new Guid("261d7043-8f2c-4e77-bfa4-b37dad7c19ce");
+
+            var legalRisk = astclient.GetSCAScanLegalRisk(scanId);
+
+            Trace.WriteLine($"Scan Legal Risk: {legalRisk.Data.LegalRisksByScanId?.TotalCount}");
+        }
+
+        [TestMethod]
         public void GetScanResultsCompareTest()
         {
             Guid baseScanId = new Guid("5431ed22-8456-463f-8da6-3ddedf1ec34b");
