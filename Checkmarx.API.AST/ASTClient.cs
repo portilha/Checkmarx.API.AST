@@ -1748,20 +1748,6 @@ namespace Checkmarx.API.AST
 
         #region Queries and Presets
 
-        public List<string> GetTenantPresets()
-        {
-            var configuration = GetTenantConfigurations();
-            if (configuration.ContainsKey(SettingsProjectPreset))
-            {
-                var config = configuration[SettingsProjectPreset];
-
-                if (config != null && !string.IsNullOrWhiteSpace(config.ValueTypeParams))
-                    return config.ValueTypeParams.Split(',').Select(x => x.Trim()).ToList();
-            }
-
-            return null;
-        }
-
         public IEnumerable<PresetDetails> GetAllPresetsDetails()
         {
             foreach (var preset in GetAllPresets())

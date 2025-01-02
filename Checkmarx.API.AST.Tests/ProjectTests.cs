@@ -58,7 +58,10 @@ namespace Checkmarx.API.AST.Tests
         [TestMethod]
         public void GetPresetsTest()
         {
-            var presets = astclient.GetTenantPresets();
+            var presets = astclient.GetAllPresets();
+
+            foreach (var preset in presets)
+                Trace.WriteLine(preset.Name);
         }
 
         [TestMethod]
