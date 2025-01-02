@@ -411,8 +411,8 @@ namespace Checkmarx.API.AST.Services
             [Newtonsoft.Json.JsonProperty("lang", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
             public string Lang { get; set; } = default!;
 
-            [Newtonsoft.Json.JsonProperty("path", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-            public string Path { get; set; } = default!;
+            [Newtonsoft.Json.JsonProperty("severity", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+            public string Severity { get; set; }
 
             [Newtonsoft.Json.JsonProperty("isExecutable", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
             public bool IsExecutable { get; set; } = default!;
@@ -428,6 +428,8 @@ namespace Checkmarx.API.AST.Services
                 get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
                 set { _additionalProperties = value; }
             }
+
+            public string Path => $"queries/{Lang}/{Group}/{Name}.cs";
 
             public string ToJson()
             {
